@@ -1,0 +1,22 @@
+services:
+  - type: web
+    name: acropolis-school-management
+    runtime: node
+    plan: starter
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        fromDatabase:
+          name: acropolis-school-db
+          property: connectionString
+      - key: SESSION_SECRET
+        generateValue: true
+      - key: PGSSL
+        value: "false"
+databases:
+  - name: acropolis-school-db
+    plan: starter
