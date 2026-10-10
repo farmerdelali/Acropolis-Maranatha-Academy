@@ -40,7 +40,12 @@ async function initDb() { const sql = fs.readFileSync(path.join(__dirname, 'db',
 app.get('/api/health', asyncRoute(async (_req, res) => { await q('SELECT 1'); res.json({ ok: true, service: 'Acropolis School Management API' }); }));
 app.get('/api/session', (req, res) => res.json({ user: req.session.user || null }));
 app.post('/api/register', authLimit, asyncRoute(async (req, res) => {
-  const { schoolName, username, password, motto } = req.body || {};
+  const { schoolName, username, password, motto, termsAccepted } = req.body || {};
+  if (termsAccepted !== true) {
+  return res.status(400).json({
+    error: 'Please agree to the Terms of Use and Privacy Notice before registering.'
+  });
+  }
   if (!validText(schoolName, 120) || !validText(username, 60) || username.trim().length < 3 || typeof password !== 'string' || password.length < 10 || password.length > 200) return res.status(400).json({ error: 'Enter a school name, username (at least 3 characters), and password (at least 10 characters).' });
   const client = await pool.connect();
   try {
