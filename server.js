@@ -68,16 +68,39 @@ app.post('/api/login', authLimit, asyncRoute(async (req, res) => {
   req.session.regenerate(err => { if (err) return res.status(500).json({ error: 'Unable to start a secure session. Please try again.' }); req.session.user = { id: u.id, username: u.username, role: u.role, schoolId: u.school_id, schoolName: u.school_name, motto: u.motto }; req.session.save(e => e ? res.status(500).json({ error: 'Unable to save your session.' }) : res.json({ user: req.session.user })); });
 }));
 app.post('/api/logout', (req, res) => req.session.destroy(() => { res.clearCookie('ama.sid'); res.json({ ok: true }); }));
+
 app.get('/api/bootstrap', requireAuth, asyncRoute(async (req, res) => {
   const sid = schoolId(req);
-  const [students, payments, marks, users] = await Promise.all([
+
+  const [students, payments, marks, users, school] = await Promise.all([
     q('SELECT s.*, COALESCE((SELECT SUM(p.amount) FROM payments p WHERE p.student_id=s.id AND p.school_id=s.school_id),0) AS paid FROM students s WHERE s.school_id=$1 ORDER BY s.created_at DESC', [sid]),
+
     q('SELECT p.*,s.full_name AS student_name,s.student_code,u.username AS recorded_by_name FROM payments p JOIN students s ON s.id=p.student_id LEFT JOIN users u ON u.id=p.recorded_by WHERE p.school_id=$1 ORDER BY p.paid_at DESC LIMIT 1000', [sid]),
+
     q('SELECT m.*,s.full_name AS student_name,s.student_code,s.class_name FROM marks m JOIN students s ON s.id=m.student_id WHERE m.school_id=$1 ORDER BY m.created_at DESC', [sid]),
-    req.session.user.role === 'ADMIN' ? q('SELECT id,username,role,created_at FROM users WHERE school_id=$1 ORDER BY created_at', [sid]) : Promise.resolve({ rows: [] })
+
+    req.session.user.role === 'ADMIN'
+      ? q('SELECT id,username,role,created_at FROM users WHERE school_id=$1 ORDER BY created_at', [sid])
+      : Promise.resolve({ rows: [] }),
+
+    q('SELECT name,motto,academic_year AS "academicYear",current_term AS "currentTerm" FROM schools WHERE id=$1', [sid])
   ]);
-  res.json({ students: students.rows, payments: payments.rows, marks: marks.rows, users: users.rows, school: { name: req.session.user.schoolName, motto: req.session.user.motto }, session: req.session.user });
+
+  res.json({
+    students: students.rows,
+    payments: payments.rows,
+    marks: marks.rows,
+    users: users.rows,
+    school: school.rows[0] || {
+      name: req.session.user.schoolName,
+      motto: req.session.user.motto,
+      academicYear: '',
+      currentTerm: 'Term 1'
+    },
+    session: req.session.user
+  });
 }));
+
 app.post('/api/students', requireAuth, asyncRoute(async (req,res)=>{
   if (!['ADMIN','TEACHER'].includes(req.session.user.role)) return res.status(403).json({error:'Only administrators and teachers can manage students.'});
   const b=req.body||{}; if(!validText(b.fullName,120)||!validText(b.className,60)) return res.status(400).json({error:'Student name and class are required.'});
