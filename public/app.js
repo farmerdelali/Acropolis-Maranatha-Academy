@@ -241,7 +241,13 @@ document.addEventListener('submit', async e => {
     }
   }
 });
+document.addEventListener('click', e => {
+  const tab = e.target.closest('[data-auth-tab]');
 
+  if (tab) {
+    setAuthTab(tab.dataset.authTab);
+  }
+});
 document.addEventListener('input',e=>{if(e.target.id==='studentSearch'){state.search=e.target.value;const pos=e.target.selectionStart;render();const input=$('#studentSearch');input.focus();input.setSelectionRange(pos,pos);}});
 document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeDrawer();$('#modalHost').innerHTML='';}});
 $('#drawerBackdrop').addEventListener('click',closeDrawer);
