@@ -71,15 +71,20 @@ if(state.view==='Dashboard'){
      </label>
      <label class="field">
        Academic year
-       <input name="academicYear" required maxlength="30"
-         placeholder="e.g. 2026/2027">
+       
+<input name="academicYear" required maxlength="30"
+  value="${esc(school.academicYear||'')}"
+  placeholder="e.g. 2026/2027">
+  
      </label>
      <label class="field">
        Current term
        <select name="currentTerm" required>
-         <option value="Term 1">Term 1</option>
-         <option value="Term 2">Term 2</option>
-         <option value="Term 3">Term 3</option>
+         
+<option value="Term 1" ${school.currentTerm==='Term 1'?'selected':''}>Term 1</option>
+<option value="Term 2" ${school.currentTerm==='Term 2'?'selected':''}>Term 2</option>
+<option value="Term 3" ${school.currentTerm==='Term 3'?'selected':''}>Term 3</option>
+
        </select>
      </label>
      <div class="form-actions">
