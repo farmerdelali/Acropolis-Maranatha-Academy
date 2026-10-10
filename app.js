@@ -69,8 +69,17 @@ document.addEventListener('click',async e=>{const b=e.target.closest('button');i
  if(b.id==='logoutBtn'){await api('/api/logout',{method:'POST',body:JSON.stringify({})});showAuth();toast('You have signed out.');return;}
  }catch(err){toast(err.message||'Something went wrong.',true);}});
 document.addEventListener('submit',async e=>{const form=e.target;if(!['registerForm','loginForm','studentForm','paymentForm','markForm','userForm'].includes(form.id))return;e.preventDefault();const fd=new FormData(form),v=Object.fromEntries(fd.entries());const submit=form.querySelector('button[type="submit"]');if(submit){submit.disabled=true;submit.textContent='Please wait…';}try{
- if(form.id==='registerForm'){if(v.password!==v.confirmPassword)throw new Error('Passwords do not match.');delete v.confirmPassword;const r=await api('/api/register',{method:'POST',body:JSON.stringify(v)});state.view='Dashboard';showApp(r.user);toast('School workspace created successfully.');}
- else if(form.id==='loginForm'){const r=await api('/api/login',{method:'POST',body:JSON.stringify(v)});state.view='Dashboard';showApp(r.user);toast('Welcome back.');}
+ if(form.id==='registerForm'){
+  if(v.password!==v.confirmPassword)throw new Error('Passwords do not match.');
+  if(!v.termsAccepted)throw new Error('Please agree to the Terms of Use and Privacy Notice.');
+  delete v.confirmPassword;
+  v.termsAccepted = true;
+  const r=await api('/api/register',{method:'POST',body:JSON.stringify(v)});
+  state.view='Dashboard';
+  showApp(r.user);
+  toast('School workspace created successfully.');
+}
+else if(form.id==='loginForm'){const r=await api('/api/login',{method:'POST',body:JSON.stringify(v)});state.view='Dashboard';showApp(r.user);toast('Welcome back.');}
  else if(form.id==='studentForm'){const id=form.dataset.id;if(id)await api(`/api/students/${encodeURIComponent(id)}`,{method:'PUT',body:JSON.stringify(v)});else await api('/api/students',{method:'POST',body:JSON.stringify(v)});$('#modalHost').innerHTML='';await refresh();toast(id?'Student updated.':'Student registered.');}
  else if(form.id==='paymentForm'){await api('/api/payments',{method:'POST',body:JSON.stringify(v)});$('#modalHost').innerHTML='';await refresh();toast('Payment recorded and receipt created.');}
  else if(form.id==='markForm'){await api('/api/marks',{method:'POST',body:JSON.stringify(v)});$('#modalHost').innerHTML='';await refresh();toast('Examination mark saved.');}
