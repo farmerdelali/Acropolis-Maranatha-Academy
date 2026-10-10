@@ -263,11 +263,133 @@ document.addEventListener('submit', async e => {
     }
   }
 });
-document.addEventListener('click', e => {
-  const tab = e.target.closest('[data-auth-tab]');
+document.addEventListener('click', async e => {
+  const button = e.target.closest('button');
+  if (!button) return;
 
+  // Login and registration tabs
+  const tab = button.closest('[data-auth-tab]');
   if (tab) {
     setAuthTab(tab.dataset.authTab);
+    return;
+  }
+
+  // Dashboard navigation
+  if (button.dataset.view) {
+    state.view = button.dataset.view;
+    state.search = '';
+    render();
+    closeDrawer();
+
+    document.querySelectorAll('[data-view]').forEach(item => {
+      item.classList.toggle(
+        'active',
+        item.dataset.view === state.view
+      );
+    });
+    return;
+  }
+
+  const action = button.dataset.action;
+  if (!action) return;
+
+  try {
+    switch (action) {
+      case 'add-student':
+        studentForm();
+        break;
+
+      case 'edit-student': {
+        const student = state.data.students.find(
+          s => String(s.id) === String(button.dataset.id)
+        );
+        if (student) studentForm(student);
+        break;
+      }
+
+      case 'archive-student':
+        if (confirm('Archive this student record?')) {
+          await api('/api/students/' + button.dataset.id, {
+            method: 'DELETE'
+          });
+          await refresh();
+          toast('Student archived successfully.');
+        }
+        break;
+
+      case 'add-payment':
+        paymentForm();
+        break;
+
+      case 'add-mark':
+        markForm();
+        break;
+
+      case 'add-user':
+        userForm();
+        break;
+
+      case 'delete-user':
+        if (confirm('Remove staff account ' + button.dataset.username + '?')) {
+          await api('/api/users/' + button.dataset.id, {
+            method: 'DELETE'
+          });
+          await refresh();
+          toast('Staff account removed.');
+        }
+        break;
+
+      case 'close-modal':
+        $('#modalHost').innerHTML = '';
+        break;
+
+      case 'clear-search':
+        state.search = '';
+        render();
+        break;
+
+      case 'export':
+        await download('/api/export', 'acropolis-school-backup.json');
+        toast('Backup exported successfully.');
+        break;
+
+      case 'csv': {
+        const rows = [
+          ['Student ID', 'Full name', 'Class', 'Guardian', 'Phone', 'Total fees', 'Paid'],
+          ...state.data.students
+            .filter(s => !s.archived)
+            .map(s => [
+              s.student_code,
+              s.full_name,
+              s.class_name,
+              s.guardian_name || '',
+              s.guardian_phone || '',
+              s.total_fees,
+              s.paid
+            ])
+        ];
+
+        const csv = rows.map(row =>
+          row.map(value =>
+            '"' + String(value ?? '').replace(/"/g, '""') + '"'
+          ).join(',')
+        ).join('\r\n');
+
+        const blob = new Blob([csv], {
+          type: 'text/csv;charset=utf-8;'
+        });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = 'acropolis-students.csv';
+        link.click();
+        URL.revokeObjectURL(url);
+        toast('Student CSV exported.');
+        break;
+      }
+    }
+  } catch (error) {
+    toast(error.message || 'The action failed. Please try again.', true);
   }
 });
 document.addEventListener('input',e=>{if(e.target.id==='studentSearch'){state.search=e.target.value;const pos=e.target.selectionStart;render();const input=$('#studentSearch');input.focus();input.setSelectionRange(pos,pos);}});
