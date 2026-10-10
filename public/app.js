@@ -395,4 +395,11 @@ document.addEventListener('click', async e => {
 document.addEventListener('input',e=>{if(e.target.id==='studentSearch'){state.search=e.target.value;const pos=e.target.selectionStart;render();const input=$('#studentSearch');input.focus();input.setSelectionRange(pos,pos);}});
 document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeDrawer();$('#modalHost').innerHTML='';}});
 $('#drawerBackdrop').addEventListener('click',closeDrawer);
+$('#menuToggle').addEventListener('click', () => {
+  if (state.drawer) {
+    closeDrawer();
+  } else {
+    openDrawer();
+  }
+});
 (async function init(){try{const r=await api('/api/session');if(r.user){state.view='Dashboard';showApp(r.user);}else showAuth();}catch{showAuth();}})();
