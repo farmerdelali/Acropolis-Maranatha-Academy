@@ -101,41 +101,142 @@ function userForm(){openModal('Create staff account',`<form id="userForm"><label
 async function refresh(){await loadData();}
 async function download(url,filename){const r=await fetch(url,{credentials:'same-origin'});if(!r.ok){let b={};try{b=await r.json()}catch{}throw new Error(b.error||'Download failed');}const blob=await r.blob(),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=filename;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),1500);}
 
-document.addEventListener('click',async e=>{const b=e.target.closest('button');if(!b)return;try{
- if(b.dataset.authTab){setAuthTab(b.dataset.authTab);return;}
- if(b.id==='menuToggle'){state.drawer?closeDrawer():openDrawer();return;}if(b.id==='drawerBackdrop'){closeDrawer();return;}
- if(b.dataset.view){state.view=b.dataset.view;state.search='';$('#navItems').querySelectorAll('.nav-item').forEach(n=>n.classList.toggle('active',n.dataset.view===state.view));closeDrawer();render();return;}
- const a=b.dataset.action;if(a==='close-modal'){if(b.closest('#modalBack'))$('#modalHost').innerHTML='';return;}if(a==='add-student'){studentForm();return;}if(a==='edit-student'){const s=state.data.students.find(x=>String(x.id)===b.dataset.id);if(s)studentForm(s);return;}if(a==='add-payment'){paymentForm();return;}if(a==='add-mark'){markForm();return;}if(a==='add-user'){userForm();return;}if(a==='clear-search'){state.search='';render();return;}
- if(a==='archive-student'){if(confirm('Archive this student? The record will be retained for school history.')){await api(`/api/students/${encodeURIComponent(b.dataset.id)}`,{method:'DELETE'});await refresh();toast('Student archived.');}return;}
- if(a==='delete-user'){if(confirm(`Remove user ${b.dataset.username}?`)){await api(`/api/users/${encodeURIComponent(b.dataset.id)}`,{method:'DELETE'});await refresh();toast('User removed.');}return;}
- if(a==='export'){await download('/api/export','acropolis-school-backup.json');toast('Backup downloaded.');return;}
- if(a==='csv'){const rows=[['student_code','full_name','class_name','gender','guardian_name','guardian_phone','total_fees','paid'],...state.data.students.filter(s=>!s.archived).map(s=>[s.student_code,s.full_name,s.class_name,s.gender,s.guardian_name,s.guardian_phone,s.total_fees,s.paid])];const csv=rows.map(r=>r.map(v=>'"'+String(v??'').replace(/"/g,'""')+'"').join(',')).join('\r\n');const link=document.createElement('a');link.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));link.download='acropolis-students.csv';link.click();URL.revokeObjectURL(link.href);return;}
- if(b.id==='logoutBtn'){await api('/api/logout',{method:'POST',body:JSON.stringify({})});showAuth();toast('You have signed out.');return;}
- }catch(err){toast(err.message||'Something went wrong.',true);}});
-document.addEventListener('submit',async e=>{const form=e.target;if(!['registerForm','loginForm','studentForm','paymentForm','markForm','userForm'].includes(form.id))return;e.preventDefault();const fd=new FormData(form),v=Object.fromEntries(fd.entries());const submit=form.querySelector('button[type="submit"]');if(submit){submit.disabled=true;submit.textContent='Please wait…';}try{
- if(form.id==='registerForm'){
-  if(v.password!==v.confirmPassword)throw new Error('Passwords do not match.');
-  if(!v.termsAccepted)throw new Error('Please agree to the Terms of Use and Privacy Notice.');
-  delete v.confirmPassword;
-  const r=await api('/api/register',{method:'POST',body:JSON.stringify(v)});
-  state.view='Dashboard';
-  showApp(r.user);
-  toast('School workspace created successfully.');
- }
-  if(v.password!==v.confirmPassword)throw new Error('Passwords do not match.');
-  if(!v.termsAccepted)throw new Error('Please agree to the Terms of Use and Privacy Notice.');
-  delete v.confirmPassword;
-  const r=await api('/api/register',{method:'POST',body:JSON.stringify(v)});
-  state.view='Dashboard';
-  showApp(r.user);
-  toast('School workspace created successfully.');
- }
- else if(form.id==='loginForm'){const r=await api('/api/login',{method:'POST',body:JSON.stringify(v)});state.view='Dashboard';showApp(r.user);toast('Welcome back.');}
- else if(form.id==='studentForm'){const id=form.dataset.id;if(id)await api(`/api/students/${encodeURIComponent(id)}`,{method:'PUT',body:JSON.stringify(v)});else await api('/api/students',{method:'POST',body:JSON.stringify(v)});$('#modalHost').innerHTML='';await refresh();toast(id?'Student updated.':'Student registered.');}
- else if(form.id==='paymentForm'){await api('/api/payments',{method:'POST',body:JSON.stringify(v)});$('#modalHost').innerHTML='';await refresh();toast('Payment recorded and receipt created.');}
- else if(form.id==='markForm'){await api('/api/marks',{method:'POST',body:JSON.stringify(v)});$('#modalHost').innerHTML='';await refresh();toast('Examination mark saved.');}
- else if(form.id==='userForm'){await api('/api/users',{method:'POST',body:JSON.stringify(v)});$('#modalHost').innerHTML='';await refresh();toast('Staff account created.');}
- }catch(err){const target=form.id==='registerForm'?'#registerError':form.id==='loginForm'?'#loginError':null;if(target)$(target).textContent=err.message;else toast(err.message||'Unable to save this record.',true);}finally{if(submit){submit.disabled=false;submit.textContent=form.id==='registerForm'?'Create school & administrator →':form.id==='loginForm'?'Sign in securely →':form.id==='studentForm'?'Save student':form.id==='paymentForm'?'Save payment':form.id==='markForm'?'Save mark':'Create account';}}});
+document.addEventListener('submit', async e => {
+  const form = e.target;
+
+  const allowedForms = [
+    'registerForm',
+    'loginForm',
+    'studentForm',
+    'paymentForm',
+    'markForm',
+    'userForm',
+    'settingsForm'
+  ];
+
+  if (!allowedForms.includes(form.id)) return;
+  e.preventDefault();
+
+  const fd = new FormData(form);
+  const v = Object.fromEntries(fd.entries());
+  const submit = form.querySelector('button[type="submit"]');
+
+  if (submit) {
+    submit.disabled = true;
+    submit.textContent = 'Please wait…';
+  }
+
+  try {
+    if (form.id === 'registerForm') {
+      if (v.password !== v.confirmPassword) {
+        throw new Error('Passwords do not match.');
+      }
+
+      if (!v.termsAccepted) {
+        throw new Error('Please agree to the Terms of Use and Privacy Notice.');
+      }
+
+      delete v.confirmPassword;
+      v.termsAccepted = true;
+
+      const r = await api('/api/register', {
+        method: 'POST',
+        body: JSON.stringify(v)
+      });
+
+      state.view = 'Dashboard';
+      showApp(r.user);
+      toast('School workspace created successfully.');
+    } else if (form.id === 'loginForm') {
+      const r = await api('/api/login', {
+        method: 'POST',
+        body: JSON.stringify(v)
+      });
+
+      state.view = 'Dashboard';
+      showApp(r.user);
+      toast('Welcome back.');
+    } else if (form.id === 'studentForm') {
+      await api('/api/students', {
+        method: 'POST',
+        body: JSON.stringify(v)
+      });
+
+      await refresh();
+      state.view = 'Students';
+      render();
+      toast('Student saved successfully.');
+    } else if (form.id === 'paymentForm') {
+      await api('/api/payments', {
+        method: 'POST',
+        body: JSON.stringify(v)
+      });
+
+      await refresh();
+      state.view = 'Fees & Payments';
+      render();
+      toast('Payment recorded successfully.');
+    } else if (form.id === 'markForm') {
+      await api('/api/marks', {
+        method: 'POST',
+        body: JSON.stringify(v)
+      });
+
+      await refresh();
+      state.view = 'Marks';
+      render();
+      toast('Mark saved successfully.');
+    } else if (form.id === 'userForm') {
+      await api('/api/users', {
+        method: 'POST',
+        body: JSON.stringify(v)
+      });
+
+      await refresh();
+      state.view = 'Users';
+      render();
+      toast('Staff account created successfully.');
+    } else if (form.id === 'settingsForm') {
+      const r = await api('/api/settings', {
+        method: 'PUT',
+        body: JSON.stringify(v)
+      });
+
+      if (state.data.school) {
+        Object.assign(state.data.school, r.settings);
+      }
+
+      if (state.user) {
+        state.user.schoolName = r.settings.name;
+        state.user.motto = r.settings.motto;
+      }
+
+      await refresh();
+      state.view = 'Settings';
+      render();
+      toast('School settings saved successfully.');
+    }
+  } catch (err) {
+    toast(err.message || 'Something went wrong. Please try again.', true);
+  } finally {
+    if (submit) {
+      submit.disabled = false;
+
+      const labels = {
+        registerForm: 'Create school & administrator →',
+        loginForm: 'Sign in securely →',
+        studentForm: 'Save student',
+        paymentForm: 'Save payment',
+        markForm: 'Save mark',
+        userForm: 'Create account',
+        settingsForm: 'Save settings'
+      };
+
+      submit.textContent = labels[form.id] || 'Save';
+    }
+  }
+});
+
 document.addEventListener('input',e=>{if(e.target.id==='studentSearch'){state.search=e.target.value;const pos=e.target.selectionStart;render();const input=$('#studentSearch');input.focus();input.setSelectionRange(pos,pos);}});
 document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeDrawer();$('#modalHost').innerHTML='';}});
 $('#drawerBackdrop').addEventListener('click',closeDrawer);
