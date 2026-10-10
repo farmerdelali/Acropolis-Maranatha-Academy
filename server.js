@@ -101,6 +101,48 @@ app.get('/api/bootstrap', requireAuth, asyncRoute(async (req, res) => {
   });
 }));
 
+app.put('/api/settings', requireRole('ADMIN'), asyncRoute(async (req, res) => {
+  const b = req.body || {};
+
+  if (
+    !validText(b.schoolName, 120) ||
+    !validText(b.motto, 200) ||
+    !validText(b.academicYear, 30) ||
+    !['Term 1', 'Term 2', 'Term 3'].includes(b.currentTerm)
+  ) {
+    return res.status(400).json({
+      error: 'Enter a school name, motto, academic year, and valid term.'
+    });
+  }
+
+  const r = await q(
+    `UPDATE schools
+     SET name=$1, motto=$2, academic_year=$3, current_term=$4
+     WHERE id=$5
+     RETURNING name, motto,
+       academic_year AS "academicYear",
+       current_term AS "currentTerm"`,
+    [
+      b.schoolName.trim(),
+      b.motto.trim(),
+      b.academicYear.trim(),
+      b.currentTerm,
+      schoolId(req)
+    ]
+  );
+
+  if (!r.rowCount) {
+    return res.status(404).json({ error: 'School not found.' });
+  }
+
+  req.session.user.schoolName = r.rows[0].name;
+  req.session.user.motto = r.rows[0].motto;
+
+  await audit(req, 'school_settings_updated', 'school', schoolId(req));
+
+  res.json({ settings: r.rows[0] });
+}));
+
 app.post('/api/students', requireAuth, asyncRoute(async (req,res)=>{
   if (!['ADMIN','TEACHER'].includes(req.session.user.role)) return res.status(403).json({error:'Only administrators and teachers can manage students.'});
   const b=req.body||{}; if(!validText(b.fullName,120)||!validText(b.className,60)) return res.status(400).json({error:'Student name and class are required.'});
