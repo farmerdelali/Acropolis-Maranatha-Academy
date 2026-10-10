@@ -51,6 +51,44 @@ if(state.view==='Dashboard'){
  html+=panel('Recent activity','<div id="auditBody" class="report-list"><div class="empty">Loading activity…</div></div>');
 }else if(state.view==='Users'){
  const users=d.users||[];html=pageHead('Staff & user accounts','Create staff accounts with role-based permissions.',`<button class="btn primary" data-action="add-user">+ Add user</button>`)+panel('School users',users.length?`<div class="table-wrap"><table><thead><tr><th>Username</th><th>Role</th><th>Created</th><th>Action</th></tr></thead><tbody>${users.map(u=>`<tr><td><b>${esc(u.username)}</b></td><td><span class="badge">${esc(u.role)}</span></td><td>${new Date(u.created_at).toLocaleDateString()}</td><td>${String(u.id)===String(state.user.id)?'<small>Current account</small>':`<button class="btn danger" data-action="delete-user" data-id="${u.id}" data-username="${esc(u.username)}">Remove</button>`}</td></tr>`).join('')}</tbody></table></div>`:'<div class="empty">No staff accounts found.</div>')+'<p class="muted">Administrators manage staff access. Teachers manage students and marks. Bursars manage payments.</p>';
+}else if(state.view==='Settings'){
+ const school=d.school||{};
+ html=pageHead(
+   'School settings',
+   'Manage your school identity and academic details.'
+ )+
+ panel('School information',`
+   <form id="settingsForm">
+     <label class="field">
+       School name
+       <input name="schoolName" required maxlength="120"
+         value="${esc(school.name||'')}">
+     </label>
+     <label class="field">
+       School motto
+       <input name="motto" required maxlength="200"
+         value="${esc(school.motto||'Always praising God, Jehovah.')}">
+     </label>
+     <label class="field">
+       Academic year
+       <input name="academicYear" required maxlength="30"
+         placeholder="e.g. 2026/2027">
+     </label>
+     <label class="field">
+       Current term
+       <select name="currentTerm" required>
+         <option value="Term 1">Term 1</option>
+         <option value="Term 2">Term 2</option>
+         <option value="Term 3">Term 3</option>
+       </select>
+     </label>
+     <div class="form-actions">
+       <button class="btn primary" type="submit">
+         Save settings
+       </button>
+     </div>
+   </form>
+ `);
 }
 $('#mainContent').innerHTML=html;
 }
