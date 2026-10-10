@@ -2,7 +2,13 @@
 const $ = s => document.querySelector(s);
 const state = { user:null, data:{students:[],payments:[],marks:[],users:[]}, view:'Dashboard', search:'', drawer:false };
 const nav = [
-  ['Dashboard','▦','Overview'],['Students','♙','Student records'],['Marks','✓','Examinations'],['Fees & Payments','₵','Fees and receipts'],['Reports','▤','Reports and audit'],['Users','⚙','Staff accounts']
+  ['Dashboard','▦','Overview'],
+  ['Students','♙','Student records'],
+  ['Marks','✓','Examinations'],
+  ['Fees & Payments','₵','Fees and receipts'],
+  ['Reports','▤','Reports and audit'],
+  ['Users','⚙','Staff accounts'],
+  ['Settings','⚙','School configuration']
 ];
 const money = v => 'GH₵ ' + Number(v||0).toLocaleString('en-GH',{minimumFractionDigits:2,maximumFractionDigits:2});
 const esc = v => String(v ?? '').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
