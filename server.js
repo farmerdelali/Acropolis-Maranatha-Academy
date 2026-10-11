@@ -179,8 +179,7 @@ app.post('/api/payments', requireRole('ADMIN','BURSAR'), asyncRoute(async(req,re
   res.status(201).json({payment:r.rows[0]});
 }));
 
-app.delete('/api/payments/:id', requireRole('ADMIN'), asyncRoute(async(req,res)=>{
-  const client=await pool.connect();
+app.delete('/api/payments/:id', requireRole('ADMIN'),
 
   try {
     await client.query('BEGIN');
