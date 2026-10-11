@@ -535,6 +535,26 @@ document.addEventListener('click', async e => {
         userForm();
         break;
 
+      case 'delete-payment':
+        if (state.user.role !== 'ADMIN') {
+          throw new Error('Only administrators can delete payments.');
+        }
+
+        if (confirm(
+          `Permanently delete payment receipt ${button.dataset.receipt}? ` +
+          'The student balance and reports will be recalculated.'
+        )) {
+          await api('/api/payments/' + encodeURIComponent(button.dataset.id), {
+            method: 'DELETE'
+          });
+
+          await refresh();
+          state.view = 'Fees & Payments';
+          render();
+          toast('Payment deleted. Balances and reports updated.');
+        }
+        break;
+
       case 'delete-user':
         if (confirm('Remove staff account ' + button.dataset.username + '?')) {
           await api('/api/users/' + button.dataset.id, {
