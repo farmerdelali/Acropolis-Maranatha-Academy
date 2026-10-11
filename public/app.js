@@ -171,11 +171,12 @@ else if (state.view === 'Match Students') {
         </tbody>
       </table></div>`
     : '<div class="empty">No parent records yet. Parent records will appear here when registered.</div>';
-
-  html = pageHead(
+html = pageHead(
     'Parents & guardians',
-    'Maintain guardian contact details and connect each guardian to their students.'
+    'Maintain guardian contact details and connect each guardian to their students.',
+    `${state.user.role === 'ADMIN' ? '<button class="btn primary" data-action="add-parent">+ Register parent</button>' : ''}`
   ) +
+  
   `<div class="cards">
     ${stat('Registered parents', parents.length, 'Parent and guardian records')}
     ${stat(
