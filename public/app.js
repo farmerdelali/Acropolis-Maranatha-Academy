@@ -306,7 +306,187 @@ function parentForm(p = null) {
   $('#parentForm').dataset.id = p?.id || '';
 }
 
-function studentForm(s=null){openModal(s?'Edit student':'Register student',`<form id="studentForm"><div class="form-grid"><label class="field">Full name<input name="fullName" required maxlength="120" value="${esc(s?.full_name||'')}"></label><label class="field">Student ID (optional)<input name="studentCode" maxlength="40" value="${esc(s?.student_code||'')}" ${s?'readonly':''} placeholder="Auto-generated if blank"></label><label class="field">Class / form<input name="className" required maxlength="60" value="${esc(s?.class_name||'')}"></label><label class="field">Gender<select name="gender"><option value="">Select</option>${['Female','Male','Other'].map(g=>`<option ${s?.gender===g?'selected':''}>${g}</option>`).join('')}</select></label><label class="field">Guardian name<input name="guardianName" maxlength="120" value="${esc(s?.guardian_name||'')}"></label><label class="field">Guardian phone<input name="guardianPhone" maxlength="40" inputmode="tel" value="${esc(s?.guardian_phone||'')}"></label><label class="field">Total fees (GHS)<input name="totalFees" type="number" min="0" step="0.01" required value="${Number(s?.total_fees||0)}"></label></div><div class="form-actions"><button type="button" class="btn soft" data-action="close-modal">Cancel</button><button class="btn primary" type="submit">Save student</button></div></form>`);$('#studentForm').dataset.id=s?.id||'';}
+
+const CLASS_LEVELS = [
+  'Pre-Nursery',
+  'Nursery 1',
+  'Nursery 2',
+  'KG 1',
+  'KG 2',
+  'Basic 1',
+  'Basic 2',
+  'Basic 3',
+  'Basic 4',
+  'Basic 5',
+  'Basic 6',
+  'Basic 7',
+  'Basic 8',
+  'Basic 9'
+];
+
+function studentForm(s = null) {
+  const currentClass = s?.class_name || '';
+
+  const classOptions = CLASS_LEVELS.map(level =>
+    `<option value="${esc(level)}"
+      ${currentClass === level ? 'selected' : ''}>
+      ${esc(level)}
+    </option>`
+  ).join('');
+
+  const legacyOption =
+    currentClass && !CLASS_LEVELS.includes(currentClass)
+      ? `<option value="${esc(currentClass)}" selected>
+           ${esc(currentClass)} (existing class)
+         </option>`
+      : '';
+
+  openModal(s ? 'Edit student' : 'Register student', `
+    <form id="studentForm">
+      <div class="form-grid">
+        <label class="field">Full name
+          <input name="fullName" required maxlength="120"
+            value="${esc(s?.full_name || '')}">
+        </label>
+
+        <label class="field">Student ID
+          <input name="studentCode" maxlength="40"
+            value="${esc(s?.student_code || '')}"
+            ${s ? 'readonly' : ''}
+            placeholder="Auto-generated if blank">
+        </label>
+
+        <label class="field">Class / form
+          <select name="className" required>
+            <option value="">Select class</option>
+            ${legacyOption}
+            ${classOptions}
+          </select>
+        </label>
+
+        <label class="field">Gender
+          <select name="gender">
+            <option value="">Select</option>
+            ${['Female', 'Male', 'Other'].map(g =>
+              `<option value="${g}"
+                ${s?.gender === g ? 'selected' : ''}>
+                ${g}
+              </option>`
+            ).join('')}
+          </select>
+        </label>
+
+        <label class="field">Guardian name
+          <input name="guardianName" maxlength="120"
+            value="${esc(s?.guardian_name || '')}">
+        </label>
+
+        <label class="field">Guardian phone
+          <input name="guardianPhone" maxlength="40"
+            inputmode="tel"
+            value="${esc(s?.guardian_phone || '')}">
+        </label>
+
+        <label class="field">Total fees (GHS)
+
+const CLASS_LEVELS = [
+  'Pre-Nursery',
+  'Nursery 1',
+  'Nursery 2',
+  'KG 1',
+  'KG 2',
+  'Basic 1',
+  'Basic 2',
+  'Basic 3',
+  'Basic 4',
+  'Basic 5',
+  'Basic 6',
+  'Basic 7',
+  'Basic 8',
+  'Basic 9'
+];
+
+function studentForm(s = null) {
+  const currentClass = s?.class_name || '';
+
+  const classOptions = CLASS_LEVELS.map(level =>
+    `<option value="${level}" ${
+      currentClass === level ? 'selected' : ''
+    }>${level}</option>`
+  ).join('');
+
+  const legacyOption =
+    currentClass && !CLASS_LEVELS.includes(currentClass)
+      ? `<option value="${esc(currentClass)}" selected>${
+          esc(currentClass)
+        } (existing class)</option>`
+      : '';
+
+  openModal(s ? 'Edit student' : 'Register student', `
+    <form id="studentForm">
+      <div class="form-grid">
+        <label class="field">Full name
+          <input name="fullName" required maxlength="120"
+            value="${esc(s?.full_name || '')}">
+        </label>
+
+        <label class="field">Student ID
+          <input name="studentCode" maxlength="40"
+            value="${esc(s?.student_code || '')}"
+            ${s ? 'readonly' : ''}
+            placeholder="Auto-generated if blank">
+        </label>
+
+        <label class="field">Class / form
+          <select name="className" required>
+            <option value="">Select class</option>
+            ${legacyOption}
+            ${classOptions}
+          </select>
+        </label>
+
+        <label class="field">Gender
+          <select name="gender">
+            <option value="">Select</option>
+            ${['Female', 'Male', 'Other'].map(g =>
+              `<option value="${g}"
+                ${s?.gender === g ? 'selected' : ''}>${g}</option>`
+            ).join('')}
+          </select>
+        </label>
+
+        <label class="field">Guardian name
+          <input name="guardianName" maxlength="120"
+            value="${esc(s?.guardian_name || '')}">
+        </label>
+
+        <label class="field">Guardian phone
+          <input name="guardianPhone" maxlength="40"
+            inputmode="tel"
+            value="${esc(s?.guardian_phone || '')}">
+        </label>
+
+        <label class="field">Total fees (GHS)
+          <input name="totalFees" type="number" min="0"
+            step="0.01" required
+            value="${Number(s?.total_fees || 0)}">
+        </label>
+      </div>
+
+      <div class="form-actions">
+        <button type="button" class="btn soft"
+          data-action="close-modal">Cancel</button>
+        <button class="btn primary" type="submit">
+          Save student
+        </button>
+      </div>
+    </form>
+  `);
+
+  $('#studentForm').dataset.id = s?.id || '';
+}
+
+
 function paymentForm(){const students=state.data.students.filter(s=>!s.archived);if(!students.length)return toast('Register a student before recording payments.',true);openModal('Record payment',`<form id="paymentForm"><label class="field">Student<select name="studentId" required>${students.map(s=>`<option value="${s.id}">${esc(s.full_name)} · ${esc(s.student_code)}</option>`).join('')}</select></label><label class="field">Amount (GHS)<input name="amount" type="number" min="0.01" step="0.01" required inputmode="decimal"></label><label class="field">Note / payment method<input name="note" maxlength="200" placeholder="Cash, bank transfer, term fees…"></label><div class="form-actions"><button type="button" class="btn soft" data-action="close-modal">Cancel</button><button class="btn primary" type="submit">Save payment</button></div></form>`);}
 function markForm(){const students=state.data.students.filter(s=>!s.archived);if(!students.length)return toast('Register a student before entering marks.',true);openModal('Enter examination mark',`<form id="markForm"><label class="field">Student<select name="studentId" required>${students.map(s=>`<option value="${s.id}">${esc(s.full_name)} · ${esc(s.class_name)}</option>`).join('')}</select></label><label class="field">Subject<input name="subject" required maxlength="80" placeholder="e.g. Mathematics"></label><label class="field">Term<input name="term" maxlength="40" value="Term 1" required></label><label class="field">Score (%)<input name="score" type="number" min="0" max="100" step="0.01" required inputmode="decimal"></label><div class="form-actions"><button type="button" class="btn soft" data-action="close-modal">Cancel</button><button class="btn primary" type="submit">Save mark</button></div></form>`);}
 function userForm(){openModal('Create staff account',`<form id="userForm"><label class="field">Username<input name="username" required minlength="3" maxlength="60" autocomplete="off"></label><label class="field">Role<select name="role"><option value="TEACHER">Teacher — students and marks</option><option value="BURSAR">Bursar — fees and payments</option><option value="ADMIN">Administrator — full access</option></select></label><label class="field">Temporary password <small>At least 10 characters</small><input name="password" type="password" required minlength="10" autocomplete="new-password"></label><div class="form-actions"><button type="button" class="btn soft" data-action="close-modal">Cancel</button><button class="btn primary" type="submit">Create account</button></div></form>`);}
