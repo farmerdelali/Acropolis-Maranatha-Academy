@@ -450,7 +450,9 @@ document.addEventListener('click', async e => {
   const action = button.dataset.action;
   if (!action) return;
 
-  try {
+  try { case 'add-parent':
+  parentForm();
+  break;
     switch (action) {
       case 'add-student':
         studentForm();
