@@ -1,15 +1,25 @@
 'use strict';
 const $ = s => document.querySelector(s);
 const state = { user:null, data:{students:[],payments:[],marks:[],users:[]}, view:'Dashboard', search:'', drawer:false };
+
 const nav = [
   ['Dashboard','▦','Overview'],
   ['Students','♙','Student records'],
+  ['Match Students','⇄','Match student records'],
+  ['Drop-off Denial','⛔','Drop-off restrictions'],
+  ['Parents','♧','Parent records'],
+  ['Pickup Persons','✓','Authorized pickup'],
+  ['Employees','♙','Employee records'],
+  ['Graduations','☆','Graduation records'],
+  ['Class Activations','▣','Activate classes'],
+  ['Classrooms','▤','Classroom management'],
   ['Marks','✓','Examinations'],
   ['Fees & Payments','₵','Fees and receipts'],
   ['Reports','▤','Reports and audit'],
   ['Users','⚙','Staff accounts'],
   ['Settings','⚙','School configuration']
 ];
+
 const money = v => 'GH₵ ' + Number(v||0).toLocaleString('en-GH',{minimumFractionDigits:2,maximumFractionDigits:2});
 const esc = v => String(v ?? '').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 async function api(url, options={}) {
