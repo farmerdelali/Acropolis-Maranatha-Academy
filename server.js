@@ -336,6 +336,185 @@ app.delete('/api/parents/:id', requireRole('ADMIN'), asyncRoute(async (req, res)
   res.json({ ok: true });
 }));
 
+app.get('/api/parents', requireAuth, asyncRoute(async (req, res) => {
+  const result = await q(
+    `SELECT p.*,
+      COALESCE(
+        json_agg(
+          json_build_object(
+            'id', s.id,
+            'name', s.full_name,
+            'studentCode', s.student_code,
+            'className', s.class_name
+          )
+        ) FILTER (WHERE s.id IS NOT NULL),
+        '[]'
+      ) AS students
+     FROM parents p
+     LEFT JOIN parent_students ps
+       ON ps.parent_id = p.id AND ps.school_id = p.school_id
+     LEFT JOIN students s
+       ON s.id = ps.student_id AND s.school_id = p.school_id
+     WHERE p.school_id = $1
+     GROUP BY p.id
+     ORDER BY p.full_name`,
+    [schoolId(req)]
+  );
+  res.json({ parents: result.rows });
+}));
+
+app.post('/api/parents', requireRole('ADMIN'), asyncRoute(async (req, res) => {
+  const b = req.body || {};
+
+  if (!validText(b.fullName, 120)) {
+    return res.status(400).json({ error: 'Enter the parent or guardian full name.' });
+  }
+
+  const studentIds = [...new Set((Array.isArray(b.studentIds) ? b.studentIds : [])
+    .map(Number))];
+
+  if (studentIds.some(id => !Number.isSafeInteger(id) || id <= 0)) {
+    return res.status(400).json({ error: 'One or more student selections are invalid.' });
+  }
+
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+
+    if (studentIds.length) {
+      const valid = await client.query(
+        'SELECT id FROM students WHERE school_id=$1 AND archived=false AND id = ANY($2::bigint[])',
+        [schoolId(req), studentIds]
+      );
+      if (valid.rowCount !== studentIds.length) {
+        await client.query('ROLLBACK');
+        return res.status(400).json({ error: 'Select valid active students from this school.' });
+      }
+    }
+
+    const created = await client.query(
+      `INSERT INTO parents
+        (school_id, full_name, relationship, phone, alternate_phone, email, address, occupation)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8)
+       RETURNING *`,
+      [
+        schoolId(req), b.fullName.trim(),
+        String(b.relationship || '').slice(0, 60),
+        String(b.phone || '').slice(0, 40),
+        String(b.alternatePhone || '').slice(0, 40),
+        String(b.email || '').slice(0, 160),
+        String(b.address || '').slice(0, 300),
+        String(b.occupation || '').slice(0, 120)
+      ]
+    );
+
+    for (const studentId of studentIds) {
+      await client.query(
+        'INSERT INTO parent_students (parent_id, student_id, school_id) VALUES ($1,$2,$3)',
+        [created.rows[0].id, studentId, schoolId(req)]
+      );
+    }
+
+    await client.query('COMMIT');
+    await audit(req, 'parent_created', 'parent', created.rows[0].id);
+    res.status(201).json({ parent: created.rows[0] });
+  } catch (error) {
+    await client.query('ROLLBACK');
+    throw error;
+  } finally {
+    client.release();
+  }
+}));
+
+app.put('/api/parents/:id', requireRole('ADMIN'), asyncRoute(async (req, res) => {
+  const b = req.body || {};
+
+  if (!validText(b.fullName, 120)) {
+    return res.status(400).json({ error: 'Enter the parent or guardian full name.' });
+  }
+
+  const studentIds = [...new Set((Array.isArray(b.studentIds) ? b.studentIds : [])
+    .map(Number))];
+
+  if (studentIds.some(id => !Number.isSafeInteger(id) || id <= 0)) {
+    return res.status(400).json({ error: 'One or more student selections are invalid.' });
+  }
+
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+
+    const existing = await client.query(
+      'SELECT id FROM parents WHERE id=$1 AND school_id=$2',
+      [req.params.id, schoolId(req)]
+    );
+    if (!existing.rowCount) {
+      await client.query('ROLLBACK');
+      return res.status(404).json({ error: 'Parent record not found.' });
+    }
+
+    if (studentIds.length) {
+      const valid = await client.query(
+        'SELECT id FROM students WHERE school_id=$1 AND archived=false AND id = ANY($2::bigint[])',
+        [schoolId(req), studentIds]
+      );
+      if (valid.rowCount !== studentIds.length) {
+        await client.query('ROLLBACK');
+        return res.status(400).json({ error: 'Select valid active students from this school.' });
+      }
+    }
+
+    const updated = await client.query(
+      `UPDATE parents SET full_name=$1, relationship=$2, phone=$3,
+        alternate_phone=$4, email=$5, address=$6, occupation=$7
+       WHERE id=$8 AND school_id=$9 RETURNING *`,
+      [
+        b.fullName.trim(),
+        String(b.relationship || '').slice(0, 60),
+        String(b.phone || '').slice(0, 40),
+        String(b.alternatePhone || '').slice(0, 40),
+        String(b.email || '').slice(0, 160),
+        String(b.address || '').slice(0, 300),
+        String(b.occupation || '').slice(0, 120),
+        req.params.id, schoolId(req)
+      ]
+    );
+
+    await client.query(
+      'DELETE FROM parent_students WHERE parent_id=$1 AND school_id=$2',
+      [req.params.id, schoolId(req)]
+    );
+
+    for (const studentId of studentIds) {
+      await client.query(
+        'INSERT INTO parent_students (parent_id, student_id, school_id) VALUES ($1,$2,$3)',
+        [req.params.id, studentId, schoolId(req)]
+      );
+    }
+
+    await client.query('COMMIT');
+    await audit(req, 'parent_updated', 'parent', req.params.id);
+    res.json({ parent: updated.rows[0] });
+  } catch (error) {
+    await client.query('ROLLBACK');
+    throw error;
+  } finally {
+    client.release();
+  }
+}));
+
+app.delete('/api/parents/:id', requireRole('ADMIN'), asyncRoute(async (req, res) => {
+  const result = await q(
+    'DELETE FROM parents WHERE id=$1 AND school_id=$2 RETURNING id',
+    [req.params.id, schoolId(req)]
+  );
+  if (!result.rowCount) {
+    return res.status(404).json({ error: 'Parent record not found.' });
+  }
+  await audit(req, 'parent_deleted', 'parent', req.params.id);
+  res.json({ ok: true });
+}));
+
 app.get('/api/reports', requireAuth, asyncRoute(async(req,res)=>{const sid=schoolId(req);const r=await q(`SELECT (SELECT COUNT(*) FROM students WHERE school_id=$1 AND archived=false) AS active_students,(SELECT COUNT(*) FROM students WHERE school_id=$1 AND archived=true) AS archived_students,(SELECT COALESCE(SUM(amount),0) FROM payments WHERE school_id=$1) AS total_paid,(SELECT COUNT(*) FROM payments WHERE school_id=$1) AS payment_count,(SELECT COALESCE(SUM(total_fees),0) FROM students WHERE school_id=$1 AND archived=false) AS fees_expected`,[sid]);const recent=await q('SELECT action,entity_type,entity_id,created_at FROM audit_logs WHERE school_id=$1 ORDER BY created_at DESC LIMIT 100',[sid]);res.json({summary:r.rows[0],audit:recent.rows})}));
 app.get('/api/export', requireAuth, asyncRoute(async(req,res)=>{const sid=schoolId(req);const [students,payments,marks]=await Promise.all([q('SELECT * FROM students WHERE school_id=$1 ORDER BY id',[sid]),q('SELECT * FROM payments WHERE school_id=$1 ORDER BY id',[sid]),q('SELECT * FROM marks WHERE school_id=$1 ORDER BY id',[sid])]);res.setHeader('Content-Disposition','attachment; filename="acropolis-school-backup.json"');res.json({exportedAt:new Date().toISOString(),school:req.session.user.schoolName,students:students.rows,payments:payments.rows,marks:marks.rows});}));
 app.use('/api', (err, req, res, next) => { console.error(err); if(res.headersSent)return next(err); if(err.code==='23505')return res.status(409).json({error:'A record with these details already exists.'}); res.status(500).json({error:'Something went wrong. Please try again.'}); });
