@@ -1,4 +1,4 @@
-'use strict';
+]'use strict';
 const $ = s => document.querySelector(s);
 
 const state = { user:null, data:{students:[],payments:[],marks:[],users:[],parents:[]}, view:'Dashboard', search:'', drawer:false };
@@ -450,10 +450,13 @@ document.addEventListener('click', async e => {
   const action = button.dataset.action;
   if (!action) return;
 
-  try { case 'add-parent':
-  parentForm();
-  break;
+  try {
     switch (action) {
+      case 'add-parent':
+        parentForm();
+        break;
+
+      case 'add-student':
       case 'add-student':
         studentForm();
         break;
