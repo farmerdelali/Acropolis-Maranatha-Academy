@@ -153,7 +153,57 @@ app.post('/api/students', requireAuth, asyncRoute(async (req,res)=>{
 app.put('/api/students/:id', requireRole('ADMIN','TEACHER'), asyncRoute(async(req,res)=>{const b=req.body||{};if(!validText(b.fullName,120)||!validText(b.className,60))return res.status(400).json({error:'Student name and class are required.'});const r=await q('UPDATE students SET full_name=$1,class_name=$2,gender=$3,guardian_name=$4,guardian_phone=$5,total_fees=$6 WHERE id=$7 AND school_id=$8 AND archived=false RETURNING *',[b.fullName.trim(),b.className.trim(),String(b.gender||'').slice(0,20),String(b.guardianName||'').slice(0,120),String(b.guardianPhone||'').slice(0,40),Math.max(0,Number(b.totalFees||0)),req.params.id,schoolId(req)]);if(!r.rowCount)return res.status(404).json({error:'Student not found.'});await audit(req,'student_updated','student',req.params.id);res.json({student:r.rows[0]})}));
 app.delete('/api/students/:id', requireRole('ADMIN'), asyncRoute(async(req,res)=>{const r=await q('UPDATE students SET archived=true WHERE id=$1 AND school_id=$2 AND archived=false RETURNING id',[req.params.id,schoolId(req)]);if(!r.rowCount)return res.status(404).json({error:'Student not found.'});await audit(req,'student_archived','student',req.params.id);res.json({ok:true})}));
 app.post('/api/marks', requireRole('ADMIN','TEACHER'), asyncRoute(async(req,res)=>{const b=req.body||{},score=Number(b.score);if(!b.studentId||!validText(b.subject,80)||!Number.isFinite(score)||score<0||score>100)return res.status(400).json({error:'Choose a student and subject, and enter a score from 0 to 100.'});const st=await q('SELECT id FROM students WHERE id=$1 AND school_id=$2 AND archived=false',[b.studentId,schoolId(req)]);if(!st.rowCount)return res.status(404).json({error:'Student not found.'});const r=await q(`INSERT INTO marks(school_id,student_id,subject,term,score) VALUES($1,$2,$3,$4,$5) ON CONFLICT(school_id,student_id,subject,term) DO UPDATE SET score=EXCLUDED.score RETURNING *`,[schoolId(req),b.studentId,b.subject.trim(),validText(b.term,40)?b.term.trim():'Term 1',score]);await audit(req,'mark_saved','mark',r.rows[0].id);res.status(201).json({mark:r.rows[0]})}));
-app.post('/api/payments', requireRole('ADMIN','BURSAR'), asyncRoute(async(req,res)=>{const b=req.body||{},amount=Number(b.amount);if(!b.studentId||!Number.isFinite(amount)||amount<=0)return res.status(400).json({error:'Choose a student and enter a payment greater than zero.'});const st=await q('SELECT id FROM students WHERE id=$1 AND school_id=$2 AND archived=false',[b.studentId,schoolId(req)]);if(!st.rowCount)return res.status(404).json({error:'Student not found.'});const receipt=`AMA-${Date.now().toString(36).toUpperCase()}`;const r=await q('INSERT INTO payments(school_id,student_id,receipt_no,amount,note,recorded_by) VALUES($1,$2,$3,$4,$5,$6) RETURNING *',[schoolId(req),b.studentId,receipt,amount,String(b.note||'').slice(0,200),req.session.user.id]);await audit(req,'payment_recorded','payment',r.rows[0].id);res.status(201).json({payment:r.rows[0]})}));
+app.post('/api/payments',
+app.delete('/api/payments/:id', requireRole('ADMIN'), asyncRoute(async (req, res) => {
+  const client = await pool.connect();
+
+  try {
+    await client.query('BEGIN');
+
+    const result = await client.query(
+      `DELETE FROM payments
+       WHERE id = $1 AND school_id = $2
+       RETURNING id, receipt_no, student_id, amount`,
+      [req.params.id, schoolId(req)]
+    );
+
+    if (!result.rowCount) {
+      await client.query('ROLLBACK');
+      return res.status(404).json({
+        error: 'Payment record not found.'
+      });
+    }
+
+    const payment = result.rows[0];
+
+    await client.query(
+      `INSERT INTO audit_logs
+       (school_id, user_id, action, entity_type, entity_id)
+       VALUES ($1, $2, $3, $4, $5)`,
+      [
+        schoolId(req),
+        req.session.user.id,
+        'payment_deleted',
+        'payment',
+        String(payment.id)
+      ]
+    );
+
+    await client.query('COMMIT');
+
+    res.json({
+      ok: true,
+      deletedPayment: payment,
+      message: 'Payment deleted successfully.'
+    });
+  } catch (error) {
+    await client.query('ROLLBACK');
+    throw error;
+  } finally {
+    client.release();
+  }
+}));
+ requireRole('ADMIN','BURSAR'), asyncRoute(async(req,res)=>{const b=req.body||{},amount=Number(b.amount);if(!b.studentId||!Number.isFinite(amount)||amount<=0)return res.status(400).json({error:'Choose a student and enter a payment greater than zero.'});const st=await q('SELECT id FROM students WHERE id=$1 AND school_id=$2 AND archived=false',[b.studentId,schoolId(req)]);if(!st.rowCount)return res.status(404).json({error:'Student not found.'});const receipt=`AMA-${Date.now().toString(36).toUpperCase()}`;const r=await q('INSERT INTO payments(school_id,student_id,receipt_no,amount,note,recorded_by) VALUES($1,$2,$3,$4,$5,$6) RETURNING *',[schoolId(req),b.studentId,receipt,amount,String(b.note||'').slice(0,200),req.session.user.id]);await audit(req,'payment_recorded','payment',r.rows[0].id);res.status(201).json({payment:r.rows[0]})}));
 app.post('/api/users', requireRole('ADMIN'), asyncRoute(async(req,res)=>{const b=req.body||{};if(!validText(b.username,60)||b.username.trim().length<3||typeof b.password!=='string'||b.password.length<10||!['ADMIN','TEACHER','BURSAR'].includes(b.role))return res.status(400).json({error:'Enter a username (3+ characters), password (10+ characters), and valid role.'});const hash=await bcrypt.hash(b.password,12);try{const r=await q('INSERT INTO users(school_id,username,password_hash,role) VALUES($1,$2,$3,$4) RETURNING id,username,role,created_at',[schoolId(req),b.username.trim(),hash,b.role]);await audit(req,'user_created','user',r.rows[0].id);res.status(201).json({user:r.rows[0]})}catch(e){if(e.code==='23505')return res.status(409).json({error:'That username already exists in this school.'});throw e}}));
 app.delete('/api/users/:id', requireRole('ADMIN'), asyncRoute(async(req,res)=>{if(String(req.params.id)===String(req.session.user.id))return res.status(400).json({error:'You cannot delete your own active account.'});const r=await q('DELETE FROM users WHERE id=$1 AND school_id=$2 RETURNING id',[req.params.id,schoolId(req)]);if(!r.rowCount)return res.status(404).json({error:'User not found.'});await audit(req,'user_deleted','user',req.params.id);res.json({ok:true})}));
 
