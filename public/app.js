@@ -142,8 +142,49 @@ else if (state.view === 'Match Students') {
   html = `<section class="panel"><h2>Match Students</h2><p>Find and review student records that may belong to the same student.</p><p>Student matching tools will be added here.</p></section>`;
 } else if (state.view === 'Drop-off Denial') {
   html = `<section class="panel"><h2>Drop-off Denial</h2><p>Manage restrictions on who may drop off students.</p><p>Drop-off restriction records will be added here.</p></section>`;
+
 } else if (state.view === 'Parents') {
-  html = `<section class="panel"><h2>Parents</h2><p>Manage parent and guardian records and their linked students.</p></section>`;
+  const parents = d.parents || [];
+
+  const parentRows = parents.length
+    ? `<div class="table-wrap"><table>
+        <thead>
+          <tr>
+            <th>Parent / Guardian</th>
+            <th>Relationship</th>
+            <th>Phone</th>
+            <th>Email</th>
+            <th>Linked students</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${parents.map(p => `<tr>
+            <td><b>${esc(p.full_name)}</b></td>
+            <td>${esc(p.relationship || '—')}</td>
+            <td>${esc(p.phone || '—')}</td>
+            <td>${esc(p.email || '—')}</td>
+            <td>${esc((p.students || []).map(s =>
+              s.full_name || s.name || ''
+            ).filter(Boolean).join(', ') || 'None linked')}</td>
+          </tr>`).join('')}
+        </tbody>
+      </table></div>`
+    : '<div class="empty">No parent records yet. Parent records will appear here when registered.</div>';
+
+  html = pageHead(
+    'Parents & guardians',
+    'Maintain guardian contact details and connect each guardian to their students.'
+  ) +
+  `<div class="cards">
+    ${stat('Registered parents', parents.length, 'Parent and guardian records')}
+    ${stat(
+      'Linked students',
+      parents.reduce((n, p) => n + (p.students || []).length, 0),
+      'Student relationships'
+    )}
+  </div>` +
+  panel('Parent register', parentRows);
+
 } else if (state.view === 'Pickup Persons') {
   html = `<section class="panel"><h2>Authorized Pickup Persons</h2><p>Manage people authorized to collect students from school.</p></section>`;
 } else if (state.view === 'Employees') {
