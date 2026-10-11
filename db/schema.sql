@@ -62,3 +62,26 @@ CREATE TABLE IF NOT EXISTS audit_logs (
 CREATE INDEX IF NOT EXISTS students_school_idx ON students(school_id, archived, full_name);
 CREATE INDEX IF NOT EXISTS payments_school_idx ON payments(school_id, paid_at DESC);
 CREATE INDEX IF NOT EXISTS marks_school_idx ON marks(school_id, student_id);
+
+CREATE TABLE IF NOT EXISTS parents (
+  id BIGSERIAL PRIMARY KEY,
+  school_id BIGINT NOT NULL REFERENCES schools(id) ON DELETE CASCADE,
+  full_name TEXT NOT NULL,
+  relationship TEXT NOT NULL DEFAULT '',
+  phone TEXT NOT NULL DEFAULT '',
+  alternate_phone TEXT NOT NULL DEFAULT '',
+  email TEXT NOT NULL DEFAULT '',
+  address TEXT NOT NULL DEFAULT '',
+  occupation TEXT NOT NULL DEFAULT '',
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS parent_students (
+  parent_id BIGINT NOT NULL REFERENCES parents(id) ON DELETE CASCADE,
+  student_id BIGINT NOT NULL REFERENCES students(id) ON DELETE CASCADE,
+  school_id BIGINT NOT NULL REFERENCES schools(id) ON DELETE CASCADE,
+  PRIMARY KEY (parent_id, student_id)
+);
+
+CREATE INDEX IF NOT EXISTS parents_school_idx
+ON parents(school_id, full_name);
