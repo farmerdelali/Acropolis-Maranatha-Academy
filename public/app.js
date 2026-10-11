@@ -341,6 +341,21 @@ document.addEventListener('submit', async e => {
       state.view = 'Dashboard';
       showApp(r.user);
       toast('Welcome back.');
+} else if (form.id === 'parentForm') {
+  const studentSelect = form.elements.studentIds;
+  v.studentIds = Array.from(studentSelect.selectedOptions)
+    .map(option => Number(option.value));
+
+  await api('/api/parents', {
+    method: 'POST',
+    body: JSON.stringify(v)
+  });
+
+  await refresh();
+  state.view = 'Parents';
+  render();
+  toast('Parent registered successfully.');
+
     } else if (form.id === 'studentForm') {
       await api('/api/students', {
         method: 'POST',
