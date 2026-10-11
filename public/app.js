@@ -85,7 +85,35 @@ if(state.view==='Dashboard'){
  html=pageHead('Examinations & marks','Record subject scores and review students’ results.',`${['ADMIN','TEACHER'].includes(state.user.role)?'<button class="btn primary" data-action="add-mark">+ Enter mark</button>':''}`)+panel('Recorded results',markRows);
 }else if(state.view==='Fees & Payments'){
  html=pageHead('Fees & payments','Record receipts and track outstanding school fees.',`${['ADMIN','BURSAR'].includes(state.user.role)?'<button class="btn primary" data-action="add-payment">+ Record payment</button>':''}`)+`<div class="cards">${stat('Total fees expected',money(expected),'Active student records')}${stat('Total received',money(paid),'All payment records')}${stat('Outstanding balance',money(Math.max(0,expected-paid)),'Expected minus received')}${stat('Receipts issued',d.payments.length,'Payment transactions')}</div>`;
- const rows=d.payments.length?`<div class="table-wrap"><table><thead><tr><th>Receipt</th><th>Student</th><th>Student ID</th><th>Amount</th><th>Date</th><th>Note</th></tr></thead><tbody>${d.payments.map(p=>`<tr><td><b>${esc(p.receipt_no)}</b></td><td>${esc(p.student_name)}</td><td>${esc(p.student_code)}</td><td>${money(p.amount)}</td><td>${new Date(p.paid_at).toLocaleDateString()}</td><td>${esc(p.note||'—')}</td></tr>`).join('')}</tbody></table></div>`:'<div class="empty">No payments recorded yet.</div>';
+
+const rows = d.payments.length
+  ? `<div class="table-wrap"><table>
+      <thead><tr>
+        <th>Receipt</th>
+        <th>Student</th>
+        <th>Student ID</th>
+        <th>Amount</th>
+        <th>Date</th>
+        <th>Note</th>
+        <th>Actions</th>
+      </tr></thead>
+      <tbody>${d.payments.map(p => `<tr>
+        <td><b>${esc(p.receipt_no)}</b></td>
+        <td>${esc(p.student_name)}</td>
+        <td>${esc(p.student_code)}</td>
+        <td>${money(p.amount)}</td>
+        <td>${new Date(p.paid_at).toLocaleDateString()}</td>
+        <td>${esc(p.note || '—')}</td>
+        <td>${state.user.role === 'ADMIN'
+          ? `<button class="btn danger"
+              data-action="delete-payment"
+              data-id="${esc(p.id)}"
+              data-receipt="${esc(p.receipt_no)}">Delete</button>`
+          : '—'}</td>
+      </tr>`).join('')}</tbody>
+    </table></div>`
+  : '<div class="empty">No payments recorded yet.</div>';
+ <tbody>${d.payments.map(p=>`<tr><td><b>${esc(p.receipt_no)}</b></td><td>${esc(p.student_name)}</td><td>${esc(p.student_code)}</td><td>${money(p.amount)}</td><td>${new Date(p.paid_at).toLocaleDateString()}</td><td>${esc(p.note||'—')}</td></tr>`).join('')}</tbody></table></div>`:'<div class="empty">No payments recorded yet.</div>';
  html+=panel('Payment history',rows);
 }else if(state.view==='Reports'){
  html=pageHead('Reports & data','Review school totals, recent activity and export a backup.',`<button class="btn primary" data-action="export">Export backup</button><button class="btn soft" data-action="csv">Export student CSV</button>`)+`<div class="cards">${stat('Active students',students.length,'Enrolment')}${stat('Total fees',money(expected),'Expected')}${stat('Payments',money(paid),'Collected')}${stat('Balance',money(Math.max(0,expected-paid)),'Expected less collected')}</div>`;
