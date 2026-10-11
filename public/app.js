@@ -289,9 +289,10 @@ document.addEventListener('submit', async e => {
   const form = e.target;
 
   const allowedForms = [
-    'registerForm',
-    'loginForm',
-    'studentForm',
+  'registerForm',
+  'loginForm',
+  'parentForm',
+  'studentForm',
     'paymentForm',
     'markForm',
     'userForm',
