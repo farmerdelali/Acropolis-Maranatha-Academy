@@ -206,7 +206,78 @@ html = pageHead(
 $('#mainContent').innerHTML=html;
 }
 function grade(v){v=Number(v);return v>=80?'A':v>=70?'B':v>=60?'C':v>=50?'D':'F';}
-function openModal(title,body){$('#modalHost').innerHTML=`<div class="modal-back" id="modalBack"><section class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle"><div class="modal-head"><h2 id="modalTitle">${esc(title)}</h2><button class="btn soft" type="button" data-action="close-modal">Close</button></div><div class="modal-body">${body}</div></section></div>`;const first=$('#modalHost input,#modalHost select');if(first)first.focus();}
+function openModal(title,body){$('#modalHost').innerHTML=`<div class="modal-back" id="modalBack"><section class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle"><div class="modal-head"><h2 id="modalTitle">${esc(title)}</h2><button class="btn soft" type="button" data-action="close-modal">Close</button></div><div class="modal-body">${body}</div></section></div>`;const first=$('#modalHost input,#modalHost select');if(first)first.focus();} 
+function parentForm(p = null) {
+  const students = state.data.students.filter(s => !s.archived);
+  const linked = (p?.students || []).map(s => String(s.id));
+
+  openModal(p ? 'Edit parent / guardian' : 'Register parent / guardian', `
+    <form id="parentForm">
+      <div class="form-grid">
+        <label class="field">Full name
+          <input name="fullName" required maxlength="120"
+            value="${esc(p?.full_name || '')}">
+        </label>
+
+        <label class="field">Relationship to student
+          <input name="relationship" maxlength="60"
+            placeholder="e.g. Mother, Father, Guardian"
+            value="${esc(p?.relationship || '')}">
+        </label>
+
+        <label class="field">Primary phone
+          <input name="phone" maxlength="40" inputmode="tel"
+            value="${esc(p?.phone || '')}">
+        </label>
+
+        <label class="field">Alternative phone
+          <input name="alternatePhone" maxlength="40" inputmode="tel"
+            value="${esc(p?.alternate_phone || '')}">
+        </label>
+
+        <label class="field">Email
+          <input name="email" type="email" maxlength="160"
+            value="${esc(p?.email || '')}">
+        </label>
+
+        <label class="field">Occupation
+          <input name="occupation" maxlength="120"
+            value="${esc(p?.occupation || '')}">
+        </label>
+
+        <label class="field">Residential address
+          <input name="address" maxlength="300"
+            value="${esc(p?.address || '')}">
+        </label>
+      </div>
+
+      <label class="field">Link to student(s)
+        <select name="studentIds" multiple size="5">
+          ${students.map(s => `
+            <option value="${s.id}"
+              ${linked.includes(String(s.id)) ? 'selected' : ''}>
+              ${esc(s.full_name)} — ${esc(s.student_code || '')}
+              (${esc(s.class_name || '')})
+            </option>
+          `).join('')}
+        </select>
+        <small>On a computer, hold Ctrl to select multiple students.
+        On a phone, use the selection control to choose students.</small>
+      </label>
+
+      <div class="form-actions">
+        <button type="button" class="btn soft"
+          data-action="close-modal">Cancel</button>
+        <button type="submit" class="btn primary">
+          Save parent
+        </button>
+      </div>
+    </form>
+  `);
+
+  $('#parentForm').dataset.id = p?.id || '';
+}
+
 function studentForm(s=null){openModal(s?'Edit student':'Register student',`<form id="studentForm"><div class="form-grid"><label class="field">Full name<input name="fullName" required maxlength="120" value="${esc(s?.full_name||'')}"></label><label class="field">Student ID (optional)<input name="studentCode" maxlength="40" value="${esc(s?.student_code||'')}" ${s?'readonly':''} placeholder="Auto-generated if blank"></label><label class="field">Class / form<input name="className" required maxlength="60" value="${esc(s?.class_name||'')}"></label><label class="field">Gender<select name="gender"><option value="">Select</option>${['Female','Male','Other'].map(g=>`<option ${s?.gender===g?'selected':''}>${g}</option>`).join('')}</select></label><label class="field">Guardian name<input name="guardianName" maxlength="120" value="${esc(s?.guardian_name||'')}"></label><label class="field">Guardian phone<input name="guardianPhone" maxlength="40" inputmode="tel" value="${esc(s?.guardian_phone||'')}"></label><label class="field">Total fees (GHS)<input name="totalFees" type="number" min="0" step="0.01" required value="${Number(s?.total_fees||0)}"></label></div><div class="form-actions"><button type="button" class="btn soft" data-action="close-modal">Cancel</button><button class="btn primary" type="submit">Save student</button></div></form>`);$('#studentForm').dataset.id=s?.id||'';}
 function paymentForm(){const students=state.data.students.filter(s=>!s.archived);if(!students.length)return toast('Register a student before recording payments.',true);openModal('Record payment',`<form id="paymentForm"><label class="field">Student<select name="studentId" required>${students.map(s=>`<option value="${s.id}">${esc(s.full_name)} · ${esc(s.student_code)}</option>`).join('')}</select></label><label class="field">Amount (GHS)<input name="amount" type="number" min="0.01" step="0.01" required inputmode="decimal"></label><label class="field">Note / payment method<input name="note" maxlength="200" placeholder="Cash, bank transfer, term fees…"></label><div class="form-actions"><button type="button" class="btn soft" data-action="close-modal">Cancel</button><button class="btn primary" type="submit">Save payment</button></div></form>`);}
 function markForm(){const students=state.data.students.filter(s=>!s.archived);if(!students.length)return toast('Register a student before entering marks.',true);openModal('Enter examination mark',`<form id="markForm"><label class="field">Student<select name="studentId" required>${students.map(s=>`<option value="${s.id}">${esc(s.full_name)} · ${esc(s.class_name)}</option>`).join('')}</select></label><label class="field">Subject<input name="subject" required maxlength="80" placeholder="e.g. Mathematics"></label><label class="field">Term<input name="term" maxlength="40" value="Term 1" required></label><label class="field">Score (%)<input name="score" type="number" min="0" max="100" step="0.01" required inputmode="decimal"></label><div class="form-actions"><button type="button" class="btn soft" data-action="close-modal">Cancel</button><button class="btn primary" type="submit">Save mark</button></div></form>`);}
