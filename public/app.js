@@ -127,6 +127,29 @@ if(state.view==='Dashboard'){
    </form>
  `);
 }
+
+else if (state.view === 'Match Students') {
+  html = `<section class="panel"><h2>Match Students</h2><p>Find and review student records that may belong to the same student.</p><p>Student matching tools will be added here.</p></section>`;
+} else if (state.view === 'Drop-off Denial') {
+  html = `<section class="panel"><h2>Drop-off Denial</h2><p>Manage restrictions on who may drop off students.</p><p>Drop-off restriction records will be added here.</p></section>`;
+} else if (state.view === 'Parents') {
+  html = `<section class="panel"><h2>Parents</h2><p>Manage parent and guardian records and their linked students.</p></section>`;
+} else if (state.view === 'Pickup Persons') {
+  html = `<section class="panel"><h2>Authorized Pickup Persons</h2><p>Manage people authorized to collect students from school.</p></section>`;
+} else if (state.view === 'Employees') {
+  html = `<section class="panel"><h2>Employees</h2><p>Manage school employee records and assignments.</p></section>`;
+} else if (state.view === 'Graduations') {
+  html = `<section class="panel"><h2>Graduations</h2><p>Manage graduation records for eligible students.</p></section>`;
+} else if (state.view === 'Class Activations') {
+  html = `<section class="panel"><h2>Class Activations</h2><p>Manage class activation and academic-year status.</p></section>`;
+} else if (state.view === 'Classrooms') {
+  html = `<section class="panel"><h2>Classrooms</h2><p>Manage classrooms, class names, and classroom assignments.</p></section>`;
+} else if (state.view === 'Settings') {
+  html = `<section class="panel"><h2>School Settings</h2><p>Configure school information and system preferences.</p></section>`;
+} else if (state.view === 'Students with same Surname') {
+  html = `<section class="panel"><h2>Students with the Same Surname</h2><p>Identify students who share a surname. Matching results will be connected to the student records.</p></section>`;
+}
+
 $('#mainContent').innerHTML=html;
 }
 function grade(v){v=Number(v);return v>=80?'A':v>=70?'B':v>=60?'C':v>=50?'D':'F';}
