@@ -113,7 +113,7 @@ const rows = d.payments.length
       </tr>`).join('')}</tbody>
     </table></div>`
   : '<div class="empty">No payments recorded yet.</div>';
- <tbody>${d.payments.map(p=>`<tr><td><b>${esc(p.receipt_no)}</b></td><td>${esc(p.student_name)}</td><td>${esc(p.student_code)}</td><td>${money(p.amount)}</td><td>${new Date(p.paid_at).toLocaleDateString()}</td><td>${esc(p.note||'—')}</td></tr>`).join('')}</tbody></table></div>`:'<div class="empty">No payments recorded yet.</div>';
+ 
  html+=panel('Payment history',rows);
 }else if(state.view==='Reports'){
  html=pageHead('Reports & data','Review school totals, recent activity and export a backup.',`<button class="btn primary" data-action="export">Export backup</button><button class="btn soft" data-action="csv">Export student CSV</button>`)+`<div class="cards">${stat('Active students',students.length,'Enrolment')}${stat('Total fees',money(expected),'Expected')}${stat('Payments',money(paid),'Collected')}${stat('Balance',money(Math.max(0,expected-paid)),'Expected less collected')}</div>`;
