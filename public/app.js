@@ -59,7 +59,8 @@ function showApp(user) {
 
 async function loadData(){
   const d = await api('/api/bootstrap');
-  const parents = await api('/api/parents');
+  const parentResult = await api('/api/parents');
+const parents = parentResult.parents || [];
   state.data = {...d, parents};
   $('#schoolTitle').textContent = d.school.name;
   $('#schoolMotto').textContent = d.school.motto;
