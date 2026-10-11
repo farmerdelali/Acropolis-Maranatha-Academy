@@ -1,6 +1,7 @@
 'use strict';
 const $ = s => document.querySelector(s);
-const state = { user:null, data:{students:[],payments:[],marks:[],users:[]}, view:'Dashboard', search:'', drawer:false };
+
+const state = { user:null, data:{students:[],payments:[],marks:[],users:[],parents:[]}, view:'Dashboard', search:'', drawer:false };
 
 const nav = [
   ['Dashboard','▦','Overview'],
