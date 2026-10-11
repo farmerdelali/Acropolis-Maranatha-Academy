@@ -56,7 +56,16 @@ function showApp(user) {
   closeDrawer();
   loadData().catch(e => toast(e.message, true));
 }
-async function loadData(){const d=await api('/api/bootstrap');state.data=d;$('#schoolTitle').textContent=d.school.name;$('#schoolMotto').textContent=d.school.motto;render();}
+
+async function loadData(){
+  const d = await api('/api/bootstrap');
+  const parents = await api('/api/parents');
+  state.data = {...d, parents};
+  $('#schoolTitle').textContent = d.school.name;
+  $('#schoolMotto').textContent = d.school.motto;
+  render();
+}
+
 function openDrawer(){state.drawer=true;$('#sideNav').classList.add('open');$('#drawerBackdrop').classList.add('open');$('#menuToggle').setAttribute('aria-expanded','true');$('#menuToggle').setAttribute('aria-label','Close menu');document.body.style.overflow='hidden';}
 function closeDrawer(){state.drawer=false;$('#sideNav').classList.remove('open');$('#drawerBackdrop').classList.remove('open');$('#menuToggle').setAttribute('aria-expanded','false');$('#menuToggle').setAttribute('aria-label','Open menu');document.body.style.overflow='';}
 function pageHead(title,sub,actions=''){return `<div class="page-head"><div><h1>${esc(title)}</h1><p>${esc(sub)}</p></div><div class="head-actions">${actions}</div></div>`;}
