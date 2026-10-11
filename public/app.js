@@ -1,4 +1,4 @@
-]'use strict';
+'use strict';
 const $ = s => document.querySelector(s);
 
 const state = { user:null, data:{students:[],payments:[],marks:[],users:[],parents:[]}, view:'Dashboard', search:'', drawer:false };
