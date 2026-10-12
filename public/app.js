@@ -1167,6 +1167,47 @@ document.addEventListener('click', async e => {
       case 'add-drop-off-denial':
         dropOffDenialForm();
         break;
+              case 'add-employee':
+        employeeForm();
+        break;
+
+      case 'edit-employee': {
+        if (state.user.role !== 'ADMIN') {
+          throw new Error('Only administrators can edit employees.');
+        }
+
+        const employee = (state.data.employees || []).find(
+          emp => String(emp.id) === String(button.dataset.id)
+        );
+
+        if (employee) {
+          employeeForm(employee);
+        } else {
+          toast('Employee record not found. Please refresh.', true);
+        }
+        break;
+      }
+
+      case 'deactivate-employee': {
+        if (state.user.role !== 'ADMIN') {
+          throw new Error('Only administrators can deactivate employees.');
+        }
+
+        if (confirm(
+          'Deactivate ' + (button.dataset.name || 'this employee') +
+          '? The employee record will be retained.'
+        )) {
+          await api('/api/employees/' + encodeURIComponent(button.dataset.id), {
+            method: 'DELETE'
+          });
+
+          await refresh();
+          state.view = 'Employees';
+          render();
+          toast('Employee deactivated successfully.');
+        }
+        break;
+      }
 case 'add-pickup-person':
   pickupPersonForm();
   break;
