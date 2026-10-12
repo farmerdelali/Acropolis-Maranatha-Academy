@@ -711,6 +711,17 @@ document.addEventListener('submit', async e => {
   render();
   toast('Parent registered successfully.');
 
+    } else if (form.id === 'dropOffDenialForm') {
+      await api('/api/drop-off-denials', {
+        method: 'POST',
+        body: JSON.stringify(v)
+      });
+
+      await refresh();
+      state.view = 'Drop-off Denial';
+      render();
+      toast('Drop-off denial record saved successfully.');
+
     } else if (form.id === 'studentForm') {
       await api('/api/students', {
         method: 'POST',
