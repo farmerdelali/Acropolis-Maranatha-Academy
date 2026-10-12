@@ -816,6 +816,219 @@ app.post('/api/pickup-persons', requireRole('ADMIN'), asyncRoute(async (req, res
     id: result.rows[0].id,
     message: 'Pickup person saved successfully.'
   });
+}));/* =========================================
+   EMPLOYEE MANAGEMENT API
+   ========================================= */
+
+app.get('/api/employees', requireRole('ADMIN'), asyncRoute(async (req, res) => {
+  const result = await q(
+    `SELECT id,
+            employee_code AS "employeeCode",
+            full_name AS "fullName",
+            gender,
+            date_of_birth AS "dateOfBirth",
+            phone,
+            email,
+            address,
+            emergency_contact_name AS "emergencyContactName",
+            emergency_contact_phone AS "emergencyContactPhone",
+            department,
+            position,
+            qualification,
+            employment_type AS "employmentType",
+            employment_date AS "employmentDate",
+            status,
+            notes,
+            created_at AS "createdAt",
+            updated_at AS "updatedAt"
+     FROM employees
+     WHERE school_id = $1
+     ORDER BY full_name ASC`,
+    [schoolId(req)]
+  );
+
+  res.json({ employees: result.rows });
+}));
+
+app.post('/api/employees', requireRole('ADMIN'), asyncRoute(async (req, res) => {
+  const b = req.body || {};
+
+  if (!validText(b.employeeCode, 40)) {
+    return res.status(400).json({ error: 'Enter an employee ID.' });
+  }
+
+  if (!validText(b.fullName, 120)) {
+    return res.status(400).json({ error: 'Enter the employee’s full name.' });
+  }
+
+  const employmentTypes = [
+    'FULL_TIME', 'PART_TIME', 'CONTRACT', 'TEMPORARY'
+  ];
+
+  const statuses = ['ACTIVE', 'ON_LEAVE', 'INACTIVE'];
+
+  const employmentType = employmentTypes.includes(b.employmentType)
+    ? b.employmentType
+    : 'FULL_TIME';
+
+  const status = statuses.includes(b.status)
+    ? b.status
+    : 'ACTIVE';
+
+  const result = await q(
+    `INSERT INTO employees (
+       school_id, employee_code, full_name, gender,
+       date_of_birth, phone, email, address,
+       emergency_contact_name, emergency_contact_phone,
+       department, position, qualification,
+       employment_type, employment_date, status, notes,
+       created_by
+     )
+     VALUES (
+       $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,
+       $11,$12,$13,$14,$15,$16,$17,$18
+     )
+     RETURNING id`,
+    [
+      schoolId(req),
+      b.employeeCode.trim(),
+      b.fullName.trim(),
+      String(b.gender || '').trim().slice(0, 30),
+      b.dateOfBirth || null,
+      String(b.phone || '').trim().slice(0, 40),
+      String(b.email || '').trim().slice(0, 160),
+      String(b.address || '').trim().slice(0, 300),
+      String(b.emergencyContactName || '').trim().slice(0, 120),
+      String(b.emergencyContactPhone || '').trim().slice(0, 40),
+      String(b.department || '').trim().slice(0, 100),
+      String(b.position || '').trim().slice(0, 120),
+      String(b.qualification || '').trim().slice(0, 200),
+      employmentType,
+      b.employmentDate || null,
+      status,
+      String(b.notes || '').trim().slice(0, 2000),
+      req.session.user.id
+    ]
+  );
+
+  await audit(req, 'employee_created', 'employee', result.rows[0].id);
+
+  res.status(201).json({
+    ok: true,
+    id: result.rows[0].id,
+    message: 'Employee record created successfully.'
+  });
+}));
+
+app.put('/api/employees/:id', requireRole('ADMIN'), asyncRoute(async (req, res) => {
+  const b = req.body || {};
+  const id = Number(req.params.id);
+
+  if (!Number.isSafeInteger(id) || id <= 0) {
+    return res.status(400).json({ error: 'Invalid employee record ID.' });
+  }
+
+  if (!validText(b.employeeCode, 40) || !validText(b.fullName, 120)) {
+    return res.status(400).json({
+      error: 'Employee ID and full name are required.'
+    });
+  }
+
+  const employmentTypes = [
+    'FULL_TIME', 'PART_TIME', 'CONTRACT', 'TEMPORARY'
+  ];
+
+  const statuses = ['ACTIVE', 'ON_LEAVE', 'INACTIVE'];
+
+  if (
+    (b.employmentType && !employmentTypes.includes(b.employmentType)) ||
+    (b.status && !statuses.includes(b.status))
+  ) {
+    return res.status(400).json({
+      error: 'Choose a valid employment type and status.'
+    });
+  }
+
+  const result = await q(
+    `UPDATE employees
+     SET employee_code = $1,
+         full_name = $2,
+         gender = $3,
+         date_of_birth = $4,
+         phone = $5,
+         email = $6,
+         address = $7,
+         emergency_contact_name = $8,
+         emergency_contact_phone = $9,
+         department = $10,
+         position = $11,
+         qualification = $12,
+         employment_type = $13,
+         employment_date = $14,
+         status = $15,
+         notes = $16,
+         updated_at = NOW()
+     WHERE id = $17 AND school_id = $18
+     RETURNING id`,
+    [
+      b.employeeCode.trim(),
+      b.fullName.trim(),
+      String(b.gender || '').trim().slice(0, 30),
+      b.dateOfBirth || null,
+      String(b.phone || '').trim().slice(0, 40),
+      String(b.email || '').trim().slice(0, 160),
+      String(b.address || '').trim().slice(0, 300),
+      String(b.emergencyContactName || '').trim().slice(0, 120),
+      String(b.emergencyContactPhone || '').trim().slice(0, 40),
+      String(b.department || '').trim().slice(0, 100),
+      String(b.position || '').trim().slice(0, 120),
+      String(b.qualification || '').trim().slice(0, 200),
+      b.employmentType || 'FULL_TIME',
+      b.employmentDate || null,
+      b.status || 'ACTIVE',
+      String(b.notes || '').trim().slice(0, 2000),
+      id,
+      schoolId(req)
+    ]
+  );
+
+  if (!result.rowCount) {
+    return res.status(404).json({ error: 'Employee record not found.' });
+  }
+
+  await audit(req, 'employee_updated', 'employee', id);
+
+  res.json({
+    ok: true,
+    message: 'Employee record updated successfully.'
+  });
+}));
+
+app.delete('/api/employees/:id', requireRole('ADMIN'), asyncRoute(async (req, res) => {
+  const id = Number(req.params.id);
+
+  if (!Number.isSafeInteger(id) || id <= 0) {
+    return res.status(400).json({ error: 'Invalid employee record ID.' });
+  }
+
+  const result = await q(
+    `UPDATE employees
+     SET status = 'INACTIVE', updated_at = NOW()
+     WHERE id = $1 AND school_id = $2
+     RETURNING id`,
+    [id, schoolId(req)]
+  );
+
+  if (!result.rowCount) {
+    return res.status(404).json({ error: 'Employee record not found.' });
+  }
+
+  await audit(req, 'employee_deactivated', 'employee', id);
+
+  res.json({
+    ok: true,
+    message: 'Employee marked inactive. The record has been retained.'
+  });
 }));
 app.get('/api/reports', requireAuth, asyncRoute(async(req,res)=>{const sid=schoolId(req);const r=await q(`SELECT (SELECT COUNT(*) FROM students WHERE school_id=$1 AND archived=false) AS active_students,(SELECT COUNT(*) FROM students WHERE school_id=$1 AND archived=true) AS archived_students,(SELECT COALESCE(SUM(amount),0) FROM payments WHERE school_id=$1) AS total_paid,(SELECT COUNT(*) FROM payments WHERE school_id=$1) AS payment_count,(SELECT COALESCE(SUM(total_fees),0) FROM students WHERE school_id=$1 AND archived=false) AS fees_expected`,[sid]);const recent=await q('SELECT action,entity_type,entity_id,created_at FROM audit_logs WHERE school_id=$1 ORDER BY created_at DESC LIMIT 100',[sid]);res.json({summary:r.rows[0],audit:recent.rows})}));
 app.get('/api/export', requireAuth, asyncRoute(async(req,res)=>{const sid=schoolId(req);const [students,payments,marks]=await Promise.all([q('SELECT * FROM students WHERE school_id=$1 ORDER BY id',[sid]),q('SELECT * FROM payments WHERE school_id=$1 ORDER BY id',[sid]),q('SELECT * FROM marks WHERE school_id=$1 ORDER BY id',[sid])]);res.setHeader('Content-Disposition','attachment; filename="acropolis-school-backup.json"');res.json({exportedAt:new Date().toISOString(),school:req.session.user.schoolName,students:students.rows,payments:payments.rows,marks:marks.rows});}));
