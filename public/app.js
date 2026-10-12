@@ -84,6 +84,8 @@ function showApp(user) {
 async function loadData() {
   const d = await api('/api/bootstrap');
   const parentResult = await api('/api/parents');
+    const pickupResult = await api('/api/pickup-persons');
+  const pickupPersons = pickupResult.pickupPersons || [];
   const parents = parentResult.parents || [];
 
   let denials = [];
@@ -93,7 +95,7 @@ async function loadData() {
     denials = denialResult.denials || [];
   }
 
-  state.data = { ...d, parents, denials };
+  state.data = { ...d, parents, denials, pickupPersons };
 
   $('#schoolTitle').textContent = d.school.name;
   $('#schoolMotto').textContent = d.school.motto;
