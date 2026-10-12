@@ -87,7 +87,8 @@ async function loadData() {
     const pickupResult = await api('/api/pickup-persons');
   const pickupPersons = pickupResult.pickupPersons || [];
   const parents = parentResult.parents || [];
-
+const graduationResult = await api('/api/graduations');
+const graduations = graduationResult.graduations || [];
   let denials = [];
 
   if (state.user && state.user.role === 'ADMIN') {
@@ -103,11 +104,12 @@ employees = employeeResult.employees || [];
 }
 
 state.data = {
-...d,
-parents,
-denials,
-pickupPersons,
-employees
+  ...d,
+  parents,
+  denials,
+  pickupPersons,
+  employees,
+  graduations
 };
 
   $('#schoolTitle').textContent = d.school.name;
