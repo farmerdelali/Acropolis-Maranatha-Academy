@@ -1394,6 +1394,7 @@ document.addEventListener('submit', async e => {
         loginForm: 'Sign in securely →',
         studentForm: 'Save student',
         'graduation-form': 'Save Graduation Records',
+        classActivationForm: 'Save Class Activation',
         pickupPersonForm: 'Save pickup person',
         paymentForm: 'Save payment',
         markForm: 'Save mark',
