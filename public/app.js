@@ -111,7 +111,8 @@ state.data = {
   denials,
   pickupPersons,
   employees,
-  graduations
+  graduations,
+  classActivations
 };
 
   $('#schoolTitle').textContent = d.school.name;
