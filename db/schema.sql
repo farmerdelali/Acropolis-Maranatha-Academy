@@ -125,3 +125,39 @@ CREATE TABLE IF NOT EXISTS pickup_persons (
 
 CREATE INDEX IF NOT EXISTS pickup_persons_school_student_idx
 ON pickup_persons(school_id, student_id, status);
+
+-- EMPLOYEE MANAGEMENT
+CREATE TABLE IF NOT EXISTS employees (
+  id BIGSERIAL PRIMARY KEY,
+  school_id BIGINT NOT NULL REFERENCES schools(id) ON DELETE CASCADE,
+  employee_code TEXT NOT NULL,
+  full_name TEXT NOT NULL,
+  gender TEXT NOT NULL DEFAULT '',
+  date_of_birth DATE,
+  phone TEXT NOT NULL DEFAULT '',
+  email TEXT NOT NULL DEFAULT '',
+  address TEXT NOT NULL DEFAULT '',
+  emergency_contact_name TEXT NOT NULL DEFAULT '',
+  emergency_contact_phone TEXT NOT NULL DEFAULT '',
+  department TEXT NOT NULL DEFAULT '',
+  position TEXT NOT NULL DEFAULT '',
+  qualification TEXT NOT NULL DEFAULT '',
+  employment_type TEXT NOT NULL DEFAULT 'FULL_TIME'
+    CHECK (employment_type IN (
+      'FULL_TIME', 'PART_TIME', 'CONTRACT', 'TEMPORARY'
+    )),
+  employment_date DATE,
+  status TEXT NOT NULL DEFAULT 'ACTIVE'
+    CHECK (status IN ('ACTIVE', 'ON_LEAVE', 'INACTIVE')),
+  notes TEXT NOT NULL DEFAULT '',
+  created_by BIGINT REFERENCES users(id) ON DELETE SET NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  UNIQUE (school_id, employee_code)
+);
+
+CREATE INDEX IF NOT EXISTS employees_school_status_idx
+ON employees(school_id, status, full_name);
+
+CREATE INDEX IF NOT EXISTS employees_school_department_idx
+ON employees(school_id, department);
