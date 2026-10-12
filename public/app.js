@@ -428,32 +428,6 @@ html = pageHead(
   </div>` +
   panel('Pickup person register', pickupRows);
 } else if (state.view === 'Employees') {
-  const employees = (d.employees || []).filter(emp =>
-    [
-      emp.employeeCode,
-      emp.fullName,
-      emp.department,
-      emp.position,
-      emp.phone,
-      emp.email,
-      emp.status
-    ].join(' ').toLowerCase().includes(state.search.toLowerCase())
-  );
-
-  const allEmployees = d.employees || [];
-  const activeEmployees = allEmployees.filter(e => e.status === 'ACTIVE').length;
-  const onLeaveEmployees = allEmployees.filter(e => e.status === 'ON_LEAVE').length;
-  const inactiveEmployees = allEmployees.filter(e => e.status === 'INACTIVE').length;
-
-  const employeeRows = employees.length
-    ? `<div class="table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th>Employee ID</th>
-              <th>Full name</th>
-              <th>Department / Position</th>
-} else if (state.view === 'Employees') {
   const allEmployees = d.employees || [];
 
   const employees = allEmployees.filter(emp =>
