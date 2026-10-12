@@ -956,7 +956,9 @@ document.addEventListener('click', async e => {
       case 'add-drop-off-denial':
         dropOffDenialForm();
         break;
-
+case 'add-pickup-person':
+  pickupPersonForm();
+  break;
 
       case 'add-parent':
         parentForm();
