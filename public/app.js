@@ -648,7 +648,7 @@ document.addEventListener('submit', async e => {
   'loginForm',
   'parentForm',
   'studentForm',
-    'paymentForm',
+    'paymentForm','dropOffDenialForm',
     'markForm',
     'userForm',
     'settingsForm'
