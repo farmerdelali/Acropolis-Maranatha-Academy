@@ -266,7 +266,6 @@ else if (state.view === 'Match Students') {
     : '<div class="empty">No possible duplicate records found among active students.</div>';
 
   html += panel('Possible matches to review', matchRows);
-}
 } else if (state.view === 'Drop-off Denial') {
   html = `<section class="panel"><h2>Drop-off Denial</h2><p>Manage restrictions on who may drop off students.</p><p>Drop-off restriction records will be added here.</p></section>`;
 
