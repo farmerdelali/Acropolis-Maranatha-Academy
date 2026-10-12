@@ -640,7 +640,7 @@ app.post('/api/drop-off-denials', requireRole('ADMIN'), asyncRoute(async (req, r
 
   if (!validText(personName, 120) || !validText(reason, 80)) {
     return res.status(400).json({
-      error: 'Enter the person's name and the reason for recording the concern.'
+      error: "Enter the person's name and the reason for recording the concern."
     });
   }
 
