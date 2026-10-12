@@ -197,3 +197,28 @@ CREATE TABLE IF NOT EXISTS class_activations (
 
 CREATE INDEX IF NOT EXISTS class_activations_school_year_idx
 ON class_activations(school_id, academic_year, status);
+
+-- CLASSROOM MANAGEMENT
+CREATE TABLE IF NOT EXISTS classrooms (
+  id BIGSERIAL PRIMARY KEY,
+  school_id BIGINT NOT NULL REFERENCES schools(id) ON DELETE CASCADE,
+  room_code TEXT NOT NULL,
+  room_name TEXT NOT NULL,
+  building TEXT NOT NULL DEFAULT '',
+  floor TEXT NOT NULL DEFAULT '',
+  capacity INTEGER NOT NULL DEFAULT 0 CHECK (capacity >= 0),
+  class_name TEXT NOT NULL DEFAULT '',
+  status TEXT NOT NULL DEFAULT 'ACTIVE'
+    CHECK (status IN ('ACTIVE', 'MAINTENANCE', 'INACTIVE')),
+  notes TEXT NOT NULL DEFAULT '',
+  created_by BIGINT REFERENCES users(id) ON DELETE SET NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  UNIQUE (school_id, room_code)
+);
+
+CREATE INDEX IF NOT EXISTS classrooms_school_status_idx
+ON classrooms(school_id, status, room_name);
+
+CREATE INDEX IF NOT EXISTS classrooms_school_class_idx
+ON classrooms(school_id, class_name);
