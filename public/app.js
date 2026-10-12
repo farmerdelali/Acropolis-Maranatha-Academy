@@ -830,10 +830,13 @@ $('#menuToggle').addEventListener('click', () => {
     openDrawer();
   }
 });
+
 document.querySelectorAll('[data-auth-tab]').forEach(tab => {
-  tab.addEventListener('click', function () {
-    setAuthTab(this.dataset.authTab);
+  tab.addEventListener('click', event => {
+    event.preventDefault();
+    setAuthTab(tab.getAttribute('data-auth-tab'));
   });
 });
+
 
 (async function init(){try{const r=await api('/api/session');if(r.user){state.view='Dashboard';showApp(r.user);}else showAuth();}catch{showAuth();}})();
