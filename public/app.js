@@ -707,8 +707,108 @@ const classes = [...new Set([
     </section>`;
 
 } else if (state.view === 'Classrooms') {
-  html = `<section class="panel"><h2>Classrooms</h2><p>Manage classrooms, class names, and classroom assignments.</p></section>`;
-} else if (state.view === 'Settings') {
+  
+  const classrooms = state.data.classrooms || [];
+  const isAdmin = state.user && state.user.role === 'ADMIN';
+  const classes = [
+    'Pre-Nursery', 'Nursery 1', 'Nursery 2',
+    'KG 1', 'KG 2',
+    'Basic 1', 'Basic 2', 'Basic 3', 'Basic 4',
+    'Basic 5', 'Basic 6', 'Basic 7', 'Basic 8', 'Basic 9'
+  ];
+
+  html = `
+    <section class="panel">
+      <h2>Classroom Management</h2>
+      <p>Register rooms, record capacity, assign classes, and monitor classroom status.</p>
+
+      ${isAdmin ? `
+      <form id="classroomForm" class="form-grid">
+        <label>Room code
+          <input name="roomCode" required maxlength="30"
+            placeholder="e.g. ROOM-001">
+        </label>
+
+        <label>Classroom name
+          <input name="roomName" required maxlength="100"
+            placeholder="e.g. Primary Classroom A">
+        </label>
+
+        <label>Building
+          <input name="building" maxlength="100"
+            placeholder="e.g. Main Block">
+        </label>
+
+        <label>Floor
+          <input name="floor" maxlength="30"
+            placeholder="e.g. Ground Floor">
+        </label>
+
+        <label>Capacity
+          <input name="capacity" type="number" min="0" step="1"
+            value="0" required>
+        </label>
+
+        <label>Assigned class
+          <select name="className">
+            <option value="">Not assigned</option>
+            ${classes.map(c => `<option value="${esc(c)}">${esc(c)}</option>`).join('')}
+          </select>
+        </label>
+
+        <label>Room status
+          <select name="status" required>
+            <option value="ACTIVE">Active</option>
+            <option value="MAINTENANCE">Under maintenance</option>
+            <option value="INACTIVE">Inactive</option>
+          </select>
+        </label>
+
+        <label>Notes
+          <input name="notes" maxlength="500"
+            placeholder="Optional room details">
+        </label>
+
+        <button type="submit">Save Classroom</button>
+      </form>
+      ` : '<p>Only administrators can register classrooms.</p>'}
+    </section>
+
+    <section class="panel">
+      <h2>Registered Classrooms</h2>
+      ${classrooms.length ? `
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Room code</th>
+                <th>Classroom</th>
+                <th>Building / Floor</th>
+                <th>Assigned class</th>
+                <th>Capacity</th>
+                <th>Students</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${classrooms.map(c => `
+                <tr>
+                  <td>${esc(c.room_code)}</td>
+                  <td>${esc(c.room_name)}</td>
+                  <td>${esc([c.building, c.floor].filter(Boolean).join(' / ') || '—')}</td>
+                  <td>${esc(c.class_name || 'Not assigned')}</td>
+                  <td>${esc(c.capacity)}</td>
+                  <td>${esc(c.student_count)}</td>
+                  <td>${esc(c.status)}</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+      ` : '<p>No classroom records yet. Use the form above to register the first classroom.</p>'}
+    </section>`;
+
+  } else if (state.view === 'Settings') {
   html = `<section class="panel"><h2>School Settings</h2><p>Configure school information and system preferences.</p></section>`;
 } else if (state.view === 'Students with same Surname') {
   html = `<section class="panel"><h2>Students with the Same Surname</h2><p>Identify students who share a surname. Matching results will be connected to the student records.</p></section>`;
