@@ -549,9 +549,68 @@ html = pageHead(
     </div>
     ${employeeRows}`
   );
+
 } else if (state.view === 'Graduations') {
-  html = `<section class="panel"><h2>Graduations</h2><p>Manage graduation records for eligible students.</p></section>`;
+  const students = state.data.students || [];
+  const graduations = state.data.graduations || [];
+  const isAdmin = state.user && state.user.role === 'ADMIN';
+  const esc = v => String(v ?? '').replace(/[&<>"']/g, c => ({
+    '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+  }[c]));
+  const classes = [...new Set(students
+    .filter(s => !s.archived)
+    .map(s => s.class_name || s.class || s.className)
+    .filter(Boolean))].sort();
+  html = `
+    <section class="panel">
+      <h2>Graduation Records</h2>
+      <p>Select registered students below. Names are taken directly from Students.</p>
+      ${isAdmin ? `
+      <form id="graduation-form" class="form-grid">
+        <label>Class completed
+          <select id="grad-class" name="classCompleted" required>
+            <option value="">Choose class</option>
+            ${classes.map(c => `<option value="${esc(c)}">${esc(c)}</option>`).join('')}
+          </select>
+        </label>
+        <label>Graduation year
+          <input name="graduationYear" type="number" min="2000" max="2100"
+            value="${new Date().getFullYear()}" required>
+        </label>
+        <label>Graduation date
+          <input name="graduationDate" type="date">
+        </label>
+        <label>Certificate number (optional)
+          <input name="certificateNumber" placeholder="Leave blank if not assigned">
+        </label>
+        <label>Remarks (optional)
+          <input name="remarks" placeholder="Additional notes">
+        </label>
+        <div class="form-actions">
+          <button type="button" id="grad-select-all">Select all listed students</button>
+          <button type="button" id="grad-clear">Clear selection</button>
+        </div>
+        <div id="grad-student-list" class="panel">
+          <p>Choose a class to list registered students.</p>
+        </div>
+        <button type="submit">Save Graduation Records</button>
+      </form>` : '<p>Only administrators can add or delete graduation records.</p>'}
+    </section>
+    <section class="panel">
+      <h2>Saved Graduations</h2>
+      ${graduations.length ? `
+      <div class="table-wrap"><table>
+        <thead><tr><th>Student</th><th>Class completed</th><th>Year</th><th>Date</th><th>Certificate</th>${isAdmin?'<th>Action</th>':''}</tr></thead>
+        <tbody>${graduations.map(g => `<tr>
+          <td>${esc(g.student_name || [g.first_name,g.last_name].filter(Boolean).join(' ') || 'Student')}</td>
+          <td>${esc(g.class_completed)}</td><td>${esc(g.graduation_year)}</td>
+          <td>${esc(g.graduation_date || '—')}</td><td>${esc(g.certificate_number || '—')}</td>
+          ${isAdmin?`<td><button type="button" data-delete-graduation="${esc(g.id)}">Delete</button></td>`:''}
+        </tr>`).join('')}</tbody>
+      </table></div>` : '<p>No graduation records have been saved yet.</p>'}
+    </section>`;
 } else if (state.view === 'Class Activations') {
+
   html = `<section class="panel"><h2>Class Activations</h2><p>Manage class activation and academic-year status.</p></section>`;
 } else if (state.view === 'Classrooms') {
   html = `<section class="panel"><h2>Classrooms</h2><p>Manage classrooms, class names, and classroom assignments.</p></section>`;
