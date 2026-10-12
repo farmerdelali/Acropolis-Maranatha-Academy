@@ -1395,7 +1395,19 @@ case 'add-pickup-person':
     toast(error.message || 'The action failed. Please try again.', true);
   }
 });
-document.addEventListener('input',e=>{if(e.target.id==='studentSearch'){state.search=e.target.value;const pos=e.target.selectionStart;render();const input=$('#studentSearch');input.focus();input.setSelectionRange(pos,pos);}});
+document.addEventListener('input', e => {
+  if (e.target.id === 'studentSearch' || e.target.id === 'employeeSearch') {
+    state.search = e.target.value;
+    const inputId = e.target.id;
+    const pos = e.target.selectionStart;
+    render();
+    const input = document.getElementById(inputId);
+    if (input) {
+      input.focus();
+      input.setSelectionRange(pos, pos);
+    }
+  }
+});
 document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeDrawer();$('#modalHost').innerHTML='';}});
 $('#drawerBackdrop').addEventListener('click',closeDrawer);
 $('#menuToggle').addEventListener('click', () => {
