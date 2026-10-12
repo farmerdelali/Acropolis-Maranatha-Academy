@@ -1531,6 +1531,7 @@ document.addEventListener('submit', async e => {
         studentForm: 'Save student',
         'graduation-form': 'Save Graduation Records',
         classActivationForm: 'Save Class Activation',
+        classroomForm: 'Save Classroom',
         pickupPersonForm: 'Save pickup person',
         paymentForm: 'Save payment',
         markForm: 'Save mark',
