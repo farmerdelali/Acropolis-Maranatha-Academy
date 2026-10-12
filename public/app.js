@@ -822,7 +822,12 @@ document.addEventListener('click', async e => {
   if (!action) return;
 
   try {
-    switch (action) {
+    switch (action) { 
+      case 'add-drop-off-denial':
+        dropOffDenialForm();
+        break;
+
+
       case 'add-parent':
         parentForm();
         break;
