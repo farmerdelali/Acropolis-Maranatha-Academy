@@ -189,8 +189,85 @@ const rows = d.payments.length
  `);
 }
 
+
 else if (state.view === 'Match Students') {
-  html = `<section class="panel"><h2>Match Students</h2><p>Find and review student records that may belong to the same student.</p><p>Student matching tools will be added here.</p></section>`;
+  const normalize = value =>
+    String(value || '').trim().toLowerCase().replace(/\s+/g, ' ');
+
+  const surname = value => {
+    const parts = normalize(value).split(' ').filter(Boolean);
+    return parts.length ? parts[parts.length - 1] : '';
+  };
+
+  const candidates = [];
+
+  for (let i = 0; i < students.length; i++) {
+    for (let j = i + 1; j < students.length; j++) {
+      const a = students[i];
+      const b = students[j];
+
+      const sameName =
+        normalize(a.full_name) &&
+        normalize(a.full_name) === normalize(b.full_name);
+
+      const sameId =
+        normalize(a.student_code) &&
+        normalize(a.student_code) === normalize(b.student_code);
+
+      const sameGuardian =
+        normalize(a.guardian_phone) &&
+        normalize(a.guardian_phone) === normalize(b.guardian_phone);
+
+      const sameSurname =
+        surname(a.full_name) &&
+        surname(a.full_name) === surname(b.full_name);
+
+      const reasons = [];
+      if (sameId) reasons.push('Same student ID');
+      if (sameName) reasons.push('Same full name');
+      if (sameGuardian) reasons.push('Same guardian phone');
+      if (sameSurname) reasons.push('Same surname');
+
+      if (sameId || sameName || sameGuardian) {
+        candidates.push({ a, b, reasons });
+      }
+    }
+  }
+
+  html = pageHead(
+    'Match Students',
+    'Review possible duplicate student records. No records are merged or deleted automatically.'
+  );
+
+  html += `<div class="cards">
+    ${stat('Active students', students.length, 'Records checked')}
+    ${stat('Possible matches', candidates.length, 'Pairs requiring review')}
+  </div>`;
+
+  const matchRows = candidates.length
+    ? `<div class="table-wrap"><table>
+        <thead><tr>
+          <th>Student 1</th>
+          <th>Student 2</th>
+          <th>Class comparison</th>
+          <th>Why they matched</th>
+        </tr></thead>
+        <tbody>${candidates.map(({a, b, reasons}) => `
+          <tr>
+            <td><b>${esc(a.full_name)}</b><br>
+              <small>${esc(a.student_code || 'No ID')}</small></td>
+            <td><b>${esc(b.full_name)}</b><br>
+              <small>${esc(b.student_code || 'No ID')}</small></td>
+            <td>${esc(a.class_name || '—')} / ${esc(b.class_name || '—')}</td>
+            <td>${reasons.map(esc).join(', ')}</td>
+          </tr>
+        `).join('')}</tbody>
+      </table></div>`
+    : '<div class="empty">No possible duplicate records found among active students.</div>';
+
+  html += panel('Possible matches to review', matchRows);
+}
+
 } else if (state.view === 'Drop-off Denial') {
   html = `<section class="panel"><h2>Drop-off Denial</h2><p>Manage restrictions on who may drop off students.</p><p>Drop-off restriction records will be added here.</p></section>`;
 
