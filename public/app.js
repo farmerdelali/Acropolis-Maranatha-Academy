@@ -326,7 +326,7 @@ else if (state.view === 'Match Students') {
         </div>
       </section>`;
   }
-</escape>
+
 
 } else if (state.view === 'Parents') {
   const parents = d.parents || [];
