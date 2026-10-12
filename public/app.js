@@ -1,6 +1,23 @@
 'use strict';
 const $ = s => document.querySelector(s);
 
+function applyTheme(theme) {
+  document.body.classList.toggle('dark-mode', theme === 'dark');
+  try {
+    localStorage.setItem('ama-theme', theme === 'dark' ? 'dark' : 'light');
+  } catch {}
+}
+
+function loadSavedTheme() {
+  let theme = 'light';
+  try {
+    theme = localStorage.getItem('ama-theme') || 'light';
+  } catch {}
+  applyTheme(theme);
+}
+
+loadSavedTheme();
+
 const state = { user:null, data:{students:[],payments:[],marks:[],users:[],parents:[]}, view:'Dashboard', search:'', drawer:false };
 
 const nav = [
