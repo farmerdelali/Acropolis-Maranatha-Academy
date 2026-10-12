@@ -625,12 +625,30 @@ html = pageHead(
     '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
   }[c]));
 
- const classes = [...new Set([
+ const defaultClasses = [
+  'Pre-Nursery',
+  'Nursery 1',
+  'Nursery 2',
+  'KG 1',
+  'KG 2',
+  'Basic 1',
+  'Basic 2',
+  'Basic 3',
+  'Basic 4',
+  'Basic 5',
+  'Basic 6',
+  'Basic 7',
+  'Basic 8',
+  'Basic 9'
+];
+
+const classes = [...new Set([
+  ...defaultClasses,
   ...(state.data.classActivationClasses || []),
   ...students.filter(s => !s.archived)
     .map(s => s.class_name)
     .filter(Boolean)
-])].sort(); 
+])].sort();
 
   const academicYear = state.data.school?.academicYear || '';
 
