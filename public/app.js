@@ -835,26 +835,28 @@ document.addEventListener('submit', async e => {
     }
   } catch (err) {
     toast(err.message || 'Something went wrong. Please try again.', true);
-  } } finally {
-if (submit) {
-submit.disabled = false;
+ 
+  } finally {
+    if (submit) {
+      submit.disabled = false;
 
-  const labels = {
-    registerForm: 'Create school & administrator →',
-    loginForm: 'Sign in securely →',
-    studentForm: 'Save student',
-    pickupPersonForm: 'Save pickup person',
-    paymentForm: 'Save payment',
-    markForm: 'Save mark',
-    userForm: 'Create account',
-    settingsForm: 'Save settings',
-    parentForm: 'Save parent'
-  };
+      const labels = {
+        registerForm: 'Create school & administrator →',
+        loginForm: 'Sign in securely →',
+        studentForm: 'Save student',
+        pickupPersonForm: 'Save pickup person',
+        paymentForm: 'Save payment',
+        markForm: 'Save mark',
+        userForm: 'Create account',
+        settingsForm: 'Save settings',
+        parentForm: 'Save parent'
+      };
 
-  submit.textContent = labels[form.id] || 'Save';
-}
+      submit.textContent = labels[form.id] || 'Save';
+    }
+  }
+});
 
-}});
 document.addEventListener('click', async e => {
   const button = e.target.closest('button');
   if (!button) return;
