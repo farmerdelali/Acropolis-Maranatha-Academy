@@ -80,7 +80,8 @@ function showApp(user) {
 }
 
 
- async function loadData() {
+ 
+async function loadData() {
   const d = await api('/api/bootstrap');
   const parentResult = await api('/api/parents');
   const parents = parentResult.parents || [];
@@ -98,8 +99,10 @@ function showApp(user) {
   $('#schoolMotto').textContent = d.school.motto;
 
   render();
-} render();
 }
+
+</escape>
+
 
 function openDrawer(){state.drawer=true;$('#sideNav').classList.add('open');$('#drawerBackdrop').classList.add('open');$('#menuToggle').setAttribute('aria-expanded','true');$('#menuToggle').setAttribute('aria-label','Close menu');document.body.style.overflow='hidden';}
 function closeDrawer(){state.drawer=false;$('#sideNav').classList.remove('open');$('#drawerBackdrop').classList.remove('open');$('#menuToggle').setAttribute('aria-expanded','false');$('#menuToggle').setAttribute('aria-label','Open menu');document.body.style.overflow='';}
