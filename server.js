@@ -600,7 +600,140 @@ app.delete('/api/parents/:id', requireRole('ADMIN'), asyncRoute(async (req, res)
   await audit(req, 'parent_deleted', 'parent', req.params.id);
   res.json({ ok: true });
 }));
+// DROP-OFF DENIAL MANAGEMENT
+app.get('/api/drop-off-denials', requireRole('ADMIN'), asyncRoute(async (req, res) => {
+  const result = await q(
+    `SELECT d.id, d.student_id AS "studentId",
+            s.full_name AS "studentName",
+            s.student_code AS "studentCode",
+            s.class_name AS "className",
+            d.person_name AS "personName",
+            d.person_phone AS "personPhone",
+            d.relationship, d.reason, d.details,
+            d.start_date AS "startDate",
+            d.review_date AS "reviewDate",
+            d.status,
+            d.created_at AS "createdAt",
+            d.updated_at AS "updatedAt",
+            u.username AS "createdByName"
+     FROM drop_off_denials d
+     JOIN students s ON s.id = d.student_id
+                    AND s.school_id = d.school_id
+     LEFT JOIN users u ON u.id = d.created_by
+     WHERE d.school_id = $1
+     ORDER BY d.created_at DESC`,
+    [schoolId(req)]
+  );
 
+  res.json({ denials: result.rows });
+}));
+
+app.post('/api/drop-off-denials', requireRole('ADMIN'), asyncRoute(async (req, res) => {
+  const b = req.body || {};
+  const studentId = Number(b.studentId);
+  const personName = typeof b.personName === 'string' ? b.personName.trim() : '';
+  const reason = typeof b.reason === 'string' ? b.reason.trim() : '';
+
+  if (!Number.isSafeInteger(studentId) || studentId <= 0) {
+    return res.status(400).json({ error: 'Please select a valid student.' });
+  }
+
+  if (!validText(personName, 120) || !validText(reason, 80)) {
+    return res.status(400).json({
+      error: 'Enter the person's name and the reason for recording the concern.'
+    });
+  }
+
+  const student = await q(
+    'SELECT id FROM students WHERE id=$1 AND school_id=$2 AND archived=false',
+    [studentId, schoolId(req)]
+  );
+
+  if (!student.rowCount) {
+    return res.status(404).json({ error: 'Active student not found.' });
+  }
+
+  const datePattern = /^\d{4}-\d{2}-\d{2}$/;
+  const validDate = value => {
+    if (!value) return true;
+    if (typeof value !== 'string' || !datePattern.test(value)) return false;
+    const date = new Date(value + 'T00:00:00Z');
+    return !Number.isNaN(date.getTime()) &&
+      date.toISOString().slice(0, 10) === value;
+  };
+
+  if (!validDate(b.startDate) || !validDate(b.reviewDate)) {
+    return res.status(400).json({ error: 'Enter valid dates.' });
+  }
+
+  if (b.startDate && b.reviewDate && b.reviewDate < b.startDate) {
+    return res.status(400).json({
+      error: 'The review date cannot be earlier than the start date.'
+    });
+  }
+
+  const result = await q(
+    `INSERT INTO drop_off_denials
+      (school_id, student_id, person_name, person_phone,
+       relationship, reason, details, start_date, review_date,
+       status, created_by, updated_by)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,'PENDING',$10,$10)
+     RETURNING id`,
+    [
+      schoolId(req),
+      studentId,
+      personName,
+      String(b.personPhone || '').trim().slice(0, 40),
+      String(b.relationship || '').trim().slice(0, 80),
+      reason,
+      String(b.details || '').trim().slice(0, 2000),
+      b.startDate || null,
+      b.reviewDate || null,
+      req.session.user.id
+    ]
+  );
+
+  await audit(req, 'drop_off_concern_created', 'drop_off_denial', result.rows[0].id);
+  res.status(201).json({
+    ok: true,
+    id: result.rows[0].id,
+    message: 'Drop-off concern recorded for review.'
+  });
+}));
+
+app.put('/api/drop-off-denials/:id', requireRole('ADMIN'), asyncRoute(async (req, res) => {
+  const b = req.body || {};
+  const id = Number(req.params.id);
+  const allowedStatuses = ['PENDING', 'ACTIVE', 'RESOLVED'];
+
+  if (!Number.isSafeInteger(id) || id <= 0) {
+    return res.status(400).json({ error: 'Invalid record ID.' });
+  }
+
+  if (!allowedStatuses.includes(b.status)) {
+    return res.status(400).json({ error: 'Choose a valid record status.' });
+  }
+
+  const existing = await q(
+    'SELECT id FROM drop_off_denials WHERE id=$1 AND school_id=$2',
+    [id, schoolId(req)]
+  );
+
+  if (!existing.rowCount) {
+    return res.status(404).json({ error: 'Drop-off record not found.' });
+  }
+
+  const result = await q(
+    `UPDATE drop_off_denials
+     SET status=$1, updated_by=$2, updated_at=NOW()
+     WHERE id=$3 AND school_id=$4
+     RETURNING id, status`,
+    [b.status, req.session.user.id, id, schoolId(req)]
+  );
+
+  await audit(req, 'drop_off_concern_status_updated', 'drop_off_denial', id);
+  res.json({ ok: true, denial: result.rows[0] });
+}));
 app.get('/api/reports', requireAuth, asyncRoute(async(req,res)=>{const sid=schoolId(req);const r=await q(`SELECT (SELECT COUNT(*) FROM students WHERE school_id=$1 AND archived=false) AS active_students,(SELECT COUNT(*) FROM students WHERE school_id=$1 AND archived=true) AS archived_students,(SELECT COALESCE(SUM(amount),0) FROM payments WHERE school_id=$1) AS total_paid,(SELECT COUNT(*) FROM payments WHERE school_id=$1) AS payment_count,(SELECT COALESCE(SUM(total_fees),0) FROM students WHERE school_id=$1 AND archived=false) AS fees_expected`,[sid]);const recent=await q('SELECT action,entity_type,entity_id,created_at FROM audit_logs WHERE school_id=$1 ORDER BY created_at DESC LIMIT 100',[sid]);res.json({summary:r.rows[0],audit:recent.rows})}));
 app.get('/api/export', requireAuth, asyncRoute(async(req,res)=>{const sid=schoolId(req);const [students,payments,marks]=await Promise.all([q('SELECT * FROM students WHERE school_id=$1 ORDER BY id',[sid]),q('SELECT * FROM payments WHERE school_id=$1 ORDER BY id',[sid]),q('SELECT * FROM marks WHERE school_id=$1 ORDER BY id',[sid])]);res.setHeader('Content-Disposition','attachment; filename="acropolis-school-backup.json"');res.json({exportedAt:new Date().toISOString(),school:req.session.user.schoolName,students:students.rows,payments:payments.rows,marks:marks.rows});}));
 app.use('/api', (err, req, res, next) => { console.error(err); if(res.headersSent)return next(err); if(err.code==='23505')return res.status(409).json({error:'A record with these details already exists.'}); res.status(500).json({error:'Something went wrong. Please try again.'}); });
