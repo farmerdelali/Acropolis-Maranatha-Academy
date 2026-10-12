@@ -160,3 +160,74 @@ textarea:focus {
     transition-duration: .01ms !important;
   }
 }
+
+/* PREMIUM STAGGERED ANIMATIONS */
+.cards .stat {
+  animation: premiumCardIn .55s var(--motion-smooth) both;
+}
+
+.cards .stat:nth-child(1) { animation-delay: .04s; }
+.cards .stat:nth-child(2) { animation-delay: .10s; }
+.cards .stat:nth-child(3) { animation-delay: .16s; }
+.cards .stat:nth-child(4) { animation-delay: .22s; }
+
+@keyframes premiumCardIn {
+  from {
+    opacity: 0;
+    transform: translateY(16px) scale(.985);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Elegant pop-up forms */
+.modal-back {
+  animation: premiumOverlayIn .24s ease-out both;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+.modal {
+  transform-origin: center;
+  animation: premiumModalIn .38s var(--motion-smooth) both;
+}
+
+@keyframes premiumOverlayIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes premiumModalIn {
+  from {
+    opacity: 0;
+    transform: translateY(18px) scale(.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Gentle feedback on clickable cards */
+button:focus-visible,
+.nav-item:focus-visible {
+  outline: 3px solid var(--gold);
+  outline-offset: 3px;
+}
+
+/* Smooth table row feedback */
+tbody tr {
+  transition: background-color .2s var(--motion-smooth);
+}
+
+/* Avoid unnecessary motion for accessibility */
+@media (prefers-reduced-motion: reduce) {
+  .cards .stat,
+  .modal,
+  .modal-back {
+    animation: none !important;
+    backdrop-filter: none !important;
+  }
+}
