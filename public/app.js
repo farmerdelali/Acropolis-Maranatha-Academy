@@ -415,7 +415,79 @@ html = pageHead(
   </div>` +
   panel('Pickup person register', pickupRows);
 } else if (state.view === 'Employees') {
-  html = `<section class="panel"><h2>Employees</h2><p>Manage school employee records and assignments.</p></section>`;
+  const employees = (d.employees || []).filter(emp =>
+    [
+      emp.employeeCode,
+      emp.fullName,
+      emp.department,
+      emp.position,
+      emp.phone,
+      emp.email,
+      emp.status
+    ].join(' ').toLowerCase().includes(state.search.toLowerCase())
+  );
+
+  const allEmployees = d.employees || [];
+  const activeEmployees = allEmployees.filter(e => e.status === 'ACTIVE').length;
+  const onLeaveEmployees = allEmployees.filter(e => e.status === 'ON_LEAVE').length;
+  const inactiveEmployees = allEmployees.filter(e => e.status === 'INACTIVE').length;
+
+  const employeeRows = employees.length
+    ? `<div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Employee ID</th>
+              <th>Full name</th>
+              <th>Department / Position</th>
+              <th>Contact</th>
+              <th>Employment type</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${employees.map(emp => `
+              <tr>
+                <td><b>${esc(emp.employeeCode)}</b></td>
+                <td>
+                  <b>${esc(emp.fullName)}</b><br>
+                  <small>${esc(emp.gender || '—')}</small>
+                </td>
+                <td>
+                  ${esc(emp.department || '—')}<br>
+                  <small>${esc(emp.position || '—')}</small>
+                </td>
+                <td>
+                  ${esc(emp.phone || '—')}<br>
+                  <small>${esc(emp.email || '')}</small>
+                </td>
+                <td>
+                  ${esc(String(emp.employmentType || 'FULL_TIME').replaceAll('_', ' '))}
+                  <br>
+                  <small>${emp.employmentDate ? esc(String(emp.employmentDate).slice(0, 10)) : 'Date not entered'}</small>
+                </td>
+                <td>
+                  <span class="badge">
+                    ${esc(String(emp.status || 'ACTIVE').replaceAll('_', ' '))}
+                  </span>
+                </td>
+                <td>
+                  <button
+                    type="button"
+                    class="btn soft"
+                    data-action="edit-employee"
+                    data-id="${esc(emp.id)}">
+                    Edit
+                  </button>
+
+                  ${emp.status !== 'INACTIVE' ? `
+                    <button
+                      type="button"
+                      class="btn danger"
+                      data-action="deactivate-employee"
+                      data-id="${esc(emp.id)}"
+                      data-name="${esc(emp.full
 } else if (state.view === 'Graduations') {
   html = `<section class="panel"><h2>Graduations</h2><p>Manage graduation records for eligible students.</p></section>`;
 } else if (state.view === 'Class Activations') {
