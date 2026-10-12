@@ -1185,7 +1185,8 @@ document.addEventListener('submit', async e => {
       'employeeForm',
     'userForm',
     'settingsForm',
-'graduation-form'
+'graduation-form',
+'classActivationForm'
   ];
 
   if (!allowedForms.includes(form.id)) return;
