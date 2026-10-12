@@ -1310,8 +1310,8 @@ document.addEventListener('submit', async e => {
     'userForm',
     'settingsForm',
 'graduation-form',
-'classActivationForm'
-  ];
+'classActivationForm',
+'classroomForm'
 
   if (!allowedForms.includes(form.id)) return;
   e.preventDefault();
