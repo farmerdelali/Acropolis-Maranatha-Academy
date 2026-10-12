@@ -675,6 +675,70 @@ function dropOffDenialForm() {
   `);
 }
 
+function pickupPersonForm() {
+  if (!state.user || state.user.role !== 'ADMIN') {
+    toast('Only administrators can register pickup persons.', true);
+    return;
+  }
+
+  const students = (state.data.students || []).filter(s => !s.archived);
+
+  if (!students.length) {
+    toast('Please register a student before adding a pickup person.', true);
+    return;
+  }
+
+  openModal('Register pickup person', `
+    <form id="pickupPersonForm">
+      <div class="form-grid">
+        <label class="field">Student *
+          <select name="studentId" required>
+            <option value="">Select student</option>
+            ${students.map(s => `<option value="${esc(s.id)}">${esc(s.full_name)} — ${esc(s.student_code || 'No ID')} (${esc(s.class_name || '')})</option>`).join('')}
+          </select>
+        </label>
+
+        <label class="field">Pickup person's full name *
+          <input name="fullName" required maxlength="120">
+        </label>
+
+        <label class="field">Relationship
+          <input name="relationship" maxlength="60">
+        </label>
+
+        <label class="field">Phone
+          <input name="phone" type="tel" maxlength="40">
+        </label>
+
+        <label class="field">ID type
+          <input name="idType" maxlength="60">
+        </label>
+
+        <label class="field">ID number
+          <input name="idNumber" maxlength="100">
+        </label>
+
+        <label class="field">Status
+          <select name="status" required>
+            <option value="PENDING" selected>Pending review</option>
+            <option value="AUTHORIZED">Authorized</option>
+            <option value="REVOKED">Revoked</option>
+          </select>
+        </label>
+      </div>
+
+      <label class="field">Notes
+        <textarea name="notes" rows="3" maxlength="1000"></textarea>
+      </label>
+
+      <div class="form-actions">
+        <button type="button" class="btn soft" data-action="close-modal">Cancel</button>
+        <button type="submit" class="btn primary">Save pickup person</button>
+      </div>
+    </form>
+  `);
+}
+
 function paymentForm(){const students=state.data.students.filter(s=>!s.archived);if(!students.length)return toast('Register a student before recording payments.',true);openModal('Record payment',`<form id="paymentForm"><label class="field">Student<select name="studentId" required>${students.map(s=>`<option value="${s.id}">${esc(s.full_name)} · ${esc(s.student_code)}</option>`).join('')}</select></label><label class="field">Amount (GHS)<input name="amount" type="number" min="0.01" step="0.01" required inputmode="decimal"></label><label class="field">Note / payment method<input name="note" maxlength="200" placeholder="Cash, bank transfer, term fees…"></label><div class="form-actions"><button type="button" class="btn soft" data-action="close-modal">Cancel</button><button class="btn primary" type="submit">Save payment</button></div></form>`);}
 function markForm(){const students=state.data.students.filter(s=>!s.archived);if(!students.length)return toast('Register a student before entering marks.',true);openModal('Enter examination mark',`<form id="markForm"><label class="field">Student<select name="studentId" required>${students.map(s=>`<option value="${s.id}">${esc(s.full_name)} · ${esc(s.class_name)}</option>`).join('')}</select></label><label class="field">Subject<input name="subject" required maxlength="80" placeholder="e.g. Mathematics"></label><label class="field">Term<input name="term" maxlength="40" value="Term 1" required></label><label class="field">Score (%)<input name="score" type="number" min="0" max="100" step="0.01" required inputmode="decimal"></label><div class="form-actions"><button type="button" class="btn soft" data-action="close-modal">Cancel</button><button class="btn primary" type="submit">Save mark</button></div></form>`);}
 function userForm(){openModal('Create staff account',`<form id="userForm"><label class="field">Username<input name="username" required minlength="3" maxlength="60" autocomplete="off"></label><label class="field">Role<select name="role"><option value="TEACHER">Teacher — students and marks</option><option value="BURSAR">Bursar — fees and payments</option><option value="ADMIN">Administrator — full access</option></select></label><label class="field">Temporary password <small>At least 10 characters</small><input name="password" type="password" required minlength="10" autocomplete="new-password"></label><div class="form-actions"><button type="button" class="btn soft" data-action="close-modal">Cancel</button><button class="btn primary" type="submit">Create account</button></div></form>`);}
