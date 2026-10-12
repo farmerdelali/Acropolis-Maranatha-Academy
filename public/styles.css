@@ -58,3 +58,105 @@ body.dark-mode .stat-label,
 body.dark-mode .stat-note {
   color: var(--muted);
 }
+
+/* PREMIUM SMOOTH USER EXPERIENCE */
+:root {
+  --motion-smooth: cubic-bezier(.22, 1, .36, 1);
+}
+
+/* Smoother scrolling and interaction */
+html {
+  scroll-behavior: smooth;
+  -webkit-tap-highlight-color: transparent;
+}
+
+button,
+a,
+.nav-item,
+.tab,
+.stat,
+.panel,
+input,
+select,
+textarea {
+  transition:
+    background-color .25s var(--motion-smooth),
+    color .25s var(--motion-smooth),
+    border-color .25s var(--motion-smooth),
+    box-shadow .3s var(--motion-smooth),
+    transform .3s var(--motion-smooth),
+    opacity .25s var(--motion-smooth);
+}
+
+/* Gentle entrance for page content */
+.main-content {
+  animation: premiumPageEnter .42s var(--motion-smooth) both;
+}
+
+@keyframes premiumPageEnter {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Refined cards */
+.stat,
+.panel {
+  transition:
+    box-shadow .3s var(--motion-smooth),
+    transform .3s var(--motion-smooth),
+    border-color .3s var(--motion-smooth);
+}
+
+.stat:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 14px 30px #101c3a12;
+}
+
+/* Comfortable button feedback */
+.btn,
+.menu-toggle {
+  transition:
+    transform .2s var(--motion-smooth),
+    box-shadow .25s var(--motion-smooth),
+    filter .25s var(--motion-smooth),
+    background-color .25s var(--motion-smooth);
+}
+
+.btn:active,
+.menu-toggle:active {
+  transform: scale(.97);
+}
+
+/* Softer form focus */
+input:focus,
+select:focus,
+textarea:focus {
+  outline: 3px solid #53699b24;
+  box-shadow: 0 0 0 4px #53699b0d;
+}
+
+/* Smoother navigation feedback */
+.nav-item {
+  transition:
+    background-color .25s var(--motion-smooth),
+    color .25s var(--motion-smooth),
+    transform .25s var(--motion-smooth);
+}
+
+/* Respect reduced-motion accessibility settings */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+  }
+}
