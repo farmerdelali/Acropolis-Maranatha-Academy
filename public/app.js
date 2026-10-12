@@ -678,7 +678,6 @@ html = pageHead(
         </table>
       </div>` : '<p>No class activations have been saved yet.</p>'}
     </section>`;
-} else if (state.view === 'Classrooms') {
 
 } else if (state.view === 'Classrooms') {
   html = `<section class="panel"><h2>Classrooms</h2><p>Manage classrooms, class names, and classroom assignments.</p></section>`;
