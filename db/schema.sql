@@ -179,3 +179,21 @@ CREATE TABLE IF NOT EXISTS graduation_records (
 
 CREATE INDEX IF NOT EXISTS graduation_records_school_year_idx
 ON graduation_records(school_id, graduation_year DESC);
+
+-- CLASS ACTIVATIONS
+CREATE TABLE IF NOT EXISTS class_activations (
+  id BIGSERIAL PRIMARY KEY,
+  school_id BIGINT NOT NULL REFERENCES schools(id) ON DELETE CASCADE,
+  class_name TEXT NOT NULL,
+  academic_year TEXT NOT NULL,
+  status TEXT NOT NULL DEFAULT 'ACTIVE'
+    CHECK (status IN ('ACTIVE', 'INACTIVE')),
+  notes TEXT NOT NULL DEFAULT '',
+  activated_by BIGINT REFERENCES users(id) ON DELETE SET NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  UNIQUE (school_id, class_name, academic_year)
+);
+
+CREATE INDEX IF NOT EXISTS class_activations_school_year_idx
+ON class_activations(school_id, academic_year, status);
