@@ -734,6 +734,89 @@ app.put('/api/drop-off-denials/:id', requireRole('ADMIN'), asyncRoute(async (req
   await audit(req, 'drop_off_concern_status_updated', 'drop_off_denial', id);
   res.json({ ok: true, denial: result.rows[0] });
 }));
+// PICKUP PERSONS MANAGEMENT
+app.get('/api/pickup-persons', requireAuth, asyncRoute(async (req, res) => {
+  const result = await q(
+    `SELECT p.id,
+            p.student_id AS "studentId",
+            s.full_name AS "studentName",
+            s.student_code AS "studentCode",
+            s.class_name AS "className",
+            p.full_name AS "fullName",
+            p.relationship,
+            p.phone,
+            p.id_type AS "idType",
+            p.id_number AS "idNumber",
+            p.status,
+            p.notes,
+            p.created_at AS "createdAt",
+            p.updated_at AS "updatedAt",
+            u.username AS "createdByName"
+     FROM pickup_persons p
+     JOIN students s ON s.id = p.student_id
+                    AND s.school_id = p.school_id
+     LEFT JOIN users u ON u.id = p.created_by
+     WHERE p.school_id = $1
+     ORDER BY p.created_at DESC`,
+    [schoolId(req)]
+  );
+
+  res.json({ pickupPersons: result.rows });
+}));
+
+app.post('/api/pickup-persons', requireRole('ADMIN'), asyncRoute(async (req, res) => {
+  const b = req.body || {};
+  const studentId = Number(b.studentId);
+
+  if (!Number.isSafeInteger(studentId) || studentId <= 0) {
+    return res.status(400).json({ error: 'Please select a valid student.' });
+  }
+
+  if (!validText(b.fullName, 120)) {
+    return res.status(400).json({ error: 'Enter the pickup person’s full name.' });
+  }
+
+  const student = await q(
+    'SELECT id FROM students WHERE id=$1 AND school_id=$2 AND archived=false',
+    [studentId, schoolId(req)]
+  );
+
+  if (!student.rowCount) {
+    return res.status(404).json({ error: 'Active student not found.' });
+  }
+
+  const status = ['PENDING', 'AUTHORIZED', 'REVOKED'].includes(b.status)
+    ? b.status
+    : 'PENDING';
+
+  const result = await q(
+    `INSERT INTO pickup_persons
+      (school_id, student_id, full_name, relationship, phone,
+       id_type, id_number, status, notes, created_by)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)
+     RETURNING id`,
+    [
+      schoolId(req),
+      studentId,
+      b.fullName.trim(),
+      String(b.relationship || '').trim().slice(0, 60),
+      String(b.phone || '').trim().slice(0, 40),
+      String(b.idType || '').trim().slice(0, 60),
+      String(b.idNumber || '').trim().slice(0, 100),
+      status,
+      String(b.notes || '').trim().slice(0, 1000),
+      req.session.user.id
+    ]
+  );
+
+  await audit(req, 'pickup_person_created', 'pickup_person', result.rows[0].id);
+
+  res.status(201).json({
+    ok: true,
+    id: result.rows[0].id,
+    message: 'Pickup person saved successfully.'
+  });
+}));
 app.get('/api/reports', requireAuth, asyncRoute(async(req,res)=>{const sid=schoolId(req);const r=await q(`SELECT (SELECT COUNT(*) FROM students WHERE school_id=$1 AND archived=false) AS active_students,(SELECT COUNT(*) FROM students WHERE school_id=$1 AND archived=true) AS archived_students,(SELECT COALESCE(SUM(amount),0) FROM payments WHERE school_id=$1) AS total_paid,(SELECT COUNT(*) FROM payments WHERE school_id=$1) AS payment_count,(SELECT COALESCE(SUM(total_fees),0) FROM students WHERE school_id=$1 AND archived=false) AS fees_expected`,[sid]);const recent=await q('SELECT action,entity_type,entity_id,created_at FROM audit_logs WHERE school_id=$1 ORDER BY created_at DESC LIMIT 100',[sid]);res.json({summary:r.rows[0],audit:recent.rows})}));
 app.get('/api/export', requireAuth, asyncRoute(async(req,res)=>{const sid=schoolId(req);const [students,payments,marks]=await Promise.all([q('SELECT * FROM students WHERE school_id=$1 ORDER BY id',[sid]),q('SELECT * FROM payments WHERE school_id=$1 ORDER BY id',[sid]),q('SELECT * FROM marks WHERE school_id=$1 ORDER BY id',[sid])]);res.setHeader('Content-Disposition','attachment; filename="acropolis-school-backup.json"');res.json({exportedAt:new Date().toISOString(),school:req.session.user.schoolName,students:students.rows,payments:payments.rows,marks:marks.rows});}));
 app.use('/api', (err, req, res, next) => { console.error(err); if(res.headersSent)return next(err); if(err.code==='23505')return res.status(409).json({error:'A record with these details already exists.'}); res.status(500).json({error:'Something went wrong. Please try again.'}); });
