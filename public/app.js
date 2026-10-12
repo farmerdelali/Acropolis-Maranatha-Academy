@@ -979,5 +979,27 @@ document.querySelectorAll('[data-auth-tab]').forEach(tab => {
   });
 });
 
+$('#logoutBtn').addEventListener('click', async () => {
+  const button = $('#logoutBtn');
+  button.disabled = true;
+
+  try {
+    await api('/api/logout', { method: 'POST' });
+
+    state.user = null;
+    state.view = 'Dashboard';
+    state.search = '';
+    state.drawer = false;
+    $('#modalHost').innerHTML = '';
+
+    showAuth();
+    toast('Signed out successfully.');
+  } catch (error) {
+    toast(error.message || 'Sign out failed. Please try again.', true);
+  } finally {
+    button.disabled = false;
+  }
+});
+
 
 (async function init(){try{const r=await api('/api/session');if(r.user){state.view='Dashboard';showApp(r.user);}else showAuth();}catch{showAuth();}})();
