@@ -1352,6 +1352,16 @@ document.addEventListener('submit', async e => {
   state.view = 'Graduations';
   render();
   toast('Graduation records saved successfully.');
+      } else if (form.id === 'classActivationForm') {
+  await api('/api/class-activations', {
+    method: 'POST',
+    body: JSON.stringify(v)
+  });
+
+  await refresh();
+  state.view = 'Class Activations';
+  render();
+  toast('Class activation saved successfully.');
     } else if (form.id === 'settingsForm') {
       const r = await api('/api/settings', {
         method: 'PUT',
