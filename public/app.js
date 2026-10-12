@@ -843,6 +843,26 @@ document.addEventListener('submit', async e => {
         registerForm: 'Create school & administrator →',
         loginForm: 'Sign in securely →',
         studentForm: 'Save student',
+        if (state.user) {
+        state.user.schoolName = r.settings.name;
+        state.user.motto = r.settings.motto;
+      }
+
+      await refresh();
+      state.view = 'Settings';
+      render();
+      toast('School settings saved successfully.');
+    }
+  } catch (err) {
+    toast(err.message || 'Something went wrong. Please try again.', true);
+  } finally {
+    if (submit) {
+      submit.disabled = false;
+
+      const labels = {
+        registerForm: 'Create school & administrator →',
+        loginForm: 'Sign in securely →',
+        studentForm: 'Save student',
         paymentForm: 'Save payment',
         markForm: 'Save mark',
         userForm: 'Create account',
