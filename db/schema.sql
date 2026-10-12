@@ -85,3 +85,24 @@ CREATE TABLE IF NOT EXISTS parent_students (
 
 CREATE INDEX IF NOT EXISTS parents_school_idx
 ON parents(school_id, full_name);
+CREATE TABLE IF NOT EXISTS drop_off_denials (
+  id BIGSERIAL PRIMARY KEY,
+  school_id BIGINT NOT NULL REFERENCES schools(id) ON DELETE CASCADE,
+  student_id BIGINT NOT NULL REFERENCES students(id) ON DELETE CASCADE,
+  person_name TEXT NOT NULL,
+  person_phone TEXT NOT NULL DEFAULT '',
+  relationship TEXT NOT NULL DEFAULT '',
+  reason TEXT NOT NULL,
+  details TEXT NOT NULL DEFAULT '',
+  start_date DATE,
+  review_date DATE,
+  status TEXT NOT NULL DEFAULT 'PENDING'
+    CHECK (status IN ('PENDING', 'ACTIVE', 'RESOLVED')),
+  created_by BIGINT REFERENCES users(id) ON DELETE SET NULL,
+  updated_by BIGINT REFERENCES users(id) ON DELETE SET NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS drop_off_denials_school_status_idx
+ON drop_off_denials(school_id, status, created_at DESC);
