@@ -1283,6 +1283,72 @@ app.post(
   })
 );
 
+app.get('/api/classrooms', requireAuth, asyncRoute(async (req, res) => {
+  const result = await q(
+    `SELECT c.*,
+      (SELECT COUNT(*) FROM students s
+       WHERE s.school_id = c.school_id
+         AND s.class_name = c.class_name
+         AND s.archived = false) AS student_count
+     FROM classrooms c
+     WHERE c.school_id = $1
+     ORDER BY c.room_name`,
+    [schoolId(req)]
+  );
+
+  res.json({ classrooms: result.rows });
+}));
+
+app.post('/api/classrooms', requireRole('ADMIN'), asyncRoute(async (req, res) => {
+  const {
+    roomCode, roomName, building = '', floor = '',
+    capacity = 0, className = '', status = 'ACTIVE', notes = ''
+  } = req.body || {};
+
+  if (!validText(roomCode, 30) || !validText(roomName, 100)) {
+    return res.status(400).json({
+      error: 'Enter a classroom code and classroom name.'
+    });
+  }
+
+  if (!Number.isInteger(Number(capacity)) ||
+      Number(capacity) < 0 ||
+      !['ACTIVE', 'MAINTENANCE', 'INACTIVE'].includes(status)) {
+    return res.status(400).json({
+      error: 'Enter a valid capacity and classroom status.'
+    });
+  }
+
+  if (![building, floor, className, notes].every(
+    value => typeof value === 'string'
+  ) || building.length > 100 || floor.length > 30 ||
+      className.length > 100 || notes.length > 500) {
+    return res.status(400).json({
+      error: 'Check the classroom details and notes.'
+    });
+  }
+
+  const result = await q(
+    `INSERT INTO classrooms
+      (school_id, room_code, room_name, building, floor,
+       capacity, class_name, status, notes, created_by)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)
+     RETURNING *`,
+    [
+      schoolId(req), roomCode.trim(), roomName.trim(),
+      building.trim(), floor.trim(), Number(capacity),
+      className.trim(), status, notes.trim(), req.session.user.id
+    ]
+  );
+
+  await audit(req, 'classroom_created', 'classroom', result.rows[0].id);
+
+  res.status(201).json({
+    classroom: result.rows[0],
+    message: 'Classroom saved successfully.'
+  });
+}));
+
 app.get('/api/reports', requireAuth, asyncRoute(async(req,res)=>{const sid=schoolId(req);const r=await q(`SELECT (SELECT COUNT(*) FROM students WHERE school_id=$1 AND archived=false) AS active_students,(SELECT COUNT(*) FROM students WHERE school_id=$1 AND archived=true) AS archived_students,(SELECT COALESCE(SUM(amount),0) FROM payments WHERE school_id=$1) AS total_paid,(SELECT COUNT(*) FROM payments WHERE school_id=$1) AS payment_count,(SELECT COALESCE(SUM(total_fees),0) FROM students WHERE school_id=$1 AND archived=false) AS fees_expected`,[sid]);const recent=await q('SELECT action,entity_type,entity_id,created_at FROM audit_logs WHERE school_id=$1 ORDER BY created_at DESC LIMIT 100',[sid]);res.json({summary:r.rows[0],audit:recent.rows})}));
 app.get('/api/export', requireAuth, asyncRoute(async(req,res)=>{const sid=schoolId(req);const [students,payments,marks]=await Promise.all([q('SELECT * FROM students WHERE school_id=$1 ORDER BY id',[sid]),q('SELECT * FROM payments WHERE school_id=$1 ORDER BY id',[sid]),q('SELECT * FROM marks WHERE school_id=$1 ORDER BY id',[sid])]);res.setHeader('Content-Disposition','attachment; filename="acropolis-school-backup.json"');res.json({exportedAt:new Date().toISOString(),school:req.session.user.schoolName,students:students.rows,payments:payments.rows,marks:marks.rows});}));
 app.use('/api', (err, req, res, next) => { console.error(err); if(res.headersSent)return next(err); if(err.code==='23505')return res.status(409).json({error:'A record with these details already exists.'}); res.status(500).json({error:'Something went wrong. Please try again.'}); });
