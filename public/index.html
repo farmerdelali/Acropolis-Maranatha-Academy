@@ -1,47 +1,149 @@
-<!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#101c3a"><title>Acropolis Maranatha Academy | School Management</title><link rel="icon" href="/school-logo.png"><link rel="stylesheet" href="/styles.css"><script defer src="/app.js"></script></head><body>
-<div id="toastHost" aria-live="polite"></div>
-<section id="authScreen" class="auth-shell"><div class="auth-card"><div class="brand"><img src="/school-logo.png" alt="Acropolis Maranatha Academy logo"><h1>ACROPOLIS MARANATHA ACADEMY</h1><p>Always praising God, Jehovah.</p></div><div class="auth-tabs"><button class="tab active" data-auth-tab="register">Set up a school</button><button class="tab" data-auth-tab="login">Sign in</button></div>
-<form id="registerForm" class="auth-form">
-  <h2>Start your school workspace</h2>
-  <p class="muted">Create the first administrator account for your school.</p>
 
-  <label>School name
-    <input name="schoolName" required maxlength="120"
-      autocomplete="organization"
-      placeholder="e.g. Acropolis Maranatha Academy">
-  </label>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#101c3a">
+  <title>Acropolis Maranatha Academy | School Management</title>
+  <link rel="icon" href="/school-logo.png">
+  <link rel="stylesheet" href="/styles.css">
+  <script defer src="/app.js"></script>
+</head>
+<body>
+  <div id="toastHost" aria-live="polite"></div>
 
-  <label>Administrator username
-    <input name="username" required minlength="3" maxlength="60"
-      autocomplete="username" placeholder="Choose a username">
-  </label>
+  <section id="authScreen" class="auth-shell">
+    <div class="auth-card">
+      <div class="brand">
+        <img src="/school-logo.png" alt="Acropolis Maranatha Academy logo">
+        <h1>ACROPOLIS MARANATHA ACADEMY</h1>
+        <p>Always praising God, Jehovah.</p>
+      </div>
 
-  <label>Password <small>(at least 10 characters)</small>
-    <input name="password" type="password" required minlength="10"
-      maxlength="200" autocomplete="new-password"
-      placeholder="Create a strong password">
-  </label>
+      <div class="auth-tabs">
+        <button class="tab active" type="button" data-auth-tab="register">Set up a school</button>
+        <button class="tab" type="button" data-auth-tab="login">Sign in</button>
+      </div>
 
-  <label>Confirm password
-    <input name="confirmPassword" type="password" required minlength="10"
-      maxlength="200" autocomplete="new-password"
-      placeholder="Repeat password">
-  </label>
+      <form id="registerForm" class="auth-form">
+        <h2>Start your school workspace</h2>
+        <p class="muted">Create the first administrator account for your school.</p>
 
-  <label class="terms-agreement">
-    <input type="checkbox" name="termsAccepted" required>
-    I agree to the <a href="/terms.html" target="_blank" rel="noopener">Terms of Use</a>
-    and <a href="/privacy.html" target="_blank" rel="noopener">Privacy Notice</a>.
-  </label>
+        <label>School name
+          <input name="schoolName" required maxlength="120"
+            autocomplete="organization"
+            placeholder="e.g. Acropolis Maranatha Academy">
+        </label>
 
-  <button class="btn primary full" type="submit">
-    Create school &amp; administrator <span>→</span>
-  </button>
+        <label>Administrator username
+          <input name="username" required minlength="3" maxlength="60"
+            autocomplete="username" placeholder="Choose a username">
+        </label>
 
-  <p class="form-error" id="registerError" role="alert"></p>
-</form>
-<form id="loginForm" class="auth-form hidden"><h2>Welcome back</h2><p class="muted">Sign in to your school's secure workspace.</p><label>School name<input name="schoolName" required maxlength="120" autocomplete="organization" placeholder="Your registered school name"></label><label>Username<input name="username" required autocomplete="username" placeholder="Your username"></label><label>Password<input name="password" type="password" required autocomplete="current-password" placeholder="Your password"></label><button class="btn primary full" type="submit">Sign in securely <span>→</span></button><p class="form-error" id="loginError" role="alert"></p></form><p class="auth-foot"><span class="security-dot"></span> Secure sign-in · School data kept separate</p></div></section>
-<section id="appScreen" class="app-shell hidden"><header class="topbar"><button id="menuToggle" class="menu-toggle" aria-label="Open menu" aria-expanded="false"><span></span><span></span><span></span></button><div class="topbrand"><img src="/school-logo.png" alt="School logo"><div><strong id="schoolTitle">Acropolis Maranatha Academy</strong><small id="schoolMotto">Always praising God, Jehovah.</small></div></div><div class="top-actions"><span id="userBadge" class="user-badge"></span><button id="logoutBtn" class="btn outline">Sign out</button></div></header><button id="drawerBackdrop" class="drawer-backdrop" aria-label="Close menu" tabindex="-1"></button><aside id="sideNav" class="sidebar" aria-label="School menu"><div class="sidebar-school"><img src="/school-logo.png" alt=""><div><b>School workspace</b><small>Management menu</small></div></div><nav id="navItems"></nav><div class="sidebar-bottom"><span class="live-dot"></span> Cloud workspace</div></aside><main id="mainContent" class="main-content"><div class="loading"><div class="spinner"></div><p>Loading your school workspace…</p></div></main></section>
-<div id="modalHost"></div>
-</body></html>
+        <label>Password <small>(at least 10 characters)</small>
+          <input name="password" type="password" required minlength="10"
+            maxlength="200" autocomplete="new-password"
+            placeholder="Create a strong password">
+        </label>
+
+        <label>Confirm password
+          <input name="confirmPassword" type="password" required minlength="10"
+            maxlength="200" autocomplete="new-password"
+            placeholder="Repeat password">
+        </label>
+
+        <label class="terms-agreement">
+          <input type="checkbox" name="termsAccepted" required>
+          I agree to the <a href="/terms.html" target="_blank" rel="noopener">Terms of Use</a>
+          and <a href="/privacy.html" target="_blank" rel="noopener">Privacy Notice</a>.
+        </label>
+
+        <button class="btn primary full" type="submit">
+          Create school &amp; administrator <span>→</span>
+        </button>
+        <p class="form-error" id="registerError" role="alert"></p>
+      </form>
+
+      <form id="loginForm" class="auth-form hidden">
+        <h2>Welcome back</h2>
+        <p class="muted">Sign in to your school's secure workspace.</p>
+
+        <label>School name
+          <input name="schoolName" required maxlength="120"
+            autocomplete="organization"
+            placeholder="Your registered school name">
+        </label>
+
+        <label>Username
+          <input name="username" required autocomplete="username"
+            placeholder="Your username">
+        </label>
+
+        <label>Password
+          <input name="password" type="password" required
+            autocomplete="current-password" placeholder="Your password">
+        </label>
+
+        <button class="btn primary full" type="submit">
+          Sign in securely <span>→</span>
+        </button>
+        <p class="form-error" id="loginError" role="alert"></p>
+      </form>
+
+      <p class="auth-foot">
+        <span class="security-dot"></span>
+        Secure sign-in · School data kept separate
+      </p>
+    </div>
+  </section>
+
+  <section id="appScreen" class="app-shell hidden">
+    <header class="topbar">
+      <button id="menuToggle" class="menu-toggle"
+        aria-label="Open menu" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
+
+      <div class="topbrand">
+        <img src="/school-logo.png" alt="School logo">
+        <div>
+          <strong id="schoolTitle">Acropolis Maranatha Academy</strong>
+          <small id="schoolMotto">Always praising God, Jehovah.</small>
+        </div>
+      </div>
+
+      <div class="top-actions">
+        <span id="userBadge" class="user-badge"></span>
+        <button id="logoutBtn" class="btn outline">Sign out</button>
+      </div>
+    </header>
+
+    <button id="drawerBackdrop" class="drawer-backdrop"
+      aria-label="Close menu" tabindex="-1"></button>
+
+    <aside id="sideNav" class="sidebar" aria-label="School menu">
+      <div class="sidebar-school">
+        <img src="/school-logo.png" alt="">
+        <div>
+          <b>School workspace</b>
+          <small>Management menu</small>
+        </div>
+      </div>
+      <nav id="navItems"></nav>
+      <div class="sidebar-bottom">
+        <span class="live-dot"></span> Cloud workspace
+      </div>
+    </aside>
+
+    <main id="mainContent" class="main-content">
+      <div class="loading">
+        <div class="spinner"></div>
+        <p>Loading your school workspace…</p>
+      </div>
+    </main>
+  </section>
+
+  <div id="modalHost"></div>
+</body>
+</html>
