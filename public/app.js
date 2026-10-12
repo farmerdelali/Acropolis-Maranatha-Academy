@@ -746,7 +746,126 @@ function dropOffDenialForm() {
     </form>
   `);
 }
+function employeeForm(employee = null) {
+  if (!state.user || state.user.role !== 'ADMIN') {
+    toast('Only administrators can manage employee records.', true);
+    return;
+  }
 
+  const e = employee || {};
+
+  openModal(employee ? 'Edit employee details' : 'Register new employee', `
+    <form id="employeeForm" data-id="${esc(e.id || '')}">
+      <div class="form-grid">
+        <label class="field">Employee ID *
+          <input name="employeeCode" required maxlength="50"
+            value="${esc(e.employeeCode || '')}"
+            placeholder="e.g. EMP001">
+        </label>
+
+        <label class="field">Full name *
+          <input name="fullName" required maxlength="150"
+            value="${esc(e.fullName || '')}"
+            placeholder="Enter full name">
+        </label>
+
+        <label class="field">Gender
+          <select name="gender">
+            <option value="">Select gender</option>
+            <option value="Male" ${e.gender === 'Male' ? 'selected' : ''}>Male</option>
+            <option value="Female" ${e.gender === 'Female' ? 'selected' : ''}>Female</option>
+            <option value="Other" ${e.gender === 'Other' ? 'selected' : ''}>Other</option>
+          </select>
+        </label>
+
+        <label class="field">Date of birth
+          <input name="dateOfBirth" type="date"
+            value="${esc(e.dateOfBirth ? String(e.dateOfBirth).slice(0, 10) : '')}">
+        </label>
+
+        <label class="field">Phone number
+          <input name="phone" type="tel" maxlength="30"
+            value="${esc(e.phone || '')}"
+            placeholder="Enter phone number">
+        </label>
+
+        <label class="field">Email address
+          <input name="email" type="email" maxlength="150"
+            value="${esc(e.email || '')}"
+            placeholder="Enter email address">
+        </label>
+
+        <label class="field">Department
+          <input name="department" maxlength="100"
+            value="${esc(e.department || '')}"
+            placeholder="e.g. Teaching">
+        </label>
+
+        <label class="field">Position / Job title
+          <input name="position" maxlength="100"
+            value="${esc(e.position || '')}"
+            placeholder="e.g. Class Teacher">
+        </label>
+
+        <label class="field">Qualification
+          <input name="qualification" maxlength="200"
+            value="${esc(e.qualification || '')}"
+            placeholder="Highest qualification">
+        </label>
+
+        <label class="field">Employment type
+          <select name="employmentType">
+            <option value="FULL_TIME" ${!e.employmentType || e.employmentType === 'FULL_TIME' ? 'selected' : ''}>Full-time</option>
+            <option value="PART_TIME" ${e.employmentType === 'PART_TIME' ? 'selected' : ''}>Part-time</option>
+            <option value="CONTRACT" ${e.employmentType === 'CONTRACT' ? 'selected' : ''}>Contract</option>
+            <option value="TEMPORARY" ${e.employmentType === 'TEMPORARY' ? 'selected' : ''}>Temporary</option>
+          </select>
+        </label>
+
+        <label class="field">Employment date
+          <input name="employmentDate" type="date"
+            value="${esc(e.employmentDate ? String(e.employmentDate).slice(0, 10) : '')}">
+        </label>
+
+        <label class="field">Employment status
+          <select name="status">
+            <option value="ACTIVE" ${!e.status || e.status === 'ACTIVE' ? 'selected' : ''}>Active</option>
+            <option value="ON_LEAVE" ${e.status === 'ON_LEAVE' ? 'selected' : ''}>On leave</option>
+            <option value="INACTIVE" ${e.status === 'INACTIVE' ? 'selected' : ''}>Inactive</option>
+          </select>
+        </label>
+
+        <label class="field">Emergency contact name
+          <input name="emergencyContactName" maxlength="120"
+            value="${esc(e.emergencyContactName || '')}">
+        </label>
+
+        <label class="field">Emergency contact phone
+          <input name="emergencyContactPhone" type="tel" maxlength="30"
+            value="${esc(e.emergencyContactPhone || '')}">
+        </label>
+      </div>
+
+      <label class="field">Residential address
+        <textarea name="address" rows="2" maxlength="1000"
+          placeholder="Enter residential address">${esc(e.address || '')}</textarea>
+      </label>
+
+      <label class="field">Additional notes
+        <textarea name="notes" rows="3" maxlength="2000"
+          placeholder="Enter any relevant notes">${esc(e.notes || '')}</textarea>
+      </label>
+
+      <div class="form-actions">
+        <button type="button" class="btn soft"
+          data-action="close-modal">Cancel</button>
+        <button type="submit" class="btn primary">
+          ${employee ? 'Save changes' : 'Register employee'}
+        </button>
+      </div>
+    </form>
+  `);
+}
 function pickupPersonForm() {
   if (!state.user || state.user.role !== 'ADMIN') {
     toast('Only administrators can register pickup persons.', true);
