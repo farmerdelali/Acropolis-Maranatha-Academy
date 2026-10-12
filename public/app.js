@@ -208,6 +208,21 @@ const rows = d.payments.length
    'Manage your school identity and academic details.'
  )+
  panel('School information',`
+ 
+html += panel('System appearance', `
+  <div class="field">
+    <label for="appearanceSelect">Choose your preferred appearance</label>
+    <select id="appearanceSelect">
+      <option value="light">Light — White appearance</option>
+      <option value="dark">Dark — Black / Navy appearance</option>
+    </select>
+    <p class="muted">
+      This changes the appearance of the entire school system
+      on this device.
+    </p>
+  </div>
+`);
+
    <form id="settingsForm">
      <label class="field">
        School name
