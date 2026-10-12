@@ -1193,6 +1193,96 @@ app.delete('/api/graduations/:id', requireRole('ADMIN'), asyncRoute(async (req, 
   await audit(req, 'graduation_record_deleted', 'graduation', req.params.id);
   res.json({ ok: true, message: 'Graduation record deleted.' });
 }));
+app.get('/api/class-activations', requireAuth, asyncRoute(async (req, res) => {
+  const sid = schoolId(req);
+
+  const [classes, activations, school] = await Promise.all([
+    q(
+      `SELECT DISTINCT class_name
+       FROM students
+       WHERE school_id = $1 AND archived = false
+       ORDER BY class_name`,
+      [sid]
+    ),
+    q(
+      `SELECT id, class_name, academic_year, status, notes,
+              created_at, updated_at
+       FROM class_activations
+       WHERE school_id = $1
+       ORDER BY academic_year DESC, class_name`,
+      [sid]
+    ),
+    q(
+      `SELECT academic_year AS "academicYear",
+              current_term AS "currentTerm"
+       FROM schools WHERE id = $1`,
+      [sid]
+    )
+  ]);
+
+  res.json({
+    classes: classes.rows.map(row => row.class_name),
+    activations: activations.rows,
+    school: school.rows[0] || {}
+  });
+}));
+
+app.post(
+  '/api/class-activations',
+  requireRole('ADMIN'),
+  asyncRoute(async (req, res) => {
+    const sid = schoolId(req);
+    const { className, academicYear, status, notes = '' } = req.body || {};
+
+    if (!validText(className, 100) ||
+        !validText(academicYear, 30) ||
+        !['ACTIVE', 'INACTIVE'].includes(status)) {
+      return res.status(400).json({
+        error: 'Enter a class, academic year, and valid activation status.'
+      });
+    }
+
+    if (typeof notes !== 'string' || notes.length > 500) {
+      return res.status(400).json({
+        error: 'Notes must be 500 characters or fewer.'
+      });
+    }
+
+    const result = await q(
+      `INSERT INTO class_activations
+        (school_id, class_name, academic_year, status, notes, activated_by)
+       VALUES ($1, $2, $3, $4, $5, $6)
+       ON CONFLICT (school_id, class_name, academic_year)
+       DO UPDATE SET
+         status = EXCLUDED.status,
+         notes = EXCLUDED.notes,
+         activated_by = EXCLUDED.activated_by,
+         updated_at = NOW()
+       RETURNING *`,
+      [
+        sid,
+        className.trim(),
+        academicYear.trim(),
+        status,
+        notes.trim(),
+        req.session.user.id
+      ]
+    );
+
+    await audit(
+      req,
+      'class_activation_updated',
+      'class_activation',
+      result.rows[0].id
+    );
+
+    res.json({
+      activation: result.rows[0],
+      message: 'Class activation saved successfully.'
+    });
+  })
+);
+
 app.get('/api/reports', requireAuth, asyncRoute(async(req,res)=>{const sid=schoolId(req);const r=await q(`SELECT (SELECT COUNT(*) FROM students WHERE school_id=$1 AND archived=false) AS active_students,(SELECT COUNT(*) FROM students WHERE school_id=$1 AND archived=true) AS archived_students,(SELECT COALESCE(SUM(amount),0) FROM payments WHERE school_id=$1) AS total_paid,(SELECT COUNT(*) FROM payments WHERE school_id=$1) AS payment_count,(SELECT COALESCE(SUM(total_fees),0) FROM students WHERE school_id=$1 AND archived=false) AS fees_expected`,[sid]);const recent=await q('SELECT action,entity_type,entity_id,created_at FROM audit_logs WHERE school_id=$1 ORDER BY created_at DESC LIMIT 100',[sid]);res.json({summary:r.rows[0],audit:recent.rows})}));
 app.get('/api/export', requireAuth, asyncRoute(async(req,res)=>{const sid=schoolId(req);const [students,payments,marks]=await Promise.all([q('SELECT * FROM students WHERE school_id=$1 ORDER BY id',[sid]),q('SELECT * FROM payments WHERE school_id=$1 ORDER BY id',[sid]),q('SELECT * FROM marks WHERE school_id=$1 ORDER BY id',[sid])]);res.setHeader('Content-Disposition','attachment; filename="acropolis-school-backup.json"');res.json({exportedAt:new Date().toISOString(),school:req.session.user.schoolName,students:students.rows,payments:payments.rows,marks:marks.rows});}));
 app.use('/api', (err, req, res, next) => { console.error(err); if(res.headersSent)return next(err); if(err.code==='23505')return res.status(409).json({error:'A record with these details already exists.'}); res.status(500).json({error:'Something went wrong. Please try again.'}); });
