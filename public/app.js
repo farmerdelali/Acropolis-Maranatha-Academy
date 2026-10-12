@@ -1116,7 +1116,8 @@ document.addEventListener('submit', async e => {
 'markForm',
       'employeeForm',
     'userForm',
-    'settingsForm'
+    'settingsForm',
+'graduation-form'
   ];
 
   if (!allowedForms.includes(form.id)) return;
@@ -1255,6 +1256,33 @@ document.addEventListener('submit', async e => {
       state.view = 'Users';
       render();
       toast('Staff account created successfully.');
+      } else if (form.id === 'graduation-form') {
+  const studentIds = Array.from(
+    form.querySelectorAll('input[name="gradStudentIds"]:checked')
+  ).map(input => Number(input.value));
+
+  if (!studentIds.length) {
+    throw new Error('Select at least one student.');
+  }
+
+  const payload = {
+    studentIds,
+    graduationYear: Number(v.graduationYear),
+    classCompleted: v.classCompleted,
+    graduationDate: v.graduationDate || null,
+    certificateNumber: v.certificateNumber || '',
+    remarks: v.remarks || ''
+  };
+
+  await api('/api/graduations', {
+    method: 'POST',
+    body: JSON.stringify(payload)
+  });
+
+  await refresh();
+  state.view = 'Graduations';
+  render();
+  toast('Graduation records saved successfully.');
     } else if (form.id === 'settingsForm') {
       const r = await api('/api/settings', {
         method: 'PUT',
@@ -1286,6 +1314,7 @@ document.addEventListener('submit', async e => {
         registerForm: 'Create school & administrator →',
         loginForm: 'Sign in securely →',
         studentForm: 'Save student',
+        'graduation-form': 'Save Graduation Records',
         pickupPersonForm: 'Save pickup person',
         paymentForm: 'Save payment',
         markForm: 'Save mark',
