@@ -611,9 +611,75 @@ html = pageHead(
         </tr>`).join('')}</tbody>
       </table></div>` : '<p>No graduation records have been saved yet.</p>'}
     </section>`;
-} else if (state.view === 'Class Activations') {
 
-  html = `<section class="panel"><h2>Class Activations</h2><p>Manage class activation and academic-year status.</p></section>`;
+} else if (state.view === 'Class Activations') {
+  const students = state.data.students || [];
+  const activations = state.data.classActivations || [];
+  const isAdmin = state.user && state.user.role === 'ADMIN';
+  const esc = v => String(v ?? '').replace(/[&<>"']/g, c => ({
+    '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+  }[c]));
+
+  const classes = [...new Set(
+    students.filter(s => !s.archived)
+      .map(s => s.class_name)
+      .filter(Boolean)
+  )].sort();
+
+  const academicYear = state.data.school?.academicYear || '';
+
+  html = `
+    <section class="panel">
+      <h2>Class Activations</h2>
+      <p>Manage which classes are active for each academic year.</p>
+      ${isAdmin ? `
+      <form id="classActivationForm" class="form-grid">
+        <label>Class
+          <select name="className" required>
+            <option value="">Choose class</option>
+            ${classes.map(c => `<option value="${esc(c)}">${esc(c)}</option>`).join('')}
+          </select>
+        </label>
+        <label>Academic year
+          <input name="academicYear" required maxlength="30"
+            value="${esc(academicYear)}" placeholder="e.g. 2026/2027">
+        </label>
+        <label>Activation status
+          <select name="status" required>
+            <option value="ACTIVE">Active</option>
+            <option value="INACTIVE">Inactive</option>
+          </select>
+        </label>
+        <label>Notes (optional)
+          <input name="notes" maxlength="500" placeholder="Reason or additional details">
+        </label>
+        <button type="submit">Save Class Activation</button>
+      </form>` : '<p>Only administrators can change class activation status.</p>'}
+    </section>
+
+    <section class="panel">
+      <h2>Saved Class Activations</h2>
+      ${activations.length ? `
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Class</th><th>Academic year</th><th>Status</th><th>Notes</th></tr>
+          </thead>
+          <tbody>
+            ${activations.map(a => `
+              <tr>
+                <td>${esc(a.class_name)}</td>
+                <td>${esc(a.academic_year)}</td>
+                <td>${esc(a.status)}</td>
+                <td>${esc(a.notes || '—')}</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </div>` : '<p>No class activations have been saved yet.</p>'}
+    </section>`;
+} else if (state.view === 'Classrooms') {
+
 } else if (state.view === 'Classrooms') {
   html = `<section class="panel"><h2>Classrooms</h2><p>Manage classrooms, class names, and classroom assignments.</p></section>`;
 } else if (state.view === 'Settings') {
