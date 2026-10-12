@@ -67,7 +67,7 @@ function showApp(user) {
 
   $('#navItems').innerHTML = nav
     .filter(([name]) =>
-      (name !== 'Users' && name !== 'Settings') ||
+      (name !== 'Users' && name !== 'Settings' && name !== 'Employees') ||
       user.role === 'ADMIN'
     )
     .map(([name, icon]) =>
