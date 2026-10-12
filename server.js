@@ -1029,6 +1029,169 @@ app.delete('/api/employees/:id', requireRole('ADMIN'), asyncRoute(async (req, re
     ok: true,
     message: 'Employee marked inactive. The record has been retained.'
   });
+}));// =========================================
+// GRADUATION RECORDS API
+// =========================================
+
+app.get('/api/graduations', requireAuth, asyncRoute(async (req, res) => {
+  const result = await q(
+    `SELECT g.id,
+            g.student_id AS "studentId",
+            s.full_name AS "studentName",
+            s.student_code AS "studentCode",
+            s.class_name AS "currentClass",
+            g.graduation_year AS "graduationYear",
+            g.class_completed AS "classCompleted",
+            g.graduation_date AS "graduationDate",
+            g.certificate_number AS "certificateNumber",
+            g.remarks,
+            g.created_at AS "createdAt"
+     FROM graduation_records g
+     JOIN students s
+       ON s.id = g.student_id
+      AND s.school_id = g.school_id
+     WHERE g.school_id = $1
+     ORDER BY g.graduation_year DESC, s.full_name ASC`,
+    [schoolId(req)]
+  );
+
+  res.json({ graduations: result.rows });
+}));
+
+app.post('/api/graduations', requireRole('ADMIN'), asyncRoute(async (req, res) => {
+  const b = req.body || {};
+  const studentIds = [...new Set(
+    (Array.isArray(b.studentIds) ? b.studentIds : []).map(Number)
+  )];
+
+  const graduationYear = Number(b.graduationYear);
+  const classCompleted = typeof b.classCompleted === 'string'
+    ? b.classCompleted.trim()
+    : '';
+
+  if (
+    !studentIds.length ||
+    studentIds.some(id => !Number.isSafeInteger(id) || id <= 0)
+  ) {
+    return res.status(400).json({
+      error: 'Select at least one registered student.'
+    });
+  }
+
+  if (
+    !Number.isInteger(graduationYear) ||
+    graduationYear < 2000 ||
+    graduationYear > 2200 ||
+    !validText(classCompleted, 60)
+  ) {
+    return res.status(400).json({
+      error: 'Enter a valid graduation year and completed class.'
+    });
+  }
+
+  const graduationDate = b.graduationDate || null;
+  if (
+    graduationDate &&
+    (typeof graduationDate !== 'string' ||
+     !/^\d{4}-\d{2}-\d{2}$/.test(graduationDate) ||
+     Number.isNaN(Date.parse(graduationDate)))
+  ) {
+    return res.status(400).json({ error: 'Enter a valid graduation date.' });
+  }
+
+  const valid = await q(
+    `SELECT id FROM students
+     WHERE school_id = $1
+       AND archived = false
+       AND id = ANY($2::bigint[])`,
+    [schoolId(req), studentIds]
+  );
+
+  if (valid.rowCount !== studentIds.length) {
+    return res.status(400).json({
+      error: 'One or more selected students are not active students in this school.'
+    });
+  }
+
+  const client = await pool.connect();
+
+  try {
+    await client.query('BEGIN');
+    const saved = [];
+
+    for (const studentId of studentIds) {
+      const result = await client.query(
+        `INSERT INTO graduation_records
+          (school_id, student_id, graduation_year, class_completed,
+           graduation_date, certificate_number, remarks, created_by)
+         VALUES ($1,$2,$3,$4,$5,$6,$7,$8)
+         ON CONFLICT (school_id, student_id, graduation_year)
+         DO UPDATE SET
+           class_completed = EXCLUDED.class_completed,
+           graduation_date = EXCLUDED.graduation_date,
+           certificate_number = EXCLUDED.certificate_number,
+           remarks = EXCLUDED.remarks,
+           updated_at = NOW()
+         RETURNING id, student_id AS "studentId"`,
+        [
+          schoolId(req),
+          studentId,
+          graduationYear,
+          classCompleted,
+          graduationDate,
+          String(b.certificateNumber || '').trim().slice(0, 100),
+          String(b.remarks || '').trim().slice(0, 1000),
+          req.session.user.id
+        ]
+      );
+
+      saved.push(result.rows[0]);
+    }
+
+    await client.query(
+      `INSERT INTO audit_logs
+        (school_id, user_id, action, entity_type, entity_id)
+       VALUES ($1,$2,$3,$4,$5)`,
+      [
+        schoolId(req),
+        req.session.user.id,
+        'graduation_records_saved',
+        'graduation',
+        String(graduationYear)
+      ]
+    );
+
+    await client.query('COMMIT');
+    res.status(201).json({
+      ok: true,
+      count: saved.length,
+      graduations: saved,
+      message: 'Graduation records saved successfully.'
+    });
+  } catch (error) {
+    await client.query('ROLLBACK');
+    throw error;
+  } finally {
+    client.release();
+  }
+}));
+
+app.delete('/api/graduations/:id', requireRole('ADMIN'), asyncRoute(async (req, res) => {
+  const result = await q(
+    `DELETE FROM graduation_records
+     WHERE id = $1 AND school_id = $2
+     RETURNING id`,
+    [req.params.id, schoolId(req)]
+  );
+
+  if (!result.rowCount) {
+    return res.status(404).json({
+      error: 'Graduation record not found.'
+    });
+  }
+
+  await audit(req, 'graduation_record_deleted', 'graduation', req.params.id);
+  res.json({ ok: true, message: 'Graduation record deleted.' });
 }));
 app.get('/api/reports', requireAuth, asyncRoute(async(req,res)=>{const sid=schoolId(req);const r=await q(`SELECT (SELECT COUNT(*) FROM students WHERE school_id=$1 AND archived=false) AS active_students,(SELECT COUNT(*) FROM students WHERE school_id=$1 AND archived=true) AS archived_students,(SELECT COALESCE(SUM(amount),0) FROM payments WHERE school_id=$1) AS total_paid,(SELECT COUNT(*) FROM payments WHERE school_id=$1) AS payment_count,(SELECT COALESCE(SUM(total_fees),0) FROM students WHERE school_id=$1 AND archived=false) AS fees_expected`,[sid]);const recent=await q('SELECT action,entity_type,entity_id,created_at FROM audit_logs WHERE school_id=$1 ORDER BY created_at DESC LIMIT 100',[sid]);res.json({summary:r.rows[0],audit:recent.rows})}));
 app.get('/api/export', requireAuth, asyncRoute(async(req,res)=>{const sid=schoolId(req);const [students,payments,marks]=await Promise.all([q('SELECT * FROM students WHERE school_id=$1 ORDER BY id',[sid]),q('SELECT * FROM payments WHERE school_id=$1 ORDER BY id',[sid]),q('SELECT * FROM marks WHERE school_id=$1 ORDER BY id',[sid])]);res.setHeader('Content-Disposition','attachment; filename="acropolis-school-backup.json"');res.json({exportedAt:new Date().toISOString(),school:req.session.user.schoolName,students:students.rows,payments:payments.rows,marks:marks.rows});}));
