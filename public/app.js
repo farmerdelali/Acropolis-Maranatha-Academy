@@ -947,6 +947,7 @@ document.addEventListener('submit', async e => {
     'paymentForm','dropOffDenialForm',
 'pickupPersonForm',
 'markForm',
+      'employeeForm',
     'userForm',
     'settingsForm'
   ];
