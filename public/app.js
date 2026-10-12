@@ -690,7 +690,8 @@ document.addEventListener('submit', async e => {
   'parentForm',
   'studentForm',
     'paymentForm','dropOffDenialForm',
-    'markForm',
+'pickupPersonForm',
+'markForm',
     'userForm',
     'settingsForm'
   ];
@@ -762,7 +763,16 @@ document.addEventListener('submit', async e => {
       state.view = 'Drop-off Denial';
       render();
       toast('Drop-off denial record saved successfully.');
+} else if (form.id === 'pickupPersonForm') {
+      await api('/api/pickup-persons', {
+        method: 'POST',
+        body: JSON.stringify(v)
+      });
 
+      await refresh();
+      state.view = 'Pickup Persons';
+      render();
+      toast('Pickup person saved successfully.');
     } else if (form.id === 'studentForm') {
       await api('/api/students', {
         method: 'POST',
