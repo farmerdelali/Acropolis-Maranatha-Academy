@@ -835,7 +835,11 @@ const classes = [...new Set([
   html = `<section class="panel"><h2>Students with the Same Surname</h2><p>Identify students who share a surname. Matching results will be connected to the student records.</p></section>`;
 }
 
-$('#mainContent').innerHTML=html;
+const mainContent = $('#mainContent');
+mainContent.innerHTML = html;
+mainContent.classList.remove('motion-enter');
+void mainContent.offsetWidth;
+mainContent.classList.add('motion-enter');
      const appearanceSelect = $('#appearanceSelect');
 if (appearanceSelect) {
   appearanceSelect.value =
