@@ -89,6 +89,8 @@ async function loadData() {
   const parents = parentResult.parents || [];
 const graduationResult = await api('/api/graduations');
 const graduations = graduationResult.graduations || [];
+  const classActivationResult = await api('/api/class-activations');
+const classActivations = classActivationResult.activations || [];
   let denials = [];
 
   if (state.user && state.user.role === 'ADMIN') {
