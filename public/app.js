@@ -31,7 +31,29 @@ async function api(url, options={}) {
   return body;
 }
 function toast(message, error=false){const host=$('#toastHost');host.innerHTML=`<div class="toast${error?' error':''}" role="status">${esc(message)}</div>`;clearTimeout(toast.timer);toast.timer=setTimeout(()=>host.innerHTML='',3200);}
-function setAuthTab(which){document.querySelectorAll('[data-auth-tab]').forEach(b=>b.classList.toggle('active',b.dataset.authTab===which));$('#registerForm').classList.toggle('hidden',which!=='register');$('#loginForm').classList.toggle('hidden',which!=='login');$('#registerError').textContent='';$('#loginError').textContent='';}
+
+function setAuthTab(which) {
+  const register = document.getElementById('registerForm');
+  const login = document.getElementById('loginForm');
+
+  if (!register || !login) return;
+
+  document.querySelectorAll('[data-auth-tab]').forEach(button => {
+    const active = button.getAttribute('data-auth-tab') === which;
+    button.classList.toggle('active', active);
+    button.setAttribute('aria-pressed', String(active));
+  });
+
+  register.classList.toggle('hidden', which !== 'register');
+  login.classList.toggle('hidden', which !== 'login');
+
+  const registerError = document.getElementById('registerError');
+  const loginError = document.getElementById('loginError');
+
+  if (registerError) registerError.textContent = '';
+  if (loginError) loginError.textContent = '';
+}
+
 function showAuth(){state.user=null;$('#appScreen').classList.add('hidden');$('#authScreen').classList.remove('hidden');setAuthTab('login');}
 function showApp(user) {
   state.user = user;
