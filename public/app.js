@@ -1029,6 +1029,25 @@ document.addEventListener('submit', async e => {
       state.view = 'Pickup Persons';
       render();
       toast('Pickup person saved successfully.');
+          } else if (form.id === 'employeeForm') {
+      const employeeId = form.dataset.id;
+
+      await api(
+        employeeId
+          ? '/api/employees/' + encodeURIComponent(employeeId)
+          : '/api/employees',
+        {
+          method: employeeId ? 'PUT' : 'POST',
+          body: JSON.stringify(v)
+        }
+      );
+
+      await refresh();
+      state.view = 'Employees';
+      render();
+      toast(employeeId
+        ? 'Employee details updated successfully.'
+        : 'Employee registered successfully.');
     } else if (form.id === 'studentForm') {
       await api('/api/students', {
         method: 'POST',
