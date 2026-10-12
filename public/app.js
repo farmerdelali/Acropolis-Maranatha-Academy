@@ -95,7 +95,20 @@ async function loadData() {
     denials = denialResult.denials || [];
   }
 
-  state.data = { ...d, parents, denials, pickupPersons };
+  let employees = [];
+
+if (state.user && state.user.role === 'ADMIN') {
+const employeeResult = await api('/api/employees');
+employees = employeeResult.employees || [];
+}
+
+state.data = {
+...d,
+parents,
+denials,
+pickupPersons,
+employees
+};
 
   $('#schoolTitle').textContent = d.school.name;
   $('#schoolMotto').textContent = d.school.motto;
