@@ -453,6 +453,41 @@ html = pageHead(
               <th>Employee ID</th>
               <th>Full name</th>
               <th>Department / Position</th>
+} else if (state.view === 'Employees') {
+  const allEmployees = d.employees || [];
+
+  const employees = allEmployees.filter(emp =>
+    [
+      emp.employeeCode,
+      emp.fullName,
+      emp.department,
+      emp.position,
+      emp.phone,
+      emp.email,
+      emp.status
+    ].join(' ').toLowerCase().includes(state.search.toLowerCase())
+  );
+
+  const activeEmployees = allEmployees.filter(
+    e => e.status === 'ACTIVE'
+  ).length;
+
+  const onLeaveEmployees = allEmployees.filter(
+    e => e.status === 'ON_LEAVE'
+  ).length;
+
+  const inactiveEmployees = allEmployees.filter(
+    e => e.status === 'INACTIVE'
+  ).length;
+
+  const employeeRows = employees.length
+    ? `<div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Employee ID</th>
+              <th>Full name</th>
+              <th>Department / Position</th>
               <th>Contact</th>
               <th>Employment type</th>
               <th>Status</th>
@@ -462,9 +497,9 @@ html = pageHead(
           <tbody>
             ${employees.map(emp => `
               <tr>
-                <td><b>${esc(emp.employeeCode)}</b></td>
+                <td><b>${esc(emp.employeeCode || '—')}</b></td>
                 <td>
-                  <b>${esc(emp.fullName)}</b><br>
+                  <b>${esc(emp.fullName || '—')}</b><br>
                   <small>${esc(emp.gender || '—')}</small>
                 </td>
                 <td>
@@ -476,9 +511,15 @@ html = pageHead(
                   <small>${esc(emp.email || '')}</small>
                 </td>
                 <td>
-                  ${esc(String(emp.employmentType || 'FULL_TIME').replaceAll('_', ' '))}
+                  ${esc(String(
+                    emp.employmentType || 'FULL_TIME'
+                  ).replaceAll('_', ' '))}
                   <br>
-                  <small>${emp.employmentDate ? esc(String(emp.employmentDate).slice(0, 10)) : 'Date not entered'}</small>
+                  <small>${
+                    emp.employmentDate
+                      ? esc(String(emp.employmentDate).slice(0, 10))
+                      : 'Date not entered'
+                  }</small>
                 </td>
                 <td>
                   <span class="badge">
@@ -500,7 +541,40 @@ html = pageHead(
                       class="btn danger"
                       data-action="deactivate-employee"
                       data-id="${esc(emp.id)}"
-                      data-name="${esc(emp.full
+                      data-name="${esc(emp.fullName || 'this employee')}">
+                      Deactivate
+                    </button>
+                  ` : ''}
+                </td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </div>`
+    : '<div class="empty">No employee records found. Add your first employee when you are ready.</div>';
+
+  html = pageHead(
+    'Employees & staff',
+    'Register employees and maintain staff employment records.',
+    '<button class="btn primary" data-action="add-employee">+ Add employee</button>'
+  ) +
+  `<div class="cards">
+    ${stat('Total employees', allEmployees.length, 'All staff records')}
+    ${stat('Active employees', activeEmployees, 'Currently active')}
+    ${stat('On leave', onLeaveEmployees, 'Staff on leave')}
+    ${stat('Inactive', inactiveEmployees, 'Deactivated records')}
+  </div>` +
+  panel(
+    'Employee register',
+    `<div class="toolbar">
+      <input
+        id="employeeSearch"
+        placeholder="Search employee, ID, department or phone…"
+        value="${esc(state.search)}">
+      <button class="btn soft" data-action="clear-search">Clear</button>
+    </div>
+    ${employeeRows}`
+  );
 } else if (state.view === 'Graduations') {
   html = `<section class="panel"><h2>Graduations</h2><p>Manage graduation records for eligible students.</p></section>`;
 } else if (state.view === 'Class Activations') {
