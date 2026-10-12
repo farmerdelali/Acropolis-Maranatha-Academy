@@ -625,11 +625,12 @@ html = pageHead(
     '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
   }[c]));
 
-  const classes = [...new Set(
-    students.filter(s => !s.archived)
-      .map(s => s.class_name)
-      .filter(Boolean)
-  )].sort();
+ const classes = [...new Set([
+  ...(state.data.classActivationClasses || []),
+  ...students.filter(s => !s.archived)
+    .map(s => s.class_name)
+    .filter(Boolean)
+])].sort(); 
 
   const academicYear = state.data.school?.academicYear || '';
 
