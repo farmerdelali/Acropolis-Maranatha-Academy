@@ -161,3 +161,21 @@ ON employees(school_id, status, full_name);
 
 CREATE INDEX IF NOT EXISTS employees_school_department_idx
 ON employees(school_id, department);
+-- GRADUATION RECORDS
+CREATE TABLE IF NOT EXISTS graduation_records (
+  id BIGSERIAL PRIMARY KEY,
+  school_id BIGINT NOT NULL REFERENCES schools(id) ON DELETE CASCADE,
+  student_id BIGINT NOT NULL REFERENCES students(id) ON DELETE CASCADE,
+  graduation_year INTEGER NOT NULL,
+  class_completed TEXT NOT NULL,
+  graduation_date DATE,
+  certificate_number TEXT NOT NULL DEFAULT '',
+  remarks TEXT NOT NULL DEFAULT '',
+  created_by BIGINT REFERENCES users(id) ON DELETE SET NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  UNIQUE (school_id, student_id, graduation_year)
+);
+
+CREATE INDEX IF NOT EXISTS graduation_records_school_year_idx
+ON graduation_records(school_id, graduation_year DESC);
