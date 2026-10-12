@@ -295,8 +295,8 @@ else if (state.view === 'Match Students') {
     const rows = denials.length
       ? denials.map(item => `
           <tr>
-            <td>${esc(item.student_name || '')}</td>
-            <td>${esc(item.person_name || '')}</td>
+            <td>${esc(item.studentName || '')}</td>
+            <td>${esc(item.personName || '')}</td>
             <td>${esc(item.relationship || '')}</td>
             <td>${esc(item.reason || '')}</td>
             <td>${esc(item.status || 'PENDING')}</td>
