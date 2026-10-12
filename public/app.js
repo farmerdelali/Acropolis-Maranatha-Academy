@@ -90,6 +90,8 @@ async function loadData() {
 const graduationResult = await api('/api/graduations');
 const graduations = graduationResult.graduations || [];
   const classActivationResult = await api('/api/class-activations');
+  const classroomResult = await api('/api/classrooms');
+const classrooms = classroomResult.classrooms || [];
 const classActivations = classActivationResult.activations || [];
   const classActivationClasses = classActivationResult.classes || [];
   let denials = [];
@@ -113,8 +115,9 @@ state.data = {
   pickupPersons,
   employees,
     graduations,
-  classActivations,
-  classActivationClasses
+    classActivations,
+  classActivationClasses,
+  classrooms
 };
 
   $('#schoolTitle').textContent = d.school.name;
