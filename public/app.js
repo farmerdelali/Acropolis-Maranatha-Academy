@@ -91,6 +91,7 @@ const graduationResult = await api('/api/graduations');
 const graduations = graduationResult.graduations || [];
   const classActivationResult = await api('/api/class-activations');
 const classActivations = classActivationResult.activations || [];
+  const classActivationClasses = classActivationResult.classes || [];
   let denials = [];
 
   if (state.user && state.user.role === 'ADMIN') {
@@ -111,8 +112,9 @@ state.data = {
   denials,
   pickupPersons,
   employees,
-  graduations,
-  classActivations
+    graduations,
+  classActivations,
+  classActivationClasses
 };
 
   $('#schoolTitle').textContent = d.school.name;
