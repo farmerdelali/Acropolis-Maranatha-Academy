@@ -1058,6 +1058,51 @@ function userForm(){openModal('Create staff account',`<form id="userForm"><label
 async function refresh(){await loadData();}
 async function download(url,filename){const r=await fetch(url,{credentials:'same-origin'});if(!r.ok){let b={};try{b=await r.json()}catch{}throw new Error(b.error||'Download failed');}const blob=await r.blob(),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=filename;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),1500);}
 
+document.addEventListener('change', e => {
+  if (e.target.id !== 'grad-class') return;
+
+  const selectedClass = e.target.value;
+  const list = document.getElementById('grad-student-list');
+  if (!list) return;
+
+  const students = (state.data.students || []).filter(s =>
+    !s.archived &&
+    String(s.class_name || s.class || s.className || '') === selectedClass
+  );
+
+  if (!selectedClass) {
+    list.innerHTML = '<p>Choose a class to list registered students.</p>';
+    return;
+  }
+
+  if (!students.length) {
+    list.innerHTML = '<p>No registered students found in this class.</p>';
+    return;
+  }
+
+  list.innerHTML = `
+    <h3>Choose students (${students.length})</h3>
+    ${students.map(s => `
+      <label style="display:flex;gap:10px;align-items:center;padding:8px 0">
+        <input type="checkbox" name="gradStudentIds" value="${String(s.id)}">
+        <span>${String(s.full_name || [s.first_name,s.last_name].filter(Boolean).join(' ') || 'Student').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+        ${s.student_code ? ' · ' + String(s.student_code) : ''}</span>
+      </label>
+    `).join('')}
+  `;
+});
+
+document.addEventListener('click', e => {
+  const button = e.target.closest('button');
+  if (!button) return;
+
+  if (button.id === 'grad-select-all' || button.id === 'grad-clear') {
+    document.querySelectorAll('input[name="gradStudentIds"]').forEach(input => {
+      input.checked = button.id === 'grad-select-all';
+    });
+  }
+});
+
 document.addEventListener('submit', async e => {
   const form = e.target;
 
