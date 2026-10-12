@@ -313,6 +313,8 @@ app.delete(
   })
 );
   app.post('/api/payments', requireRole('ADMIN', 'BURSAR'), asyncRoute(async (req, res) => {
+  
+app.post('/api/payments', requireRole('ADMIN', 'BURSAR'), asyncRoute(async (req, res) => {
   const b = req.body || {};
   const amount = Number(b.amount);
 
@@ -398,6 +400,7 @@ app.delete('/api/payments/:id', requireRole('ADMIN'), asyncRoute(async (req, res
     client.release();
   }
 }));
+      
   app.delete('/api/users/:id', requireRole('ADMIN'), asyncRoute(async(req,res)=>{if(String(req.params.id)===String(req.session.user.id))return res.status(400).json({error:'You cannot delete your own active account.'});const r=await q('DELETE FROM users WHERE id=$1 AND school_id=$2 RETURNING id',[req.params.id,schoolId(req)]);if(!r.rowCount)return res.status(404).json({error:'User not found.'});await audit(req,'user_deleted','user',req.params.id);res.json({ok:true})}));
 
 app.get('/api/parents', requireAuth, asyncRoute(async (req, res) => {
