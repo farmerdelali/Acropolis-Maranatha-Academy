@@ -381,7 +381,7 @@ else if (state.view === 'Match Students') {
       if (sameGuardian) reasons.push('Same guardian phone');
       if (sameSurname) reasons.push('Same surname');
 
-      if (sameId || sameName || sameGuardian) {
+      if (sameId || sameName || sameGuardian || sameSurname) {
         candidates.push({ a, b, reasons });
       }
     }
