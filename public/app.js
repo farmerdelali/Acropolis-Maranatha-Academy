@@ -1138,12 +1138,9 @@ function dropOffDenialForm() {
 
   const students = state.data.students.filter(s => !s.archived);
 
-  if (!students.length) {
-    return toast('Register a student before adding this record.', true);
-  $('#studentForm').dataset.id = s?.id || '';
-
-  }
-
+ if (!students.length) {
+return toast('Register a student before adding this record.', true);
+}
   openModal('Add Drop-off Denial Record', `
     <form id="dropOffDenialForm">
       <label class="field">Student concerned
