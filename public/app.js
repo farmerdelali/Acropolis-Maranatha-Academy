@@ -1668,14 +1668,7 @@ document.addEventListener('click', async e => {
     return;
   }
 
-    document.querySelectorAll('[data-view]').forEach(item => {
-      item.classList.toggle(
-        'active',
-        item.dataset.view === state.view
-      );
-    });
-    return;
-  }
+   
 
   const action = button.dataset.action;
   if (!action) return;
