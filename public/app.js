@@ -244,6 +244,72 @@ function studentRows(rows, actions = true) {
   `;
 }
 
+function dashboardCalendar(){
+  const month = state.calendarMonth;
+  const year = state.calendarYear;
+  const today = new Date();
+  const months = [
+    'January','February','March','April','May','June',
+    'July','August','September','October','November','December'
+  ];
+
+  const monthOptions = months.map((name, index) =>
+    `<option value="${index}" ${index === month ? 'selected' : ''}>${name}</option>`
+  ).join('');
+
+  const startYear = Math.min(year, today.getFullYear()) - 5;
+  const yearOptions = Array.from({length: 11}, (_, i) => startYear + i)
+    .map(y => `<option value="${y}" ${y === year ? 'selected' : ''}>${y}</option>`)
+    .join('');
+
+  const firstDay = new Date(year, month, 1).getDay();
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+  const weekdays = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat']
+    .map(day => `<div style="text-align:center;padding:8px 2px;font-weight:700;color:var(--muted)">${day}</div>`)
+    .join('');
+
+  let days = '';
+  for (let i = 0; i < firstDay; i++) {
+    days += '<div></div>';
+  }
+
+  for (let day = 1; day <= daysInMonth; day++) {
+    const isToday =
+      day === today.getDate() &&
+      month === today.getMonth() &&
+      year === today.getFullYear();
+
+    days += `<div style="min-height:42px;display:flex;align-items:center;justify-content:center;border-radius:10px;${isToday ? 'background:var(--navy);color:white;font-weight:800;border:2px solid var(--gold);' : 'color:var(--ink);'}">${day}</div>`;
+  }
+
+  return `
+    <section class="panel" style="margin-top:20px">
+      <div class="panel-head" style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
+        <div>
+          <h3 style="margin:0">School calendar</h3>
+          <p style="color:var(--muted);margin:5px 0 0">View dates by month and year</p>
+        </div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <label>Month
+            <select id="calendarMonth" aria-label="Calendar month">${monthOptions}</select>
+          </label>
+          <label>Year
+            <select id="calendarYear" aria-label="Calendar year">${yearOptions}</select>
+          </label>
+        </div>
+      </div>
+      <div class="panel-body">
+        <div style="display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px">
+          ${weekdays}${days}
+        </div>
+        <p style="font-size:.82rem;color:var(--muted);margin-top:12px">
+          Today's date is highlighted in navy and gold.
+        </p>
+      </div>
+    </section>`;
+}
+
 function render(){const d=state.data,students=d.students.filter(s=>!s.archived),paid=d.payments.reduce((n,p)=>n+Number(p.amount||0),0),expected=students.reduce((n,s)=>n+Number(s.total_fees||0),0),owing=students.filter(s=>Number(s.total_fees||0)>Number(s.paid||0)).length;let html='';
 if(state.view==='Dashboard'){
  html=pageHead('School overview',`Welcome back, ${state.user.username}. Here is your school's current position.`,`<button class="btn primary" data-action="add-student">+ Register student</button>`)+`<div class="cards">${stat('Active students',students.length,'Currently enrolled')}${stat('Fees expected',money(expected),'Total registered fees')}${stat('Payments received',money(paid),'All recorded receipts')}${stat('Students with balance',owing,'Students with outstanding fees')}</div>`;
