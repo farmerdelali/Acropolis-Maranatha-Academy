@@ -1140,6 +1140,8 @@ function dropOffDenialForm() {
 
   if (!students.length) {
     return toast('Register a student before adding this record.', true);
+  $('#studentForm').dataset.id = s?.id || '';
+
   }
 
   openModal('Add Drop-off Denial Record', `
