@@ -728,3 +728,56 @@ button[data-action*="save-class"]:focus-visible {
     width: 100%;
   }
 }
+
+/* PREMIUM SAVE CLASSROOM BUTTON */
+form#classroomForm button[type="submit"],
+form button[data-action*="save-classroom"],
+form button[data-action*="classroom"] {
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  min-height: 50px;
+  min-width: 190px;
+  padding: 13px 24px;
+  margin: 12px 0;
+  border: 1px solid #293f6b;
+  border-left: 4px solid #ffb900;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #101c3a, #293f6b);
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 750;
+  letter-spacing: 0.2px;
+  box-shadow: 0 5px 14px #101c3a24;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+form#classroomForm button[type="submit"]:hover,
+form button[data-action*="save-classroom"]:hover,
+form button[data-action*="classroom"]:hover {
+  background: linear-gradient(135deg, #1c2e57, #354f80);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px #101c3a35;
+}
+
+form#classroomForm button[type="submit"]:active,
+form button[data-action*="save-classroom"]:active,
+form button[data-action*="classroom"]:active {
+  transform: scale(0.98);
+}
+
+form#classroomForm button[type="submit"]:focus-visible,
+form button[data-action*="save-classroom"]:focus-visible,
+form button[data-action*="classroom"]:focus-visible {
+  outline: 3px solid #ffb90080;
+  outline-offset: 3px;
+}
+
+@media (max-width: 600px) {
+  form#classroomForm button[type="submit"],
+  form button[data-action*="save-classroom"],
+  form button[data-action*="classroom"] {
+    width: 100%;
+  }
+}
