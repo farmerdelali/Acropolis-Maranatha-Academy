@@ -11,7 +11,7 @@ CREATE TABLE IF NOT EXISTS users (
   school_id BIGINT NOT NULL REFERENCES schools(id) ON DELETE CASCADE,
   username TEXT NOT NULL,
   password_hash TEXT NOT NULL,
-  role TEXT NOT NULL CHECK (role IN ('ADMIN','TEACHER','BURSAR')),
+    role TEXT NOT NULL CHECK (role IN ('ADMIN','HEADMASTER','TEACHER','BURSAR','PARENT','STUDENT')),
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   UNIQUE (school_id, username)
 );
