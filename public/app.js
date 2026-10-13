@@ -493,7 +493,7 @@ html = `
   </div>` +
   panel('Pickup person register', pickupRows);
 
-} else if (state.view === 'Employees') {} else if (state.view === 'Employees') {
+} else if (state.view === 'Employees') {
   const allEmployees = d.employees || [];
 
   const employees = allEmployees.filter(emp =>
