@@ -385,13 +385,16 @@ const rows = d.payments.length
           placeholder="e.g. 2026/2027">
       </label>
 
-      <label class="field">Current term
-        <select name="currentTerm" required>
-          <option value="Term 1" ${school.currentTerm==='Term 1'?'selected':''}>Term 1</option>
-          <option value="Term 2" ${school.currentTerm==='Term 2'?'selected':''}>Term 2</option>
-          <option value="Term 3" ${school.currentTerm==='Term 3'?'selected':''}>Term 3</option>
-        </select>
-      </label>
+     
+<label class="field">Academic year
+  <select name="academicYear" required>
+    ${Array.from({length: 9}, (_, i) => {
+      const startYear = new Date().getFullYear() - 3 + i;
+      const year = `${startYear}/${startYear + 1}`;
+      return `<option value="${year}" ${school.academicYear === year ? 'selected' : ''}>${year}</option>`;
+    }).join('')}
+  </select>
+</label>
 
       <div class="form-actions">
         <button class="btn primary" type="submit">Save settings</button>
