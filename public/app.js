@@ -1824,6 +1824,22 @@ break;
           toast('Pickup person deleted.');
         }
         break;
+        case 'delete-mark':
+        if (!state.user || state.user.role !== 'ADMIN') {
+          throw new Error('Only administrators can delete marks.');
+        }
+
+        if (confirm('Permanently delete this examination mark?')) {
+          await api('/api/marks/' + encodeURIComponent(button.dataset.id), {
+            method: 'DELETE'
+          });
+
+          await refresh();
+          state.view = 'Marks';
+          render();
+          toast('Examination mark deleted.');
+        }
+        break;
       case 'delete-payment':
         if (state.user.role !== 'ADMIN') {
           throw new Error('Only administrators can delete payments.');
