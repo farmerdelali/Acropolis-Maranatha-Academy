@@ -379,12 +379,7 @@ const rows = d.payments.length
           value="${esc(school.motto||'Always praising God, Jehovah.')}">
       </label>
 
-      <label class="field">Academic year
-        <input name="academicYear" required maxlength="30"
-          value="${esc(school.academicYear||'')}"
-          placeholder="e.g. 2026/2027">
-      </label>
-
+     
      
 <label class="field">Academic year
   <select name="academicYear" required>
