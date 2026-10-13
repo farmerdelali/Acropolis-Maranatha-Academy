@@ -18,8 +18,8 @@ function loadSavedTheme() {
 
 loadSavedTheme();
 
-const state = { user:null, data:{students:[],payments:[],marks:[],users:[],parents:[]}, view:'Dashboard', search:'', drawer:false };
-
+const nowForCalendar = new Date();
+const state = { user:null, data:{students:[],payments:[],marks:[],users:[],parents:[]}, view:'Dashboard', search:'', drawer:false, calendarMonth:nowForCalendar.getMonth(), calendarYear:nowForCalendar.getFullYear() };
 const nav = [
   ['Dashboard','▦','Overview'],
   ['Students','♙','Student records'],
