@@ -313,7 +313,8 @@ function dashboardCalendar(){
 function render(){const d=state.data,students=d.students.filter(s=>!s.archived),paid=d.payments.reduce((n,p)=>n+Number(p.amount||0),0),expected=students.reduce((n,s)=>n+Number(s.total_fees||0),0),owing=students.filter(s=>Number(s.total_fees||0)>Number(s.paid||0)).length;let html='';
 if(state.view==='Dashboard'){
  html=pageHead('School overview',`Welcome back, ${state.user.username}. Here is your school's current position.`,`<button class="btn primary" data-action="add-student">+ Register student</button>`)+`<div class="cards">${stat('Active students',students.length,'Currently enrolled')}${stat('Fees expected',money(expected),'Total registered fees')}${stat('Payments received',money(paid),'All recorded receipts')}${stat('Students with balance',owing,'Students with outstanding fees')}</div>`;
- html+=panel('Recently registered students',studentRows(students.slice(0,6),false),`<button class="btn soft" data-view="Students">View all</button>`);
+html+=dashboardCalendar();
+  html+=panel('Recently registered students',studentRows(students.slice(0,6),false),`<button class="btn soft" data-view="Students">View all</button>`);
  html+=panel('Quick actions',`<div class="toolbar"><button class="btn primary" data-action="add-student">Register student</button>${['ADMIN','TEACHER'].includes(state.user.role)?'<button class="btn soft" data-action="add-mark">Enter examination mark</button>':''}${['ADMIN','BURSAR'].includes(state.user.role)?'<button class="btn soft" data-action="add-payment">Record payment</button>':''}<button class="btn soft" data-view="Reports">Open reports</button></div>`);
 }else if(state.view==='Students'){
  html=pageHead('Student records','Register, search and maintain student information.',`<button class="btn primary" data-action="add-student">+ Register student</button>`)+`<section class="panel"><div class="panel-body"><div class="toolbar"><input id="studentSearch" placeholder="Search name, ID, class or guardian…" value="${esc(state.search)}"><button class="btn soft" data-action="clear-search">Clear</button></div>${studentRows(students.filter(s=>[s.full_name,s.student_code,s.class_name,s.guardian_name,s.guardian_phone].join(' ').toLowerCase().includes(state.search.toLowerCase())))}</div></section>`;
@@ -1459,7 +1460,17 @@ async function refresh(){await loadData();}
 async function download(url,filename){const r=await fetch(url,{credentials:'same-origin'});if(!r.ok){let b={};try{b=await r.json()}catch{}throw new Error(b.error||'Download failed');}const blob=await r.blob(),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=filename;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),1500);}
 
 document.addEventListener('change', e => {
-  
+  if (e.target.id === 'calendarMonth') {
+    state.calendarMonth = Number(e.target.value);
+    render();
+    return;
+  }
+
+  if (e.target.id === 'calendarYear') {
+    state.calendarYear = Number(e.target.value);
+    render();
+    return;
+  }  
   if (e.target.id === 'appearanceSelect') {
     applyTheme(e.target.value);
     toast('Appearance updated successfully.');
