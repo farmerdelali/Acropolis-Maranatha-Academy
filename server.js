@@ -1391,7 +1391,58 @@ app.post('/api/classrooms', requireRole('ADMIN'), asyncRoute(async (req, res) =>
     message: 'Classroom saved successfully.'
   });
 }));
+app.put('/api/classrooms/:id/teacher', requireRole('ADMIN'), asyncRoute(async (req, res) => {
+const rawTeacherId = req.body?.teacherId;
+const teacherId = rawTeacherId === null || rawTeacherId === '' || rawTeacherId === undefined
+? null
+: Number(rawTeacherId);
 
+if (teacherId !== null &&
+(!Number.isSafeInteger(teacherId) || teacherId <= 0)) {
+return res.status(400).json({
+error: 'Choose a valid teacher or leave the classroom unassigned.'
+});
+}
+
+if (teacherId !== null) {
+const teacher = await q(
+"SELECT id FROM users WHERE id = $1 AND school_id = $2 AND role = 'TEACHER'",
+[teacherId, schoolId(req)]
+);
+
+if (!teacher.rowCount) {
+  return res.status(400).json({
+    error: 'Choose a teacher account belonging to this school.'
+  });
+}
+
+}
+
+const result = await q(
+"UPDATE classrooms SET assigned_teacher_id = $1, updated_at = NOW() WHERE id = $2 AND school_id = $3 RETURNING *",
+[teacherId, req.params.id, schoolId(req)]
+);
+
+if (!result.rowCount) {
+return res.status(404).json({
+error: 'Classroom not found.'
+});
+}
+
+await audit(
+req,
+teacherId === null ? 'classroom_teacher_unassigned' : 'classroom_teacher_assigned',
+'classroom',
+req.params.id
+);
+
+res.json({
+classroom: result.rows[0],
+message: teacherId === null
+? 'Teacher unassigned successfully.'
+: 'Teacher assigned successfully.'
+});
+}));
 app.get('/api/reports', requireRole('ADMIN'), asyncRoute(async(req,res)=>{const sid=schoolId(req);const r=await q(`SELECT (SELECT COUNT(*) FROM students WHERE school_id=$1 AND archived=false) AS active_students,(SELECT COUNT(*) FROM students WHERE school_id=$1 AND archived=true) AS archived_students,(SELECT COALESCE(SUM(amount),0) FROM payments WHERE school_id=$1) AS total_paid,(SELECT COUNT(*) FROM payments WHERE school_id=$1) AS payment_count,(SELECT COALESCE(SUM(total_fees),0) FROM students WHERE school_id=$1 AND archived=false) AS fees_expected`,[sid]);const recent=await q('SELECT action,entity_type,entity_id,created_at FROM audit_logs WHERE school_id=$1 ORDER BY created_at DESC LIMIT 100',[sid]);res.json({summary:r.rows[0],audit:recent.rows})}));
 app.get('/api/export', requireRole('ADMIN'), asyncRoute(async(req,res)=>{const sid=schoolId(req);const [students,payments,marks]=await Promise.all([q('SELECT * FROM students WHERE school_id=$1 ORDER BY id',[sid]),q('SELECT * FROM payments WHERE school_id=$1 ORDER BY id',[sid]),q('SELECT * FROM marks WHERE school_id=$1 ORDER BY id',[sid])]);res.setHeader('Content-Disposition','attachment; filename="acropolis-school-backup.json"');res.json({exportedAt:new Date().toISOString(),school:req.session.user.schoolName,students:students.rows,payments:payments.rows,marks:marks.rows});}));
 app.use('/api', (err, req, res, next) => { console.error(err); if(res.headersSent)return next(err); if(err.code==='23505')return res.status(409).json({error:'A record with these details already exists.'}); res.status(500).json({error:'Something went wrong. Please try again.'}); });
