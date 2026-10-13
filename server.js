@@ -1319,7 +1319,7 @@ app.post(
       activation: result.rows[0],
       message: 'Class activation saved successfully.'
     });
-  })
+    }));
 
 app.get('/api/classrooms', requireAuth, asyncRoute(async (req, res) => {
   const result = await q(
