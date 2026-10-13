@@ -239,8 +239,37 @@ app.delete('/api/payments/:id', requireRole('ADMIN'), asyncRoute(async (req, res
   } finally {
     client.release();
   }
+}));app.post('/api/users', requireRole('ADMIN'), asyncRoute(async (req, res) => {
+  const { username, password, role } = req.body || {};
+
+  if (!validText(username, 60) || username.trim().length < 3 ||
+      typeof password !== 'string' || password.length < 10 ||
+      password.length > 200 ||
+      !['TEACHER', 'BURSAR'].includes(role)) {
+    return res.status(400).json({
+      error: 'Enter a username, a password of at least 10 characters, and a valid staff role.'
+    });
+  }
+
+  const passwordHash = await bcrypt.hash(password, 12);
+
+  try {
+    const r = await q(
+      'INSERT INTO users(school_id, username, password_hash, role) VALUES($1,$2,$3,$4) RETURNING id, username, role, created_at',
+      [schoolId(req), username.trim(), passwordHash, role]
+    );
+
+    await audit(req, 'user_created', 'user', r.rows[0].id);
+    res.status(201).json({ user: r.rows[0] });
+  } catch (err) {
+    if (err.code === '23505') {
+      return res.status(409).json({ error: 'That username already exists in this school.' });
+    }
+    throw err;
+  }
 }));
-    
+
+    app.delete('/api/users/:id'
   app.delete('/api/users/:id', requireRole('ADMIN'), asyncRoute(async(req,res)=>{if(String(req.params.id)===String(req.session.user.id))return res.status(400).json({error:'You cannot delete your own active account.'});const r=await q('DELETE FROM users WHERE id=$1 AND school_id=$2 RETURNING id',[req.params.id,schoolId(req)]);if(!r.rowCount)return res.status(404).json({error:'User not found.'});await audit(req,'user_deleted','user',req.params.id);res.json({ok:true})}));
 
 app.get('/api/parents', requireAuth, asyncRoute(async (req, res) => {
