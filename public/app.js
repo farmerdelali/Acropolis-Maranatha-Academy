@@ -1710,7 +1710,31 @@ case 'add-pickup-person':
       case 'add-mark':
         markForm();
         break;
+case 'assign-classroom-teacher': {
+  if (!state.user || state.user.role !== 'ADMIN') {
+    throw new Error('Only administrators can assign classroom teachers.');
+  }
 
+  const classroomId = button.dataset.id;
+  const select = Array.from(
+    document.querySelectorAll('[data-teacher-select-for]')
+  ).find(el => el.dataset.teacherSelectFor === classroomId);
+
+  if (!select) {
+    throw new Error('Teacher selector not found. Please refresh.');
+  }
+
+  await api('/api/classrooms/' + encodeURIComponent(classroomId) + '/teacher', {
+    method: 'PUT',
+    body: JSON.stringify({ teacherId: select.value || null })
+  });
+
+  await refresh();
+  state.view = 'Classrooms';
+  render();
+  toast('Classroom teacher assignment saved successfully.');
+  break;
+}
       case 'add-user':
         userForm();
         break;
