@@ -22,7 +22,7 @@ app.use(express.json({ limit: '200kb' }));
 app.use(express.urlencoded({ extended: false, limit: '50kb' }));
 app.use(session({
   store: new PgSession({ pool, tableName: 'user_sessions', createTableIfMissing: true }),
-  name: 'ama.sid', secret: process.env.SESSION_SECRET || 'development-only-change-this-secret',
+  name: 'ama.sid', secret: process.env.SESSION_SECRET,
   resave: false, saveUninitialized: false,
   cookie: { httpOnly: true, sameSite: 'lax', secure: production, maxAge: 8 * 60 * 60 * 1000 }
 }));
