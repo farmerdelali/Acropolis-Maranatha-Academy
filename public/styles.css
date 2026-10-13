@@ -396,3 +396,55 @@ tbody tr {
     transition-duration: .01ms !important;
   }
 }
+
+/* DARK APPEARANCE: improve text readability */
+body.dark-mode .page-head h1,
+body.dark-mode .stat-value,
+body.dark-mode .brand h1,
+body.dark-mode .panel h2,
+body.dark-mode .modal-head h2,
+body.dark-mode .sidebar-school b,
+body.dark-mode .auth-form h2,
+body.dark-mode label,
+body.dark-mode .field,
+body.dark-mode .nav-item.active,
+body.dark-mode .tab.active,
+body.dark-mode th,
+body.dark-mode td,
+body.dark-mode .sidebar-bottom,
+body.dark-mode .report-row,
+body.dark-mode .panel,
+body.dark-mode .stat,
+body.dark-mode .modal,
+body.dark-mode .auth-card {
+  color: #f3f6fb;
+}
+
+body.dark-mode .sidebar-bottom {
+  background: #151b27;
+  border-color: var(--line);
+}
+
+body.dark-mode th {
+  background: #1d2636;
+}
+
+body.dark-mode tbody tr:hover,
+body.dark-mode .nav-item.active,
+body.dark-mode .nav-item:hover {
+  background: #253149;
+}
+
+body.dark-mode .soft {
+  background: #29354a;
+  color: #f3f6fb;
+}
+
+body.dark-mode .empty,
+body.dark-mode .empty-state,
+body.dark-mode .page-head p,
+body.dark-mode .sidebar-school small,
+body.dark-mode .auth-foot,
+body.dark-mode .auth-form small {
+  color: #c0c9d8;
+}
