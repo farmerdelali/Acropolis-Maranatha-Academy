@@ -478,30 +478,22 @@ html = pageHead(
   const authorized = pickupPersons.filter(p => p.status === 'AUTHORIZED').length;
   const pending = pickupPersons.filter(p => p.status === 'PENDING').length;
   const revoked = pickupPersons.filter(p => p.status === 'REVOKED').length;
-
-  const pickupRows = pickupPersons.length
-    ? `<div class="table-wrap"><table>
-        <thead><tr>
-          <th>Pickup person</th>
-          <th>Student</th>
-          <th>Relationship</th>
-          <th>Phone</th>
-          <th>ID details</th>
-          <th>Status</th>
-        </tr></thead>
-        <tbody>${pickupPersons.map(p => `<tr>
-          <td><b>${esc(p.fullName)}</b></td>
-          <td>${esc(p.studentName)}<br><small>${esc(p.studentCode || '')} · ${esc(p.className || '')}</small></td>
-          <td>${esc(p.relationship || '—')}</td>
-          <td>${esc(p.phone || '—')}</td>
-          <td>${esc([p.idType, p.idNumber].filter(Boolean).join(': ') || '—')}</td>
-          <td><span class="badge">${esc(p.status)}</span></td>
-        </tr>`).join('')}</tbody>
-      </table></div>`
-    : '<div class="empty">No pickup persons have been registered yet. Add an authorized contact when you are ready.</div>';
-
-  html = pageHead(
-    'Pickup persons',
+const pickupRows = pickupPersons.length
+? "<div class="table-wrap"><table> <thead><tr> <th>Pickup person</th> <th>Student</th> <th>Relationship</th> <th>Phone</th> <th>ID details</th> <th>Status</th> <th>Actions</th> </tr></thead> <tbody>${pickupPersons.map(p => "<tr>
+<td><b>${esc(p.fullName)}</b></td>
+<td>${esc(p.studentName)}<br><small>${esc(p.studentCode || '')} · ${esc(p.className || '')}</small></td>
+<td>${esc(p.relationship || '—')}</td>
+<td>${esc(p.phone || '—')}</td>
+<td>${esc([p.idType, p.idNumber].filter(Boolean).join(': ') || '—')}</td>
+<td><span class="badge">${esc(p.status)}</span></td>
+<td>
+${state.user && state.user.role === 'ADMIN'
+? "<button type="button" class="btn danger" data-action="delete-pickup-person" data-id="${esc(p.id)}">Delete</button>"
+: '—'}
+</td>
+</tr>").join('')}</tbody> </table></div>"
+: '<div class="empty">No pickup persons have been registered yet. Add an authorized contact when you are ready.</div>';
+      'Pickup persons',
     'Manage and review people permitted to collect students from school.',
     state.user.role === 'ADMIN'
       ? '<button class="btn primary" data-action="add-pickup-person">+ Register pickup person</button>'
