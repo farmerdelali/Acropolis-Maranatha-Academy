@@ -632,3 +632,55 @@ button[data-action="add-drop-off-denial"]:focus-visible {
     min-height: 50px;
   }
 }
+
+/* SAVE CLASS ACTIVATION BUTTON */
+button[data-action*="class-activation"],
+button[data-action*="activate-class"],
+button[data-action*="save-class"] {
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  min-height: 50px;
+  min-width: 190px;
+  padding: 13px 24px;
+  margin: 12px 0;
+  border: 1px solid #26395f;
+  border-left: 4px solid #ffb900;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #101c3a, #293f6b);
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 750;
+  letter-spacing: 0.2px;
+  box-shadow: 0 5px 14px #101c3a20;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+button[data-action*="class-activation"]:hover,
+button[data-action*="activate-class"]:hover,
+button[data-action*="save-class"]:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px #101c3a30;
+}
+
+button[data-action*="class-activation"]:active,
+button[data-action*="activate-class"]:active,
+button[data-action*="save-class"]:active {
+  transform: scale(0.98);
+}
+
+button[data-action*="class-activation"]:focus-visible,
+button[data-action*="activate-class"]:focus-visible,
+button[data-action*="save-class"]:focus-visible {
+  outline: 3px solid #ffb90080;
+  outline-offset: 3px;
+}
+
+@media (max-width: 600px) {
+  button[data-action*="class-activation"],
+  button[data-action*="activate-class"],
+  button[data-action*="save-class"] {
+    width: 100%;
+  }
+}
