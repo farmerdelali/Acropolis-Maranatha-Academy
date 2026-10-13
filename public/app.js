@@ -805,8 +805,9 @@ const classes = [...new Set([
                 <th>Room code</th>
                 <th>Classroom</th>
                 <th>Building / Floor</th>
-                <th>Assigned class</th>
-                <th>Capacity</th>
+             <th>Assigned class</th>
+<th>Assigned teacher</th>
+<th>Capacity</th>  
                 <th>Students</th>
                 <th>Status</th>
               </tr>
