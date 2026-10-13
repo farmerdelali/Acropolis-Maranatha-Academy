@@ -245,7 +245,7 @@ app.delete('/api/payments/:id', requireRole('ADMIN'), asyncRoute(async (req, res
   if (!validText(username, 60) || username.trim().length < 3 ||
       typeof password !== 'string' || password.length < 10 ||
       password.length > 200 ||
-      !['TEACHER', 'BURSAR'].includes(role)) {
+      !['HEADMASTER', 'TEACHER', 'BURSAR'].includes(role)) {
     return res.status(400).json({
       error: 'Enter a username, a password of at least 10 characters, and a valid staff role.'
     });
