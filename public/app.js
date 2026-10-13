@@ -445,36 +445,13 @@ html = `
           </tr>
         </thead>
         <tbody>
-          ${parents.map(p => `<tr>
-            <td><b>${esc(p.full_name)}</b></td>
-            <td>${esc(p.relationship || '—')}</td>
-            <td>${esc(p.phone || '—')}</td>
-            <td>${esc(p.email || '—')}</td>
-            <td>${esc((p.students || []).map(s =>
-              s.full_name || s.name || ''
-            ).filter(Boolean).join(', ') || 'None linked')}</td>
-          </tr>`).join('')}
-        </tbody>
-      </table></div>`
-    : '<div class="empty">No parent records yet. Parent records will appear here when registered.</div>';
-html = pageHead(
-    'Parents & guardians',
-    'Maintain guardian contact details and connect each guardian to their students.',
-    `${state.user.role === 'ADMIN' ? '<button class="btn primary" data-action="add-parent">+ Register parent</button>' : ''}`
-  ) +
-  
-  `<div class="cards">
-    ${stat('Registered parents', parents.length, 'Parent and guardian records')}
-    ${stat(
-      'Linked students',
-      parents.reduce((n, p) => n + (p.students || []).length, 0),
-      'Student relationships'
-    )}
-  </div>` +
-  panel('Parent register', parentRows);
-
 } else if (state.view === 'Pickup Persons') {
- const pickupRows = pickupPersons.length
+  const pickupPersons = d.pickupPersons || [];
+  const authorized = pickupPersons.filter(p => p.status === 'AUTHORIZED').length;
+  const pending = pickupPersons.filter(p => p.status === 'PENDING').length;
+  const revoked = pickupPersons.filter(p => p.status === 'REVOKED').length;
+
+  const pickupRows = pickupPersons.length
     ? `<div class="table-wrap"><table>
         <thead><tr>
           <th>Pickup person</th>
@@ -501,8 +478,22 @@ html = pageHead(
       </table></div>`
     : '<div class="empty">No pickup persons have been registered yet. Add an authorized contact when you are ready.</div>';
 
-  html = pageHead( ('Pickup person register', pickupRows);
-} else if (state.view === 'Employees') {
+  html = pageHead(
+    'Pickup persons',
+    'Manage and review people permitted to collect students from school.',
+    state.user.role === 'ADMIN'
+      ? '<button class="btn primary" data-action="add-pickup-person">+ Register pickup person</button>'
+      : ''
+  ) +
+  `<div class="cards">
+    ${stat('Total records', pickupPersons.length, 'Pickup contacts')}
+    ${stat('Authorized', authorized, 'Approved for collection')}
+    ${stat('Pending review', pending, 'Awaiting approval')}
+    ${stat('Revoked', revoked, 'No longer authorized')}
+  </div>` +
+  panel('Pickup person register', pickupRows);
+
+} else if (state.view === 'Employees') {} else if (state.view === 'Employees') {
   const allEmployees = d.employees || [];
 
   const employees = allEmployees.filter(emp =>
