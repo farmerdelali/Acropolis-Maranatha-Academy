@@ -1808,6 +1808,22 @@ toast('Drop-off denial record deleted.');
 
 }
 break;
+        case 'delete-pickup-person':
+        if (!state.user || state.user.role !== 'ADMIN') {
+          throw new Error('Only administrators can delete pickup person records.');
+        }
+
+        if (confirm('Permanently delete this pickup person?')) {
+          await api('/api/pickup-persons/' + encodeURIComponent(button.dataset.id), {
+            method: 'DELETE'
+          });
+
+          await refresh();
+          state.view = 'Pickup Persons';
+          render();
+          toast('Pickup person deleted.');
+        }
+        break;
       case 'delete-payment':
         if (state.user.role !== 'ADMIN') {
           throw new Error('Only administrators can delete payments.');
