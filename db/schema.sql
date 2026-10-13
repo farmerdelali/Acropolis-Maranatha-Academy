@@ -250,6 +250,7 @@ CREATE TABLE IF NOT EXISTS classrooms (
     CHECK (status IN ('ACTIVE', 'MAINTENANCE', 'INACTIVE')),
   notes TEXT NOT NULL DEFAULT '',
   created_by BIGINT REFERENCES users(id) ON DELETE SET NULL,
+  assigned_teacher_id BIGINT REFERENCES users(id) ON DELETE SET NULL,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   UNIQUE (school_id, room_code)
