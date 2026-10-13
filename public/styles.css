@@ -575,3 +575,60 @@ body.dark-mode #graduation-form #grad-clear {
     margin-top: 10px;
   }
 }
+
+/* FIX: STYLE THE EXISTING DROP-OFF ADD RECORD BUTTON */
+button[data-action="add-drop-off-denial"] {
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 50px;
+  min-width: 165px;
+  padding: 12px 22px;
+  margin: 12px 0 16px;
+  border: 1px solid #26395f;
+  border-radius: 13px;
+  background: linear-gradient(135deg, #101c3a, #293f6b);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 750;
+  letter-spacing: .2px;
+  box-shadow: 0 5px 14px #101c3a20;
+  transition: transform .2s ease, box-shadow .2s ease;
+}
+
+button[data-action="add-drop-off-denial"]::before {
+  content: "+";
+  display: inline-grid;
+  place-items: center;
+  width: 25px;
+  height: 25px;
+  flex-shrink: 0;
+  border-radius: 8px;
+  background: #ffb900;
+  color: #101c3a;
+  font-size: 21px;
+  font-weight: 800;
+  line-height: 1;
+}
+
+button[data-action="add-drop-off-denial"]:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px #101c3a30;
+}
+
+button[data-action="add-drop-off-denial"]:active {
+  transform: scale(.98);
+}
+
+button[data-action="add-drop-off-denial"]:focus-visible {
+  outline: 3px solid #ffb90080;
+  outline-offset: 3px;
+}
+
+@media (max-width: 600px) {
+  button[data-action="add-drop-off-denial"] {
+    width: 100%;
+    min-height: 50px;
+  }
+}
