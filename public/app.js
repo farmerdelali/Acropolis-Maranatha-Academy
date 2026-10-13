@@ -766,10 +766,15 @@ state.user && state.user.role === 'ADMIN'
             ${classes.map(c => `<option value="${esc(c)}">${esc(c)}</option>`).join('')}
           </select>
         </label>
-        <label>Graduation year
-          <input name="graduationYear" type="number" min="2000" max="2100"
-            value="${new Date().getFullYear()}" required>
-        </label>
+       
+<label>Graduation year
+  <select name="graduationYear" required>
+    <option value="">Choose graduation year</option>
+    ${Array.from({length: 31}, (_, i) => new Date().getFullYear() - 15 + i)
+      .map(y => `<option value="${y}" ${y === new Date().getFullYear() ? 'selected' : ''}>${y}</option>`).join('')}
+  </select>
+</label>
+
         <label>Graduation date
           <input name="graduationDate" type="date">
         </label>
