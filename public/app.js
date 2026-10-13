@@ -419,23 +419,17 @@ else if (state.view === 'Match Students') {
     : '<div class="empty">No possible duplicate records found among active students.</div>';
 
   html += panel('Possible matches to review', matchRows);
-
 } else if (state.view === 'Drop-off Denial') {
-  const denials = state.data.denials || [];
+const denials = state.data.denials || [];
 
-  if (!state.user || state.user.role !== 'ADMIN') {
-    html = `
-      <section class="panel">
-        <h2>Drop-off Denial</h2>
-        <p>Only administrators can manage drop-off concerns and restrictions.</p>
-      </section>`;
-  } else {
-    const rows = denials.length
-? denials.map(item => " <tr> <td>${esc(item.studentName || '')}</td> <td>${esc(item.personName || '')}</td> <td>${esc(item.relationship || '')}</td> <td>${esc(item.reason || '')}</td> <td>${esc(item.status || 'PENDING')}</td> <td> <button type="button" class="btn danger" data-action="delete-drop-off-denial" data-id="${esc(item.id)}"> Delete </button> </td> </tr>").join('')
-: "<tr><td colspan="6">No drop-off records yet.</td></tr>";
+if (!state.user || state.user.role !== 'ADMIN') {
+html = " <section class="panel"> <h2>Drop-off Denial</h2> <p>Only administrators can manage drop-off concerns and restrictions.</p> </section>";
+} else {
+const rows = denials.length
+? denials.map(item => " <tr> <td>${esc(item.studentName || '')}</td> <td>${esc(item.personName || '')}</td> <td>${esc(item.relationship || '')}</td> <td>${esc(item.reason || '')}</td> <td>${esc(item.status || 'PENDING')}</td> <td> <button type="button" class="btn danger" data-action="delete-drop-off-denial" data-id="${esc(item.id)}">Delete</button> </td> </tr>").join('')
+: '<tr><td colspan="6">No drop-off records yet.</td></tr>';
 
 html = `
-
   <section class="panel">
     <h2>Drop-off Denial</h2>
     <p>Record and review concerns about who is permitted to drop off a student.</p>
@@ -458,40 +452,8 @@ html = `
       </table>
     </div>
   </section>`;
-      ? denials.map(item => `
-          <tr>
-            <td>${esc(item.studentName || '')}</td>
-            <td>${esc(item.personName || '')}</td>
-            <td>${esc(item.relationship || '')}</td>
-            <td>${esc(item.reason || '')}</td>
-            <td>${esc(item.status || 'PENDING')}</td>
-          </tr>`).join('')
-      : `<tr><td colspan="5">No drop-off records yet.</td></tr>`;
 
-    html = `
-      <section class="panel">
-        <h2>Drop-off Denial</h2>
-        <p>Record and review concerns about who is permitted to drop off a student.</p>
-        <button type="button" data-action="add-drop-off-denial">
-          + Add Record
-        </button>
-        <div style="overflow-x:auto;margin-top:16px">
-          <table>
-            <thead>
-              <tr>
-                <th>Student</th>
-                <th>Person concerned</th>
-                <th>Relationship</th>
-                <th>Reason</th>
-                <th>Status</th>
-              </tr>
-            </thead>
-            <tbody>${rows}</tbody>
-          </table>
-        </div>
-      </section>`;
-  }
-
+}
 
 } else if (state.view === 'Parents') {
   const parents = d.parents || [];
