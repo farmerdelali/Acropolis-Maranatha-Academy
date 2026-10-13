@@ -1443,6 +1443,55 @@ message: teacherId === null
 : 'Teacher assigned successfully.'
 });
 }));
+app.delete('/api/drop-off-denials/:id', requireRole('ADMIN'), asyncRoute(async (req, res) => {
+const result = await q(
+'DELETE FROM drop_off_denials WHERE id=$1 AND school_id=$2 RETURNING id',
+[req.params.id, schoolId(req)]
+);
+if (!result.rowCount) return res.status(404).json({ error: 'Drop-off denial record not found.' });
+await audit(req, 'drop_off_denial_deleted', 'drop_off_denial', req.params.id);
+res.json({ ok: true, message: 'Drop-off denial record deleted.' });
+}));
+
+app.delete('/api/pickup-persons/:id', requireRole('ADMIN'), asyncRoute(async (req, res) => {
+const result = await q(
+'DELETE FROM pickup_persons WHERE id=$1 AND school_id=$2 RETURNING id',
+[req.params.id, schoolId(req)]
+);
+if (!result.rowCount) return res.status(404).json({ error: 'Pickup person not found.' });
+await audit(req, 'pickup_person_deleted', 'pickup_person', req.params.id);
+res.json({ ok: true, message: 'Pickup person deleted.' });
+}));
+
+app.delete('/api/marks/:id', requireRole('ADMIN'), asyncRoute(async (req, res) => {
+const result = await q(
+'DELETE FROM marks WHERE id=$1 AND school_id=$2 RETURNING id',
+[req.params.id, schoolId(req)]
+);
+if (!result.rowCount) return res.status(404).json({ error: 'Mark record not found.' });
+await audit(req, 'mark_deleted', 'mark', req.params.id);
+res.json({ ok: true, message: 'Mark record deleted.' });
+}));
+
+app.delete('/api/class-activations/:id', requireRole('ADMIN'), asyncRoute(async (req, res) => {
+const result = await q(
+'DELETE FROM class_activations WHERE id=$1 AND school_id=$2 RETURNING id',
+[req.params.id, schoolId(req)]
+);
+if (!result.rowCount) return res.status(404).json({ error: 'Class activation not found.' });
+await audit(req, 'class_activation_deleted', 'class_activation', req.params.id);
+res.json({ ok: true, message: 'Class activation deleted.' });
+}));
+
+app.delete('/api/classrooms/:id', requireRole('ADMIN'), asyncRoute(async (req, res) => {
+const result = await q(
+'DELETE FROM classrooms WHERE id=$1 AND school_id=$2 RETURNING id',
+[req.params.id, schoolId(req)]
+);
+if (!result.rowCount) return res.status(404).json({ error: 'Classroom not found.' });
+await audit(req, 'classroom_deleted', 'classroom', req.params.id);
+res.json({ ok: true, message: 'Classroom deleted.' });
+}));
 app.get('/api/reports', requireRole('ADMIN'), asyncRoute(async(req,res)=>{const sid=schoolId(req);const r=await q(`SELECT (SELECT COUNT(*) FROM students WHERE school_id=$1 AND archived=false) AS active_students,(SELECT COUNT(*) FROM students WHERE school_id=$1 AND archived=true) AS archived_students,(SELECT COALESCE(SUM(amount),0) FROM payments WHERE school_id=$1) AS total_paid,(SELECT COUNT(*) FROM payments WHERE school_id=$1) AS payment_count,(SELECT COALESCE(SUM(total_fees),0) FROM students WHERE school_id=$1 AND archived=false) AS fees_expected`,[sid]);const recent=await q('SELECT action,entity_type,entity_id,created_at FROM audit_logs WHERE school_id=$1 ORDER BY created_at DESC LIMIT 100',[sid]);res.json({summary:r.rows[0],audit:recent.rows})}));
 app.get('/api/export', requireRole('ADMIN'), asyncRoute(async(req,res)=>{const sid=schoolId(req);const [students,payments,marks]=await Promise.all([q('SELECT * FROM students WHERE school_id=$1 ORDER BY id',[sid]),q('SELECT * FROM payments WHERE school_id=$1 ORDER BY id',[sid]),q('SELECT * FROM marks WHERE school_id=$1 ORDER BY id',[sid])]);res.setHeader('Content-Disposition','attachment; filename="acropolis-school-backup.json"');res.json({exportedAt:new Date().toISOString(),school:req.session.user.schoolName,students:students.rows,payments:payments.rows,marks:marks.rows});}));
 app.use('/api', (err, req, res, next) => { console.error(err); if(res.headersSent)return next(err); if(err.code==='23505')return res.status(409).json({error:'A record with these details already exists.'}); res.status(500).json({error:'Something went wrong. Please try again.'}); });
