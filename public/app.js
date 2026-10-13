@@ -1563,16 +1563,27 @@ document.addEventListener('submit', async e => {
       toast(employeeId
         ? 'Employee details updated successfully.'
         : 'Employee registered successfully.');
-    } else if (form.id === 'studentForm') {
-      await api('/api/students', {
-        method: 'POST',
-        body: JSON.stringify(v)
-      });
+   
+} else if (form.id === 'studentForm') {
+  const studentId = form.dataset.id;
 
-      await refresh();
-      state.view = 'Students';
-      render();
-      toast('Student saved successfully.');
+  await api(
+    studentId
+      ? '/api/students/' + encodeURIComponent(studentId)
+      : '/api/students',
+    {
+      method: studentId ? 'PUT' : 'POST',
+      body: JSON.stringify(v)
+    }
+  );
+
+  await refresh();
+  state.view = 'Students';
+  render();
+  toast(studentId
+    ? 'Student details updated successfully.'
+    : 'Student registered successfully.');
+
     } else if (form.id === 'paymentForm') {
       await api('/api/payments', {
         method: 'POST',
