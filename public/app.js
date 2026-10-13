@@ -1812,7 +1812,23 @@ case 'assign-classroom-teacher': {
       case 'add-user':
         userForm();
         break;
+case 'delete-drop-off-denial':
+if (!state.user || state.user.role !== 'ADMIN') {
+throw new Error('Only administrators can delete drop-off denial records.');
+}
 
+if (confirm('Permanently delete this drop-off denial record?')) {
+await api('/api/drop-off-denials/' + encodeURIComponent(button.dataset.id), {
+method: 'DELETE'
+});
+
+await refresh();
+state.view = 'Drop-off Denial';
+render();
+toast('Drop-off denial record deleted.');
+
+}
+break;
       case 'delete-payment':
         if (state.user.role !== 'ADMIN') {
           throw new Error('Only administrators can delete payments.');
