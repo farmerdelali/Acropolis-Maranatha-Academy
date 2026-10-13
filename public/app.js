@@ -472,7 +472,15 @@ html = `
 } else if (state.view === 'Parents') {
 const parents = d.parents || [];
 const parentRows = parents.length
-? parents.map(p => "<tr> <td><b>${esc(p.full_name || p.fullName || '')}</b></td> <td>${esc(p.relationship || '—')}</td> <td>${esc(p.phone || '—')}</td> <td>${esc(p.email || '—')}</td> <td>${esc(p.student_names || p.studentNames || '—')}</td> </tr>").join('')
+  ? parents.map(p => `
+    <tr>
+      <td><b>${esc(p.full_name || p.fullName || '')}</b></td>
+      <td>${esc(p.relationship || '—')}</td>
+      <td>${esc(p.phone || '—')}</td>
+      <td>${esc(p.email || '—')}</td>
+      <td>${esc(p.student_names || p.studentNames || '—')}</td>
+    </tr>
+  `).join('')
 : '<tr><td colspan="5">No parents or guardians registered yet.</td></tr>';
 
 html = pageHead(
