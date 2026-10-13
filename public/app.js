@@ -180,7 +180,70 @@ function closeDrawer(){state.drawer=false;$('#sideNav').classList.remove('open')
 function pageHead(title,sub,actions=''){return `<div class="page-head"><div><h1>${esc(title)}</h1><p>${esc(sub)}</p></div><div class="head-actions">${actions}</div></div>`;}
 function stat(label,value,note=''){return `<article class="stat"><div class="stat-label">${esc(label)}</div><strong class="stat-value">${value}</strong><div class="stat-note">${esc(note)}</div></article>`;}
 function panel(title,body,action=''){return `<section class="panel"><div class="panel-head"><h2>${esc(title)}</h2>${action}</div><div class="panel-body">${body}</div></section>`;}
-function studentRows(rows,actions=true){if(!rows.length)return '<div class="empty">No student records found. Register your first student to get started.</div>';return `<div class="table-wrap"><table><thead><tr><th>Student ID</th><th>Full name</th><th>Class</th><th>Guardian</th><th>Fees</th><th>Paid</th>${actions?'<th>Actions</th>':''}</tr></thead><tbody>${rows.map(s=>`<tr><td><b>${esc(s.student_code)}</b></td><td>${esc(s.full_name)}</td><td>${esc(s.class_name)}</td><td>${esc(s.guardian_name||'—')}<br><small>${esc(s.guardian_phone||'')}</small></td><td>${money(s.total_fees)}</td><td>${money(s.paid)}</td>${actions?`<td><button class="btn soft" data-action="edit-student" data-id="${s.id}">Edit</button> ${state.user.role==='ADMIN'?`<button class="btn danger" data-action="archive-student" data-id="${s.id}">Archive</button>`:''}</td>`:''}</tr>`).join('')}</tbody></table></div>`;}
+
+function studentRows(rows, actions = true) {
+  if (!rows.length) {
+    return `
+      <div class="empty">
+        <h3>No student records found</h3>
+        <p>Register a student or change your search to see records.</p>
+      </div>
+    `;
+  }
+
+  return `
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Student ID</th>
+            <th>Student details</th>
+            <th>Class</th>
+            <th>Parent / guardian</th>
+            <th>Total fees</th>
+            <th>Paid</th>
+            ${actions ? '<th>Actions</th>' : ''}
+          </tr>
+        </thead>
+        <tbody>
+          ${rows.map(s => `
+            <tr>
+              <td><strong>${esc(s.student_code || '—')}</strong></td>
+              <td>
+                <strong>${esc(s.full_name || '—')}</strong>
+                <br>
+                <small>${esc(s.gender || 'Student')}</small>
+              </td>
+              <td><span class="badge">${esc(s.class_name || 'Unassigned')}</span></td>
+              <td>
+                ${esc(s.guardian_name || '—')}
+                <br>
+                <small>${esc(s.guardian_phone || '')}</small>
+              </td>
+              <td>${money(s.total_fees)}</td>
+              <td>${money(s.paid)}</td>
+              ${actions ? `
+                <td>
+                  <button type="button"
+                    class="btn soft"
+                    data-action="edit-student"
+                    data-id="${esc(s.id)}">Edit</button>
+                  ${state.user.role === 'ADMIN' ? `
+                    <button type="button"
+                      class="btn danger"
+                      data-action="archive-student"
+                      data-id="${esc(s.id)}">Archive</button>
+                  ` : ''}
+                </td>
+              ` : ''}
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    </div>
+  `;
+}
+
 function render(){const d=state.data,students=d.students.filter(s=>!s.archived),paid=d.payments.reduce((n,p)=>n+Number(p.amount||0),0),expected=students.reduce((n,s)=>n+Number(s.total_fees||0),0),owing=students.filter(s=>Number(s.total_fees||0)>Number(s.paid||0)).length;let html='';
 if(state.view==='Dashboard'){
  html=pageHead('School overview',`Welcome back, ${state.user.username}. Here is your school's current position.`,`<button class="btn primary" data-action="add-student">+ Register student</button>`)+`<div class="cards">${stat('Active students',students.length,'Currently enrolled')}${stat('Fees expected',money(expected),'Total registered fees')}${stat('Payments received',money(paid),'All recorded receipts')}${stat('Students with balance',owing,'Students with outstanding fees')}</div>`;
