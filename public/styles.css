@@ -519,3 +519,59 @@ body.dark-mode #graduation-form #grad-clear {
     min-height: 49px;
   }
 }
+
+/* DROP-OFF DENIAL: PROFESSIONAL ADD RECORD BUTTON */
+.drop-off-add-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 48px;
+  padding: 12px 20px;
+  margin: 8px 0 12px;
+  border: 1px solid #26395f;
+  border-radius: 13px;
+  background: linear-gradient(135deg, #101c3a, #26395f);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 750;
+  letter-spacing: .01em;
+  box-shadow: 0 5px 14px #101c3a20;
+  transition: transform .2s ease, box-shadow .2s ease,
+              background .2s ease;
+}
+
+.drop-off-add-btn .drop-off-add-icon {
+  display: inline-grid;
+  place-items: center;
+  width: 25px;
+  height: 25px;
+  border-radius: 8px;
+  background: #ffb900;
+  color: #101c3a;
+  font-size: 21px;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.drop-off-add-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px #101c3a2b;
+}
+
+.drop-off-add-btn:active {
+  transform: scale(.98);
+}
+
+.drop-off-add-btn:focus-visible {
+  outline: 3px solid #ffb90080;
+  outline-offset: 3px;
+}
+
+@media (max-width: 600px) {
+  .drop-off-add-btn {
+    width: 100%;
+    min-height: 50px;
+    margin-top: 10px;
+  }
+}
