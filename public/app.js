@@ -82,11 +82,40 @@ function showApp(user) {
     user.motto || 'Always praising God, Jehovah.';
   $('#userBadge').textContent = `${user.username} · ${user.role}`;
 
+    const menuByRole = {
+    ADMIN: nav.map(([name]) => name),
+
+    HEADMASTER: [
+      'Dashboard',
+      'Students',
+      'Match Students',
+      'Parents',
+      'Pickup Persons',
+      'Graduations',
+      'Class Activations',
+      'Classrooms',
+      'Marks',
+      'Fees & Payments',
+      'Reports'
+    ],
+
+    TEACHER: [
+      'Dashboard',
+      'Students',
+      'Marks',
+      'Classrooms'
+    ],
+
+    BURSAR: [
+      'Dashboard',
+      'Fees & Payments'
+    ]
+  };
+
+  const allowedMenus = menuByRole[user.role] || ['Dashboard'];
+
   $('#navItems').innerHTML = nav
-    .filter(([name]) =>
-      (name !== 'Users' && name !== 'Settings' && name !== 'Employees') ||
-      user.role === 'ADMIN'
-    )
+    .filter(([name]) => allowedMenus.includes(name))
     .map(([name, icon]) =>
       `<button class="nav-item ${state.view === name ? 'active' : ''}" type="button" data-view="${esc(name)}"><span class="nav-icon">${icon}</span><span>${esc(name)}</span></button>`
     )
