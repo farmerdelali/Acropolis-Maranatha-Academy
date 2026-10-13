@@ -35,7 +35,17 @@ function requireRole(...roles) { return (req, res, next) => { if (!req.session.u
 function schoolId(req) { return req.session.user.schoolId; }
 async function audit(req, action, type = '', id = '') { await q('INSERT INTO audit_logs(school_id,user_id,action,entity_type,entity_id) VALUES($1,$2,$3,$4,$5)', [schoolId(req), req.session.user.id, action, type, String(id)]); }
 function validText(value, max = 120) { return typeof value === 'string' && value.trim().length > 0 && value.trim().length <= max; }
-async function initDb() { const sql = fs.readFileSync(path.join(__dirname, 'db', 'schema.sql'), 'utf8'); await q(sql); }
+
+async function initDb() {
+  const sql = fs.readFileSync(path.join(__dirname, 'db', 'schema.sql'), 'utf8');
+  await q(sql);
+  await q(`
+    ALTER TABLE classrooms
+    ADD COLUMN IF NOT EXISTS assigned_teacher_id BIGINT
+    REFERENCES users(id) ON DELETE SET NULL
+  `);
+}
+
 
 app.get('/api/health', asyncRoute(async (_req, res) => { await q('SELECT 1'); res.json({ ok: true, service: 'Acropolis School Management API' }); }));
 app.get('/api/session', (req, res) => res.json({ user: req.session.user || null }));
@@ -1310,16 +1320,19 @@ app.post(
       message: 'Class activation saved successfully.'
     });
   })
-);
 
 app.get('/api/classrooms', requireAuth, asyncRoute(async (req, res) => {
   const result = await q(
     `SELECT c.*,
+      u.username AS assigned_teacher_name,
       (SELECT COUNT(*) FROM students s
        WHERE s.school_id = c.school_id
          AND s.class_name = c.class_name
          AND s.archived = false) AS student_count
      FROM classrooms c
+     LEFT JOIN users u
+       ON u.id = c.assigned_teacher_id
+      AND u.school_id = c.school_id
      WHERE c.school_id = $1
      ORDER BY c.room_name`,
     [schoolId(req)]
@@ -1327,6 +1340,7 @@ app.get('/api/classrooms', requireAuth, asyncRoute(async (req, res) => {
 
   res.json({ classrooms: result.rows });
 }));
+
 
 app.post('/api/classrooms', requireRole('ADMIN'), asyncRoute(async (req, res) => {
   const {
