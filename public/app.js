@@ -984,28 +984,29 @@ const CLASS_LEVELS = [
 
 
 
+
 function studentForm(s = null) {
   const currentClass = s?.class_name || '';
 
   const classOptions = CLASS_LEVELS.map(level =>
-    `<option value="${level}" ${
+    `<option value="${esc(level)}" ${
       currentClass === level ? 'selected' : ''
-    }>${level}</option>`
+    }>${esc(level)}</option>`
   ).join('');
 
   const legacyOption =
     currentClass && !CLASS_LEVELS.includes(currentClass)
-      ? `<option value="${esc(currentClass)}" selected>${
-          esc(currentClass)
-        } (existing class)</option>`
+      ? `<option value="${esc(currentClass)}" selected>${esc(currentClass)} (existing class)</option>`
       : '';
 
-  openModal(s ? 'Edit student' : 'Register student', `
+  openModal(s ? 'Edit student details' : 'Register a new student', `
     <form id="studentForm">
       <div class="form-grid">
-        <label class="field">Full name
+
+        <label class="field">Student full name *
           <input name="fullName" required maxlength="120"
-            value="${esc(s?.full_name || '')}">
+            value="${esc(s?.full_name || '')}"
+            placeholder="Enter student's full name">
         </label>
 
         <label class="field">Student ID
@@ -1015,7 +1016,7 @@ function studentForm(s = null) {
             placeholder="Auto-generated if blank">
         </label>
 
-        <label class="field">Class / form
+        <label class="field">Class / form *
           <select name="className" required>
             <option value="">Select class</option>
             ${legacyOption}
@@ -1025,43 +1026,45 @@ function studentForm(s = null) {
 
         <label class="field">Gender
           <select name="gender">
-            <option value="">Select</option>
+            <option value="">Select gender</option>
             ${['Female', 'Male', 'Other'].map(g =>
-              `<option value="${g}"
-                ${s?.gender === g ? 'selected' : ''}>${g}</option>`
+              `<option value="${esc(g)}"
+                ${s?.gender === g ? 'selected' : ''}>${esc(g)}</option>`
             ).join('')}
           </select>
         </label>
 
-        <label class="field">Guardian name
+        <label class="field">Parent / guardian name
           <input name="guardianName" maxlength="120"
-            value="${esc(s?.guardian_name || '')}">
+            value="${esc(s?.guardian_name || '')}"
+            placeholder="Enter parent or guardian name">
         </label>
 
-        <label class="field">Guardian phone
-          <input name="guardianPhone" maxlength="40"
+        <label class="field">Parent / guardian phone
+          <input name="guardianPhone" type="tel" maxlength="40"
             inputmode="tel"
-            value="${esc(s?.guardian_phone || '')}">
+            value="${esc(s?.guardian_phone || '')}"
+            placeholder="e.g. 024 000 0000">
         </label>
 
-        <label class="field">Total fees (GHS)
+        <label class="field">Total fees (GHS) *
           <input name="totalFees" type="number" min="0"
             step="0.01" required
-            value="${Number(s?.total_fees || 0)}">
+            value="${Number(s?.total_fees || 0)}"
+            inputmode="decimal">
         </label>
+
       </div>
 
       <div class="form-actions">
         <button type="button" class="btn soft"
           data-action="close-modal">Cancel</button>
         <button class="btn primary" type="submit">
-          Save student
+          ${s ? 'Save student changes' : 'Register student'}
         </button>
       </div>
     </form>
   `);
-
-  $('#studentForm').dataset.id = s?.id || '';
 }
 
 
