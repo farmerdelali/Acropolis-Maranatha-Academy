@@ -1637,11 +1637,36 @@ document.addEventListener('click', async e => {
   }
 
   // Dashboard navigation
+ 
   if (button.dataset.view) {
+    const menuByRole = {
+      ADMIN: nav.map(([name]) => name),
+      HEADMASTER: [
+        'Dashboard', 'Students', 'Match Students', 'Parents',
+        'Pickup Persons', 'Graduations', 'Class Activations',
+        'Classrooms', 'Marks', 'Fees & Payments', 'Reports'
+      ],
+      TEACHER: ['Dashboard', 'Students', 'Marks', 'Classrooms'],
+      BURSAR: ['Dashboard', 'Fees & Payments']
+    };
+
+    const allowedMenus = menuByRole[state.user?.role] || ['Dashboard'];
+
+    if (!allowedMenus.includes(button.dataset.view)) {
+      toast('You do not have permission to open this page.', true);
+      return;
+    }
+
     state.view = button.dataset.view;
     state.search = '';
     render();
     closeDrawer();
+
+    document.querySelectorAll('[data-view]').forEach(item => {
+      item.classList.toggle('active', item.dataset.view === state.view);
+    });
+    return;
+  }
 
     document.querySelectorAll('[data-view]').forEach(item => {
       item.classList.toggle(
