@@ -20,7 +20,40 @@ ALTER TABLE users DROP CONSTRAINT IF EXISTS users_role_check;
 ALTER TABLE users ADD CONSTRAINT users_role_check
 CHECK (role IN ('ADMIN','HEADMASTER','TEACHER','BURSAR','PARENT','STUDENT'));
 CREATE UNIQUE INDEX IF NOT EXISTS one_headmaster_per_school ON users(school_id) WHERE role = 'HEADMASTER';
-CREATE TABLE IF NOT EXISTS students (
+CREATE OR REPLACE FUNCTION enforce_school_admin_limit()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+AS $$
+DECLARE
+admin_count INTEGER;
+BEGIN
+IF NEW.role <> 'ADMIN' THEN
+RETURN NEW;
+END IF;
+
+PERFORM pg_advisory_xact_lock(NEW.school_id);
+
+SELECT COUNT(*) INTO admin_count
+FROM users
+WHERE school_id = NEW.school_id
+AND role = 'ADMIN'
+AND (TG_OP = 'INSERT' OR id <> NEW.id);
+
+IF admin_count >= 2 THEN
+RAISE EXCEPTION 'A school can have at most two administrator accounts.'
+USING ERRCODE = '23514';
+END IF;
+
+RETURN NEW;
+END;
+$$;
+
+DROP TRIGGER IF EXISTS school_admin_limit_trigger ON users;
+
+CREATE TRIGGER school_admin_limit_trigger
+BEFORE INSERT OR UPDATE OF role, school_id ON users
+FOR EACH ROW
+EXECUTE FUNCTION enforce_school_admin_limit();CREATE TABLE IF NOT EXISTS students (
   id BIGSERIAL PRIMARY KEY,
   school_id BIGINT NOT NULL REFERENCES schools(id) ON DELETE CASCADE,
   student_code TEXT NOT NULL,
