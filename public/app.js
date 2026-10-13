@@ -469,22 +469,21 @@ html = `
   </section>`;
 
 }
-
 } else if (state.view === 'Parents') {
-  const parents = d.parents || [];
+const parents = d.parents || [];
 
-  const parentRows = parents.length
-    ? `<div class="table-wrap"><table>
-        <thead>
-          <tr>
-            <th>Parent / Guardian</th>
-            <th>Relationship</th>
-            <th>Phone</th>
-            <th>Email</th>
-            <th>Linked students</th>
-          </tr>
-        </thead>
-        <tbody>
+const parentRows = parents.length
+? parents.map(p => "<tr> <td><b>${esc(p.full_name || p.fullName || '')}</b></td> <td>${esc(p.relationship || '—')}</td> <td>${esc(p.phone || '—')}</td> <td>${esc(p.email || '—')}</td> <td>${esc(p.student_names || p.studentNames || '—')}</td> </tr>").join('')
+: '<tr><td colspan="5">No parents or guardians registered yet.</td></tr>';
+
+html = pageHead(
+'Parents & Guardians',
+'Manage parent and guardian contacts and their linked students.',
+state.user && state.user.role === 'ADMIN'
+? '<button type="button" class="btn primary" data-action="add-parent">+ Register Parent</button>'
+: ''
+) + " <section class="panel"> <div class="table-wrap"> <table> <thead> <tr> <th>Parent / Guardian</th> <th>Relationship</th> <th>Phone</th> <th>Email</th> <th>Linked students</th> </tr> </thead> <tbody>${parentRows}</tbody> </table> </div> </section>";
+
 } else if (state.view === 'Pickup Persons') {
   const pickupPersons = d.pickupPersons || [];
   const authorized = pickupPersons.filter(p => p.status === 'AUTHORIZED').length;
