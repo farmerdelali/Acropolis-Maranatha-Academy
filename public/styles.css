@@ -781,3 +781,54 @@ form button[data-action*="classroom"]:focus-visible {
     width: 100%;
   }
 }
+
+/* ACROPOLIS MARANATHA ACADEMY - SAVE CLASSROOM */
+#classroomForm button[type="submit"] {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 100% !important;
+  max-width: 320px;
+  min-height: 54px !important;
+  padding: 14px 24px !important;
+  margin: 18px 0 10px !important;
+  background: linear-gradient(135deg, #101c3a 0%, #293f6b 100%) !important;
+  color: #ffffff !important;
+  border: 1px solid #354f80 !important;
+  border-left: 5px solid #ffb900 !important;
+  border-radius: 14px !important;
+  font-family: inherit !important;
+  font-size: 15px !important;
+  font-weight: 750 !important;
+  letter-spacing: 0.3px !important;
+  box-shadow: 0 6px 16px rgba(16, 28, 58, 0.18) !important;
+  cursor: pointer !important;
+  transition: background 0.25s ease, transform 0.25s ease, box-shadow 0.25s ease !important;
+}
+
+#classroomForm button[type="submit"]:hover {
+  background: linear-gradient(135deg, #293f6b 0%, #405b8b 100%) !important;
+  transform: translateY(-2px);
+  box-shadow: 0 10px 22px rgba(16, 28, 58, 0.25) !important;
+}
+
+#classroomForm button[type="submit"]:active {
+  transform: scale(0.98);
+}
+
+#classroomForm button[type="submit"]:focus-visible {
+  outline: 3px solid rgba(255, 185, 0, 0.55);
+  outline-offset: 4px;
+}
+
+#classroomForm button[type="submit"]:disabled {
+  opacity: 0.6;
+  cursor: not-allowed !important;
+  transform: none;
+}
+
+@media (max-width: 600px) {
+  #classroomForm button[type="submit"] {
+    max-width: none;
+  }
+}
