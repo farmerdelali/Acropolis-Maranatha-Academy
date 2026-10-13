@@ -1128,6 +1128,7 @@ function studentForm(s = null) {
       </div>
     </form>
   `);
+    $('#studentForm').dataset.id = s?.id || '';
 }
 
 
