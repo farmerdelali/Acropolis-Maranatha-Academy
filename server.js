@@ -235,6 +235,23 @@ app.put('/api/system-settings', requireRole('ADMIN'), asyncRoute(async (req, res
 app.post('/api/students', requireAuth, asyncRoute(async (req,res)=>{
   if (!['ADMIN','TEACHER'].includes(req.session.user.role)) return res.status(403).json({error:'Only administrators and teachers can manage students.'});
   const b=req.body||{}; if(!validText(b.fullName,120)||!validText(b.className,60)) return res.status(400).json({error:'Student name and class are required.'});
+  
+  const settingResult = await q(
+    'SELECT settings FROM school_system_settings WHERE school_id = $1',
+    [schoolId(req)]
+  );
+
+  const systemSettings = settingResult.rows[0]?.settings || {};
+
+  if (
+    systemSettings.requireGuardianPhone === true &&
+    !validText(b.guardianPhone, 40)
+  ) {
+    return res.status(400).json({
+      error: 'A parent or guardian phone number is required by school settings.'
+    });
+  }
+
   const totalFees=Number(b.totalFees||0); if(!Number.isFinite(totalFees)||totalFees<0) return res.status(400).json({error:'Fees must be zero or more.'});
   const code=validText(b.studentCode,40)?b.studentCode.trim():`AMA-${Date.now().toString().slice(-8)}`;
   const r=await q('INSERT INTO students(school_id,student_code,full_name,class_name,gender,guardian_name,guardian_phone,total_fees) VALUES($1,$2,$3,$4,$5,$6,$7,$8) RETURNING *',[schoolId(req),code,b.fullName.trim(),b.className.trim(),String(b.gender||'').slice(0,20),String(b.guardianName||'').slice(0,120),String(b.guardianPhone||'').slice(0,40),totalFees]); await audit(req,'student_created','student',r.rows[0].id); res.status(201).json({student:r.rows[0]});
