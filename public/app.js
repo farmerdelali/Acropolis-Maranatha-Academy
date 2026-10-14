@@ -1123,11 +1123,23 @@ const classes = [...new Set([
             ${classes.map(c => `<option value="${esc(c)}">${esc(c)}</option>`).join('')}
           </select>
         </label>
-        <label>Academic year
-          <input name="academicYear" required maxlength="30"
-            value="${esc(academicYear)}" placeholder="e.g. 2026/2027">
-        </label>
-        <label>Activation status
+      
+<label>Academic year
+  <select name="academicYear" required>
+    <option value="">Choose academic year</option>
+    ${[...new Set([
+      ...Array.from({length: 9}, (_, i) => {
+        const startYear = new Date().getFullYear() - 3 + i;
+        return `${startYear}/${startYear + 1}`;
+      }),
+      academicYear
+    ].filter(Boolean))].sort((a, b) => Number(a.slice(0, 4)) - Number(b.slice(0, 4))).map(year =>
+      `<option value="${esc(year)}" ${academicYear === year ? 'selected' : ''}>${esc(year)}</option>`
+    ).join('')}
+  </select>
+</label>
+
+              <label>Activation status
           <select name="status" required>
             <option value="ACTIVE">Active</option>
             <option value="INACTIVE">Inactive</option>
