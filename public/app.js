@@ -181,7 +181,16 @@ if (state.user && state.user.role === 'ADMIN') {
 const employeeResult = await api('/api/employees');
 employees = employeeResult.employees || [];
 }
+let systemSettings = {};
 
+if (state.user && state.user.role === 'ADMIN') {
+  try {
+    const settingsResult = await api('/api/system-settings');
+    systemSettings = settingsResult.settings || {};
+  } catch (error) {
+    console.warn('System settings could not be loaded:', error);
+  }
+}
 state.data = {
   ...d,
   parents,
