@@ -33,6 +33,7 @@ const nav = [
   ['Classrooms','▤','Classroom management'],
   ['Marks','✓','Examinations'],
   ['Fees & Payments','₵','Fees and receipts'],
+    ['Feeding Management','🍽','Feeding fees and payment plans'],
   ['Reports','▤','Reports and audit'],
   ['Users','⚙','Staff accounts'],
   ['Settings','⚙','School configuration']
