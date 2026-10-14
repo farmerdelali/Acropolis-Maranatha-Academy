@@ -1403,58 +1403,78 @@ app.post('/api/classrooms', requireRole('ADMIN'), asyncRoute(async (req, res) =>
     message: 'Classroom saved successfully.'
   });
 }));
+
 app.put('/api/classrooms/:id/teacher', requireRole('ADMIN'), asyncRoute(async (req, res) => {
-const rawTeacherId = req.body?.teacherId;
-const teacherId = rawTeacherId === null || rawTeacherId === '' || rawTeacherId === undefined
-? null
-: Number(rawTeacherId);
+  const rawEmployeeId = req.body?.employeeId;
 
-if (teacherId !== null &&
-(!Number.isSafeInteger(teacherId) || teacherId <= 0)) {
-return res.status(400).json({
-error: 'Choose a valid teacher or leave the classroom unassigned.'
-});
-}
+  const employeeId =
+    rawEmployeeId === null ||
+    rawEmployeeId === '' ||
+    rawEmployeeId === undefined
+      ? null
+      : Number(rawEmployeeId);
 
-if (teacherId !== null) {
-const teacher = await q(
-"SELECT id FROM users WHERE id = $1 AND school_id = $2 AND role = 'TEACHER'",
-[teacherId, schoolId(req)]
-);
+  if (
+    employeeId !== null &&
+    (!Number.isSafeInteger(employeeId) || employeeId <= 0)
+  ) {
+    return res.status(400).json({
+      error: 'Choose a valid teacher or leave the classroom unassigned.'
+    });
+  }
 
-if (!teacher.rowCount) {
-  return res.status(400).json({
-    error: 'Choose a teacher account belonging to this school.'
+  if (employeeId !== null) {
+    const employee = await q(
+      `SELECT id
+       FROM employees
+       WHERE id = $1
+         AND school_id = $2
+         AND position ILIKE '%teacher%'
+         AND status = 'ACTIVE'`,
+      [employeeId, schoolId(req)]
+    );
+
+    if (!employee.rowCount) {
+      return res.status(400).json({
+        error: 'Choose an active employee whose position identifies them as a teacher in this school.'
+      });
+    }
+  }
+
+  const result = await q(
+    `UPDATE classrooms
+     SET assigned_employee_id = $1,
+         assigned_teacher_id = NULL,
+         updated_at = NOW()
+     WHERE id = $2
+       AND school_id = $3
+     RETURNING *`,
+    [employeeId, req.params.id, schoolId(req)]
+  );
+
+  if (!result.rowCount) {
+    return res.status(404).json({
+      error: 'Classroom not found.'
+    });
+  }
+
+  await audit(
+    req,
+    employeeId === null
+      ? 'classroom_teacher_unassigned'
+      : 'classroom_teacher_assigned',
+    'classroom',
+    req.params.id
+  );
+
+  res.json({
+    classroom: result.rows[0],
+    message: employeeId === null
+      ? 'Teacher unassigned successfully.'
+      : 'Teacher assigned successfully.'
   });
-}
-
-}
-
-const result = await q(
-"UPDATE classrooms SET assigned_teacher_id = $1, updated_at = NOW() WHERE id = $2 AND school_id = $3 RETURNING *",
-[teacherId, req.params.id, schoolId(req)]
-);
-
-if (!result.rowCount) {
-return res.status(404).json({
-error: 'Classroom not found.'
-});
-}
-
-await audit(
-req,
-teacherId === null ? 'classroom_teacher_unassigned' : 'classroom_teacher_assigned',
-'classroom',
-req.params.id
-);
-
-res.json({
-classroom: result.rows[0],
-message: teacherId === null
-? 'Teacher unassigned successfully.'
-: 'Teacher assigned successfully.'
-});
 }));
+
 app.delete('/api/drop-off-denials/:id', requireRole('ADMIN', 'BURSAR'), asyncRoute(async (req, res) => {
 const result = await q(
 'DELETE FROM drop_off_denials WHERE id=$1 AND school_id=$2 RETURNING id',
