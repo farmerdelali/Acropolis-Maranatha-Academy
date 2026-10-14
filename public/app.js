@@ -1815,7 +1815,7 @@ document.addEventListener('submit', async e => {
     'settingsForm',
 'graduation-form',
 'classActivationForm',
-'classroomForm'
+'classroomForm',
     'feedingSettingsForm',
 'feedingPlanForm',
 'feedingPaymentForm',
