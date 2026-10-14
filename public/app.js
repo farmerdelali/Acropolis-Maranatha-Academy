@@ -1269,10 +1269,14 @@ const classes = [...new Set([
 <td>${isAdmin ? `
   <select data-teacher-select-for="${esc(c.id)}">
     <option value="">Unassigned</option>
-    ${(state.data.users || []).filter(u => u.role === 'TEACHER').map(u => `
-      <option value="${esc(u.id)}" ${String(c.assigned_teacher_id || '') === String(u.id) ? 'selected' : ''}>${esc(u.username)}</option>
-    `).join('')}
-  </select>
+   
+${(state.data.employees || [])
+  .filter(e => e.status === 'ACTIVE' && /teacher/i.test(e.position || ''))
+  .map(e => `
+    <option value="${esc(e.id)}" ${String(c.assigned_employee_id || '') === String(e.id) ? 'selected' : ''}>${esc(e.fullName)}</option>
+  `).join('')}
+
+     </select>
   <button type="button" class="btn soft" data-action="assign-classroom-teacher" data-id="${esc(c.id)}">Save teacher</button>
 ` : esc(c.assigned_teacher_name || 'Unassigned')}</td> 
                   <td>${esc(c.capacity)}</td>
