@@ -174,6 +174,64 @@ app.put('/api/settings', requireRole('ADMIN'), asyncRoute(async (req, res) => {
   res.json({ settings: r.rows[0] });
 }));
 
+app.get('/api/system-settings', requireRole('ADMIN'), asyncRoute(async (req, res) => {
+  const result = await q(
+    `SELECT settings, updated_at AS "updatedAt"
+     FROM school_system_settings
+     WHERE school_id = $1`,
+    [schoolId(req)]
+  );
+
+  res.json({
+    settings: result.rows[0]?.settings || {},
+    updatedAt: result.rows[0]?.updatedAt || null
+  });
+}));
+
+app.put('/api/system-settings', requireRole('ADMIN'), asyncRoute(async (req, res) => {
+  const settings = req.body?.settings;
+
+  if (
+    !settings ||
+    typeof settings !== 'object' ||
+    Array.isArray(settings)
+  ) {
+    return res.status(400).json({
+      error: 'Settings must be a valid object.'
+    });
+  }
+
+  if (Buffer.byteLength(JSON.stringify(settings), 'utf8') > 20000) {
+    return res.status(400).json({
+      error: 'Settings are too large to save.'
+    });
+  }
+
+  const result = await q(
+    `INSERT INTO school_system_settings
+       (school_id, settings, updated_by, updated_at)
+     VALUES ($1, $2::jsonb, $3, NOW())
+     ON CONFLICT (school_id)
+     DO UPDATE SET
+       settings = EXCLUDED.settings,
+       updated_by = EXCLUDED.updated_by,
+       updated_at = NOW()
+     RETURNING settings, updated_at AS "updatedAt"`,
+    [
+      schoolId(req),
+      JSON.stringify(settings),
+      req.session.user.id
+    ]
+  );
+
+  await audit(req, 'system_settings_updated', 'school', schoolId(req));
+
+  res.json({
+    settings: result.rows[0].settings,
+    updatedAt: result.rows[0].updatedAt
+  });
+}));
+
 app.post('/api/students', requireAuth, asyncRoute(async (req,res)=>{
   if (!['ADMIN','TEACHER'].includes(req.session.user.role)) return res.status(403).json({error:'Only administrators and teachers can manage students.'});
   const b=req.body||{}; if(!validText(b.fullName,120)||!validText(b.className,60)) return res.status(400).json({error:'Student name and class are required.'});
