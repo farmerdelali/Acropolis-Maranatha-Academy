@@ -1329,18 +1329,22 @@ app.post(
     });
     }));
 
+
 app.get('/api/classrooms', requireAuth, asyncRoute(async (req, res) => {
   const result = await q(
     `SELECT c.*,
-      u.username AS assigned_teacher_name,
-      (SELECT COUNT(*) FROM students s
-       WHERE s.school_id = c.school_id
-         AND s.class_name = c.class_name
-         AND s.archived = false) AS student_count
+       COALESCE(e.full_name, u.username) AS assigned_teacher_name,
+       (SELECT COUNT(*) FROM students s
+        WHERE s.school_id = c.school_id
+          AND s.class_name = c.class_name
+          AND s.archived = false) AS student_count
      FROM classrooms c
      LEFT JOIN users u
        ON u.id = c.assigned_teacher_id
       AND u.school_id = c.school_id
+     LEFT JOIN employees e
+       ON e.id = c.assigned_employee_id
+      AND e.school_id = c.school_id
      WHERE c.school_id = $1
      ORDER BY c.room_name`,
     [schoolId(req)]
