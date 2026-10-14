@@ -1938,6 +1938,52 @@ document.addEventListener('submit', async e => {
     ? 'Student details updated successfully.'
     : 'Student registered successfully.');
 
+    } else if (form.id === 'feedingSettingsForm') {
+      await api('/api/feeding/settings', {
+        method: 'PUT',
+        body: JSON.stringify({
+          studentGroup: v.studentGroup,
+          weeklyAmount: Number(v.weeklyAmount),
+          monthlyAmount: Number(v.monthlyAmount),
+          termlyAmount: Number(v.termlyAmount)
+        })
+      });
+
+      await refresh();
+      state.view = 'Feeding Settings';
+      render();
+      toast('Feeding charges saved successfully.');
+
+    } else if (form.id === 'feedingPlanForm') {
+      await api('/api/feeding/plans/' + encodeURIComponent(v.studentId), {
+        method: 'PUT',
+        body: JSON.stringify({
+          paymentPeriod: v.paymentPeriod,
+          enrolled: v.enrolled === 'true'
+        })
+      });
+
+      await refresh();
+      state.view = 'Student Feeding Plans';
+      render();
+      toast('Student feeding plan saved successfully.');
+
+    } else if (form.id === 'feedingPaymentForm') {
+      await api('/api/feeding/payments', {
+        method: 'POST',
+        body: JSON.stringify({
+          studentId: Number(v.studentId),
+          paymentPeriod: v.paymentPeriod,
+          amount: Number(v.amount),
+          periodDescription: v.periodDescription || ''
+        })
+      });
+
+      await refresh();
+      state.view = 'Feeding Payment History';
+      render();
+      toast('Feeding payment recorded successfully.');
+
     } else if (form.id === 'paymentForm') {
       await api('/api/payments', {
         method: 'POST',
