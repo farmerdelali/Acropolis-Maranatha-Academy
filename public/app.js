@@ -108,9 +108,11 @@ function showApp(user) {
     ],
 
     BURSAR: [
-      'Dashboard',
-      'Fees & Payments'
-    ]
+  'Dashboard',
+  'Fees & Payments',
+  'Feeding Management',
+  'Drop-off Denial'
+]
   };
 
   const allowedMenus = menuByRole[user.role] || ['Dashboard'];
@@ -2152,8 +2154,12 @@ return;
         'Classrooms', 'Marks', 'Fees & Payments', 'Reports'
       ],
       TEACHER: ['Dashboard', 'Students', 'Marks', 'Classrooms'],
-      BURSAR: ['Dashboard', 'Fees & Payments']
-    };
+      BURSAR: [
+  'Dashboard',
+  'Fees & Payments',
+  'Feeding Management',
+  'Drop-off Denial'
+]    };
 
     const allowedMenus = menuByRole[state.user?.role] || ['Dashboard'];
 
