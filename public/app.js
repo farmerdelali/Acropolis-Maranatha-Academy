@@ -718,7 +718,27 @@ const rows = d.payments.length
         </button>
       </div>
     </form>
+    `)+
+  panel('Student registration rules',`
+    <form id="studentRulesForm">
+      <label class="field">
+        <input
+          type="checkbox"
+          name="requireGuardianPhone"
+          value="true"
+          ${(d.systemSettings || {}).requireGuardianPhone === true ? 'checked' : ''}
+        >
+        Require a parent or guardian phone number for new student registrations
+      </label>
+
+      <div class="form-actions">
+        <button class="btn primary" type="submit">
+          Save registration rules
+        </button>
+      </div>
+    </form>
   `);
+}
 }
 
 else if (state.view === 'Match Students') {
