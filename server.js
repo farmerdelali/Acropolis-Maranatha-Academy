@@ -1443,7 +1443,7 @@ message: teacherId === null
 : 'Teacher assigned successfully.'
 });
 }));
-app.delete('/api/drop-off-denials/:id', requireRole('ADMIN'), asyncRoute(async (req, res) => {
+app.delete('/api/drop-off-denials/:id', requireRole('ADMIN', 'BURSAR'), asyncRoute(async (req, res) => {
 const result = await q(
 'DELETE FROM drop_off_denials WHERE id=$1 AND school_id=$2 RETURNING id',
 [req.params.id, schoolId(req)]
