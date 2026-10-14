@@ -659,6 +659,14 @@ const rows = d.payments.length
   </select>
 </label>
 
+      <label class="field">Current term
+        <select name="currentTerm" required>
+          <option value="Term 1" ${school.currentTerm === 'Term 1' ? 'selected' : ''}>Term 1</option>
+          <option value="Term 2" ${school.currentTerm === 'Term 2' ? 'selected' : ''}>Term 2</option>
+          <option value="Term 3" ${school.currentTerm === 'Term 3' ? 'selected' : ''}>Term 3</option>
+        </select>
+      </label>
+
       <div class="form-actions">
         <button class="btn primary" type="submit">Save settings</button>
       </div>
