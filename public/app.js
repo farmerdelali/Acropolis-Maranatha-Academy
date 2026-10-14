@@ -756,7 +756,7 @@ else if (state.view === 'Match Students') {
 } else if (state.view === 'Drop-off Denial') {
 const denials = state.data.denials || [];
 
-if (!state.user || state.user.role !== 'ADMIN') {
+if (!state.user || !['ADMIN', 'BURSAR'].includes(state.user.role)) {
 html = `
   <section class="panel">
     <h2>Drop-off Denial</h2>
