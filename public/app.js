@@ -692,7 +692,34 @@ const rows = d.payments.length
     </label>
     <p class="muted">Your choice is remembered on this device.</p>
   `);
-}
+} 
+  panel('School contact details',`
+    <form id="systemContactForm">
+      <label class="field">School phone number
+        <input name="contactPhone" type="tel" maxlength="40"
+          value="${esc((d.systemSettings || {}).contactPhone || '')}"
+          placeholder="Enter the school's phone number">
+      </label>
+
+      <label class="field">School email address
+        <input name="contactEmail" type="email" maxlength="160"
+          value="${esc((d.systemSettings || {}).contactEmail || '')}"
+          placeholder="Enter the school's email address">
+      </label>
+
+      <label class="field">School physical address
+        <textarea name="contactAddress" maxlength="500"
+          placeholder="Enter the school's address">${esc((d.systemSettings || {}).contactAddress || '')}</textarea>
+      </label>
+
+      <div class="form-actions">
+        <button class="btn primary" type="submit">
+          Save contact details
+        </button>
+      </div>
+    </form>
+  `);
+
 
 else if (state.view === 'Match Students') {
   const normalize = value =>
