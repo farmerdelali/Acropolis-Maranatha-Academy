@@ -619,7 +619,7 @@ const rows = d.payments.length
      </table></div>
    `);
  }
-</escape>
+
 
 }else if(state.view==='Reports'){
  html=pageHead('Reports & data','Review school totals, recent activity and export a backup.',`<button class="btn primary" data-action="export">Export backup</button><button class="btn soft" data-action="csv">Export student CSV</button>`)+`<div class="cards">${stat('Active students',students.length,'Enrolment')}${stat('Total fees',money(expected),'Expected')}${stat('Payments',money(paid),'Collected')}${stat('Balance',money(Math.max(0,expected-paid)),'Expected less collected')}</div>`;
