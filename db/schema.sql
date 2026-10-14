@@ -261,3 +261,52 @@ ON classrooms(school_id, status, room_name);
 
 CREATE INDEX IF NOT EXISTS classrooms_school_class_idx
 ON classrooms(school_id, class_name);
+
+CREATE TABLE IF NOT EXISTS feeding_settings (
+  id BIGSERIAL PRIMARY KEY,
+  school_id BIGINT NOT NULL REFERENCES schools(id) ON DELETE CASCADE,
+  student_group TEXT NOT NULL CHECK (
+    student_group IN (
+      'PRESCHOOL_KG2',
+      'BASIC1_BASIC3',
+      'BASIC4_BASIC9'
+    )
+  ),
+  weekly_amount NUMERIC(12,2) NOT NULL DEFAULT 0 CHECK (weekly_amount >= 0),
+  monthly_amount NUMERIC(12,2) NOT NULL DEFAULT 0 CHECK (monthly_amount >= 0),
+  termly_amount NUMERIC(12,2) NOT NULL DEFAULT 0 CHECK (termly_amount >= 0),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  UNIQUE (school_id, student_group)
+);
+
+CREATE TABLE IF NOT EXISTS student_feeding (
+  id BIGSERIAL PRIMARY KEY,
+  school_id BIGINT NOT NULL REFERENCES schools(id) ON DELETE CASCADE,
+  student_id BIGINT NOT NULL REFERENCES students(id) ON DELETE CASCADE,
+  payment_period TEXT NOT NULL DEFAULT 'WEEKLY'
+    CHECK (payment_period IN ('WEEKLY', 'MONTHLY', 'TERMLY')),
+  enrolled BOOLEAN NOT NULL DEFAULT TRUE,
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  UNIQUE (school_id, student_id)
+);
+
+CREATE TABLE IF NOT EXISTS feeding_payments (
+  id BIGSERIAL PRIMARY KEY,
+  school_id BIGINT NOT NULL REFERENCES schools(id) ON DELETE CASCADE,
+  student_id BIGINT NOT NULL REFERENCES students(id) ON DELETE RESTRICT,
+  amount NUMERIC(12,2) NOT NULL CHECK (amount > 0),
+  payment_period TEXT NOT NULL
+    CHECK (payment_period IN ('WEEKLY', 'MONTHLY', 'TERMLY')),
+  payment_date TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  period_description TEXT NOT NULL DEFAULT '',
+  receipt_no TEXT NOT NULL,
+  recorded_by BIGINT REFERENCES users(id) ON DELETE SET NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  UNIQUE (school_id, receipt_no)
+);
+
+CREATE INDEX IF NOT EXISTS student_feeding_school_idx
+ON student_feeding(school_id, student_id);
+
+CREATE INDEX IF NOT EXISTS feeding_payments_school_idx
+ON feeding_payments(school_id, payment_date DESC);
