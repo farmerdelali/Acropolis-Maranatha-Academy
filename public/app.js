@@ -1808,20 +1808,26 @@ document.addEventListener('click', async e => {
   const button = e.target.closest('button');
   if (!button) return;
 
-  // Login and registration tabs
-  const tab = button.closest('[data-auth-tab]');
-  if (tab) {
-    setAuthTab(tab.dataset.authTab);
-    return;
-      if (button.dataset.navToggle === 'feeding') {
-    const submenu = document.querySelector('[data-nav-submenu="feeding"]');
-    const isOpen = button.getAttribute('aria-expanded') === 'true';
-
-    if (submenu) submenu.hidden = isOpen;
-    button.setAttribute('aria-expanded', String(!isOpen));
-    return;
-  }
   
+  // Login and registration tabs
+const tab = button.closest('[data-auth-tab]');
+if (tab) {
+setAuthTab(tab.dataset.authTab);
+return;
+}
+
+// Feeding Management dropdown
+if (button.dataset.navToggle === 'feeding') {
+const submenu = document.querySelector('[data-nav-submenu="feeding"]');
+const isOpen = button.getAttribute('aria-expanded') === 'true';
+
+if (submenu) submenu.hidden = isOpen;
+button.setAttribute('aria-expanded', String(!isOpen));
+return;
+
+}
+
+// Dashboard navigation  
 
   // Dashboard navigation
  
