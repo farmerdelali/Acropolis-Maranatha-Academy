@@ -1745,7 +1745,19 @@ function paymentForm(){const students=state.data.students.filter(s=>!s.archived)
   ${Array.from({length: 2501}, (_, i) => i + 500).map(amount => `<option value="${amount}">GH₵${amount.toLocaleString('en-GH')}</option>`).join('')}
 </select>
 </label>
-<label class="field">Note / payment method<input name="note" maxlength="200" placeholder="Cash, bank transfer, term fees…"></label><div class="form-actions"><button type="button" class="btn soft" data-action="close-modal">Cancel</button><button class="btn primary" type="submit">Save payment</button></div></form>`);}
+<label class="field">Payment method
+<select name="note" required>
+  <option value="Cash">Cash</option>
+  <option value="Bank Transfer">Bank Transfer</option>
+  <option value="Mobile Money (MoMo)">Mobile Money (MoMo)</option>
+  <option value="ZeePay">ZeePay</option>
+  <option value="PayPal">PayPal</option>
+  <option value="Cheque">Cheque</option>
+  <option value="Card / POS">Card / POS</option>
+  <option value="Online Payment">Online Payment</option>
+  <option value="Other">Other</option>
+</select>
+</label><div class="form-actions"><button type="button" class="btn soft" data-action="close-modal">Cancel</button><button class="btn primary" type="submit">Save payment</button></div></form>`);}
 function markForm(){const students=state.data.students.filter(s=>!s.archived);if(!students.length)return toast('Register a student before entering marks.',true);openModal('Enter examination mark',`<form id="markForm"><label class="field">Student<select name="studentId" required>${students.map(s=>`<option value="${s.id}">${esc(s.full_name)} · ${esc(s.class_name)}</option>`).join('')}</select></label><label class="field">Subject<input name="subject" required maxlength="80" placeholder="e.g. Mathematics"></label><label class="field">Term<input name="term" maxlength="40" value="Term 1" required></label><label class="field">Score (%)<input name="score" type="number" min="0" max="100" step="0.01" required inputmode="decimal"></label><div class="form-actions"><button type="button" class="btn soft" data-action="close-modal">Cancel</button><button class="btn primary" type="submit">Save mark</button></div></form>`);}
 function userForm(){openModal('Create staff account',`<form id="userForm"><label class="field">Username<input name="username" required minlength="3" maxlength="60" autocomplete="off"></label><label class="field">Role<select name="role"><option value="HEADMASTER">Headmaster — school oversight and academic management</option>
 <option value="TEACHER">Teacher — students and marks</option>
