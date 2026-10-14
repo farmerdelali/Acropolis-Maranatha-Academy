@@ -1759,9 +1759,15 @@ document.addEventListener('submit', async e => {
       state.view = 'Settings';
       render();
       toast('School settings saved successfully.');
+  
     }
+
+    // Close popups only after a successful save
+    $('#modalHost').innerHTML = '';
+
   } catch (err) {
     toast(err.message || 'Something went wrong. Please try again.', true);
+
  
   } finally {
     if (submit) {
