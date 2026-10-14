@@ -2311,7 +2311,7 @@ case 'assign-classroom-teacher': {
 
   await api('/api/classrooms/' + encodeURIComponent(classroomId) + '/teacher', {
     method: 'PUT',
-    body: JSON.stringify({ teacherId: select.value || null })
+   body: JSON.stringify({ employeeId: select.value || null })
   });
 
   await refresh();
