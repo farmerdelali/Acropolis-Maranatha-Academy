@@ -1492,6 +1492,325 @@ if (!result.rowCount) return res.status(404).json({ error: 'Classroom not found.
 await audit(req, 'classroom_deleted', 'classroom', req.params.id);
 res.json({ ok: true, message: 'Classroom deleted.' });
 }));
+
+/* =========================================================
+   FEEDING MANAGEMENT API
+   Separate from tuition payments.
+   Insert above app.get('/api/reports', ...)
+   ========================================================= */
+
+const FEEDING_PERIODS = ['WEEKLY', 'MONTHLY', 'TERMLY'];
+
+const FEEDING_GROUPS = [
+  'PRESCHOOL_KG2',
+  'BASIC1_BASIC3',
+  'BASIC4_BASIC9'
+];
+
+function feedingGroupSql(classColumn = 's.class_name') {
+  return `CASE
+    WHEN UPPER(REPLACE(REPLACE(${classColumn}, ' ', ''), '-', ''))
+      IN ('PRESCHOOL','PRENURSERY','NURSERY','KG1','KG2',
+          'KINDERGARTEN1','KINDERGARTEN2')
+      THEN 'PRESCHOOL_KG2'
+    WHEN UPPER(REPLACE(REPLACE(${classColumn}, ' ', ''), '-', ''))
+      IN ('BASIC1','BASIC2','BASIC3','CLASS1','CLASS2','CLASS3')
+      THEN 'BASIC1_BASIC3'
+    WHEN UPPER(REPLACE(REPLACE(${classColumn}, ' ', ''), '-', ''))
+      IN ('BASIC4','BASIC5','BASIC6','BASIC7','BASIC8','BASIC9',
+          'CLASS4','CLASS5','CLASS6','CLASS7','CLASS8','CLASS9',
+          'JHS1','JHS2','JHS3')
+      THEN 'BASIC4_BASIC9'
+    ELSE NULL
+  END`;
+}
+
+/* Load settings, students and feeding payment history */
+app.get('/api/feeding/bootstrap',
+  requireRole('ADMIN', 'HEADMASTER', 'BURSAR'),
+  asyncRoute(async (req, res) => {
+    const sid = schoolId(req);
+
+    const [settings, students, payments] = await Promise.all([
+      q(
+        `SELECT student_group, weekly_amount, monthly_amount,
+                termly_amount, updated_at
+         FROM feeding_settings
+         WHERE school_id=$1
+         ORDER BY student_group`,
+        [sid]
+      ),
+      q(
+        `SELECT s.id, s.student_code, s.full_name, s.class_name,
+                ${feedingGroupSql()} AS student_group,
+                sf.payment_period,
+                COALESCE(sf.enrolled, false) AS enrolled
+         FROM students s
+         LEFT JOIN student_feeding sf
+           ON sf.student_id=s.id AND sf.school_id=s.school_id
+         WHERE s.school_id=$1 AND s.archived=false
+         ORDER BY s.full_name`,
+        [sid]
+      ),
+      q(
+        `SELECT fp.id, fp.student_id, fp.amount, fp.payment_period,
+                fp.payment_date, fp.period_description, fp.receipt_no,
+                s.full_name AS student_name, s.student_code,
+                u.username AS recorded_by_name
+         FROM feeding_payments fp
+         JOIN students s
+           ON s.id=fp.student_id AND s.school_id=fp.school_id
+         LEFT JOIN users u ON u.id=fp.recorded_by
+         WHERE fp.school_id=$1
+         ORDER BY fp.payment_date DESC
+         LIMIT 2000`,
+        [sid]
+      )
+    ]);
+
+    res.json({
+      settings: settings.rows,
+      students: students.rows,
+      payments: payments.rows
+    });
+  })
+);
+
+/* Administrator sets charges for each student group */
+app.put('/api/feeding/settings',
+  requireRole('ADMIN'),
+  asyncRoute(async (req, res) => {
+    const b = req.body || {};
+    const group = String(b.studentGroup || '');
+    const weekly = Number(b.weeklyAmount);
+    const monthly = Number(b.monthlyAmount);
+    const termly = Number(b.termlyAmount);
+
+    if (
+      !FEEDING_GROUPS.includes(group) ||
+      ![weekly, monthly, termly].every(
+        n => Number.isFinite(n) && n >= 0 && n <= 10000000
+      )
+    ) {
+      return res.status(400).json({
+        error: 'Choose a valid student group and enter valid non-negative charges.'
+      });
+    }
+
+    const result = await q(
+      `INSERT INTO feeding_settings
+         (school_id, student_group, weekly_amount,
+          monthly_amount, termly_amount, updated_at)
+       VALUES ($1,$2,$3,$4,$5,NOW())
+       ON CONFLICT (school_id, student_group)
+       DO UPDATE SET
+         weekly_amount=EXCLUDED.weekly_amount,
+         monthly_amount=EXCLUDED.monthly_amount,
+         termly_amount=EXCLUDED.termly_amount,
+         updated_at=NOW()
+       RETURNING *`,
+      [schoolId(req), group, weekly, monthly, termly]
+    );
+
+    await audit(
+      req,
+      'feeding_settings_updated',
+      'feeding_settings',
+      result.rows[0].id
+    );
+
+    res.json({ setting: result.rows[0] });
+  })
+);
+
+/* Enrol a student or change their payment period */
+app.put('/api/feeding/plans/:studentId',
+  requireRole('ADMIN', 'HEADMASTER', 'BURSAR'),
+  asyncRoute(async (req, res) => {
+    const b = req.body || {};
+    const studentId = Number(req.params.studentId);
+    const period = String(b.paymentPeriod || '').toUpperCase();
+    const enrolled = b.enrolled === undefined ? true : b.enrolled;
+
+    if (
+      !Number.isSafeInteger(studentId) ||
+      studentId <= 0 ||
+      !FEEDING_PERIODS.includes(period) ||
+      typeof enrolled !== 'boolean'
+    ) {
+      return res.status(400).json({
+        error: 'Choose a valid student, payment period and enrolment status.'
+      });
+    }
+
+    const student = await q(
+      `SELECT id FROM students
+       WHERE id=$1 AND school_id=$2 AND archived=false`,
+      [studentId, schoolId(req)]
+    );
+
+    if (!student.rowCount) {
+      return res.status(404).json({
+        error: 'Active student not found.'
+      });
+    }
+
+    const result = await q(
+      `INSERT INTO student_feeding
+         (school_id, student_id, payment_period, enrolled, updated_at)
+       VALUES ($1,$2,$3,$4,NOW())
+       ON CONFLICT (school_id, student_id)
+       DO UPDATE SET
+         payment_period=EXCLUDED.payment_period,
+         enrolled=EXCLUDED.enrolled,
+         updated_at=NOW()
+       RETURNING *`,
+      [schoolId(req), studentId, period, enrolled]
+    );
+
+    await audit(
+      req,
+      'feeding_plan_updated',
+      'student_feeding',
+      studentId
+    );
+
+    res.json({ plan: result.rows[0] });
+  })
+);
+
+/* Record a feeding payment with a separate receipt number */
+app.post('/api/feeding/payments',
+  requireRole('ADMIN', 'BURSAR'),
+  asyncRoute(async (req, res) => {
+    const b = req.body || {};
+    const studentId = Number(b.studentId);
+    const amount = Number(b.amount);
+    const period = String(b.paymentPeriod || '').toUpperCase();
+    const description = String(b.periodDescription || '').trim();
+
+    if (
+      !Number.isSafeInteger(studentId) ||
+      studentId <= 0 ||
+      !Number.isFinite(amount) ||
+      amount <= 0 ||
+      amount > 10000000 ||
+      !FEEDING_PERIODS.includes(period) ||
+      description.length > 120
+    ) {
+      return res.status(400).json({
+        error: 'Enter a valid student, payment amount, payment period and period description.'
+      });
+    }
+
+    const student = await q(
+      `SELECT id FROM students
+       WHERE id=$1 AND school_id=$2 AND archived=false`,
+      [studentId, schoolId(req)]
+    );
+
+    if (!student.rowCount) {
+      return res.status(404).json({
+        error: 'Active student not found.'
+      });
+    }
+
+    const plan = await q(
+      `SELECT enrolled FROM student_feeding
+       WHERE school_id=$1 AND student_id=$2`,
+      [schoolId(req), studentId]
+    );
+
+    if (!plan.rowCount || !plan.rows[0].enrolled) {
+      return res.status(400).json({
+        error: 'Set up an active feeding plan for this student first.'
+      });
+    }
+
+    const receipt =
+      `FEE-${Date.now().toString(36).toUpperCase()}-` +
+      `${Math.random().toString(36).slice(2, 6).toUpperCase()}`;
+
+    const result = await q(
+      `INSERT INTO feeding_payments
+         (school_id, student_id, amount, payment_period,
+          period_description, receipt_no, recorded_by)
+       VALUES ($1,$2,$3,$4,$5,$6,$7)
+       RETURNING *`,
+      [
+        schoolId(req),
+        studentId,
+        amount,
+        period,
+        description,
+        receipt,
+        req.session.user.id
+      ]
+    );
+
+    await audit(
+      req,
+      'feeding_payment_recorded',
+      'feeding_payment',
+      result.rows[0].id
+    );
+
+    res.status(201).json({ payment: result.rows[0] });
+  })
+);
+
+/* Feeding-only summary and totals by group */
+app.get('/api/feeding/reports',
+  requireRole('ADMIN', 'HEADMASTER', 'BURSAR'),
+  asyncRoute(async (req, res) => {
+    const sid = schoolId(req);
+
+    const summary = await q(
+      `SELECT
+         (
+           SELECT COUNT(*)
+           FROM student_feeding
+           WHERE school_id=$1 AND enrolled=true
+         ) AS enrolled_students,
+         COALESCE((
+           SELECT SUM(amount)
+           FROM feeding_payments
+           WHERE school_id=$1
+         ),0) AS total_received,
+         (
+           SELECT COUNT(*)
+           FROM feeding_payments
+           WHERE school_id=$1
+         ) AS payment_count`,
+      [sid]
+    );
+
+    const byGroup = await q(
+      `SELECT ${feedingGroupSql()} AS student_group,
+              COUNT(DISTINCT s.id) AS students,
+              COALESCE((
+                SELECT SUM(fp.amount)
+                FROM feeding_payments fp
+                JOIN students ps ON ps.id=fp.student_id
+                  AND ps.school_id=fp.school_id
+                WHERE fp.school_id=$1
+                  AND ${feedingGroupSql('ps.class_name')} =
+                      ${feedingGroupSql()}
+              ),0) AS total_received
+       FROM students s
+       WHERE s.school_id=$1 AND s.archived=false
+       GROUP BY ${feedingGroupSql()}
+       ORDER BY student_group`,
+      [sid]
+    );
+
+    res.json({
+      summary: summary.rows[0],
+      byGroup: byGroup.rows
+    });
+  })
+);
+
 app.get('/api/reports', requireRole('ADMIN'), asyncRoute(async(req,res)=>{const sid=schoolId(req);const r=await q(`SELECT (SELECT COUNT(*) FROM students WHERE school_id=$1 AND archived=false) AS active_students,(SELECT COUNT(*) FROM students WHERE school_id=$1 AND archived=true) AS archived_students,(SELECT COALESCE(SUM(amount),0) FROM payments WHERE school_id=$1) AS total_paid,(SELECT COUNT(*) FROM payments WHERE school_id=$1) AS payment_count,(SELECT COALESCE(SUM(total_fees),0) FROM students WHERE school_id=$1 AND archived=false) AS fees_expected`,[sid]);const recent=await q('SELECT action,entity_type,entity_id,created_at FROM audit_logs WHERE school_id=$1 ORDER BY created_at DESC LIMIT 100',[sid]);res.json({summary:r.rows[0],audit:recent.rows})}));
 app.get('/api/export', requireRole('ADMIN'), asyncRoute(async(req,res)=>{const sid=schoolId(req);const [students,payments,marks]=await Promise.all([q('SELECT * FROM students WHERE school_id=$1 ORDER BY id',[sid]),q('SELECT * FROM payments WHERE school_id=$1 ORDER BY id',[sid]),q('SELECT * FROM marks WHERE school_id=$1 ORDER BY id',[sid])]);res.setHeader('Content-Disposition','attachment; filename="acropolis-school-backup.json"');res.json({exportedAt:new Date().toISOString(),school:req.session.user.schoolName,students:students.rows,payments:payments.rows,marks:marks.rows});}));
 app.use('/api', (err, req, res, next) => { console.error(err); if(res.headersSent)return next(err); if(err.code==='23505')return res.status(409).json({error:'A record with these details already exists.'}); res.status(500).json({error:'Something went wrong. Please try again.'}); });
