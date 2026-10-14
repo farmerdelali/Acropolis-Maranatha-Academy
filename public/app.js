@@ -759,7 +759,7 @@ if (!state.user || !['ADMIN', 'BURSAR'].includes(state.user.role)) {
 html = `
   <section class="panel">
     <h2>Drop-off Denial</h2>
-    <p>Only administrators can manage drop-off concerns and restrictions.</p>
+    <p>Administrators and bursars can manage drop-off concerns and restrictions..</p>
   </section>`;
 } else {
     const rows = denials.length
