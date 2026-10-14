@@ -36,13 +36,21 @@ function schoolId(req) { return req.session.user.schoolId; }
 async function audit(req, action, type = '', id = '') { await q('INSERT INTO audit_logs(school_id,user_id,action,entity_type,entity_id) VALUES($1,$2,$3,$4,$5)', [schoolId(req), req.session.user.id, action, type, String(id)]); }
 function validText(value, max = 120) { return typeof value === 'string' && value.trim().length > 0 && value.trim().length <= max; }
 
+
 async function initDb() {
   const sql = fs.readFileSync(path.join(__dirname, 'db', 'schema.sql'), 'utf8');
   await q(sql);
+
   await q(`
     ALTER TABLE classrooms
     ADD COLUMN IF NOT EXISTS assigned_teacher_id BIGINT
     REFERENCES users(id) ON DELETE SET NULL
+  `);
+
+  await q(`
+    ALTER TABLE classrooms
+    ADD COLUMN IF NOT EXISTS assigned_employee_id BIGINT
+    REFERENCES employees(id) ON DELETE SET NULL
   `);
 }
 
