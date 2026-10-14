@@ -118,7 +118,7 @@ function showApp(user) {
   $('#navItems').innerHTML = nav
 .filter(([name]) => allowedMenus.includes(name))
 .map(([name, icon]) => {
-if (name === 'Feeding Management') {
+
 if (name === 'Feeding Management') {
   return `
     <div class="nav-group">
