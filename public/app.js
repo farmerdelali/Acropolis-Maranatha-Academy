@@ -149,6 +149,13 @@ if (name === 'Feeding Management') {
  
 async function loadData() {
   const d = await api('/api/bootstrap');
+  
+  let feeding = { settings: [], students: [], payments: [] };
+
+  if (state.user && ['ADMIN', 'HEADMASTER', 'BURSAR'].includes(state.user.role)) {
+    feeding = await api('/api/feeding/bootstrap');
+  }
+
   const parentResult = await api('/api/parents');
     const pickupResult = await api('/api/pickup-persons');
   const pickupPersons = pickupResult.pickupPersons || [];
