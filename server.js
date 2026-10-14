@@ -740,7 +740,7 @@ app.post('/api/drop-off-denials', requireRole('ADMIN', 'BURSAR'), asyncRoute(asy
   });
 }));
 
-app.put('/api/drop-off-denials/:id', requireRole('ADMIN'), asyncRoute(async (req, res) => {
+app.put('/api/drop-off-denials/:id', requireRole('ADMIN', 'BURSAR'), asyncRoute(async (req, res) => {
   const b = req.body || {};
   const id = Number(req.params.id);
   const allowedStatuses = ['PENDING', 'ACTIVE', 'RESOLVED'];
