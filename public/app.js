@@ -171,11 +171,10 @@ const classActivations = classActivationResult.activations || [];
   const classActivationClasses = classActivationResult.classes || [];
   let denials = [];
 
-  if (state.user && state.user.role === 'ADMIN') {
-    const denialResult = await api('/api/drop-off-denials');
-    denials = denialResult.denials || [];
-  }
-
+ if (state.user && ['ADMIN', 'BURSAR'].includes(state.user.role)) {
+  const denialResult = await api('/api/drop-off-denials');
+  denials = denialResult.denials || [];
+}
   let employees = [];
 
 if (state.user && state.user.role === 'ADMIN') {
