@@ -2160,6 +2160,30 @@ document.addEventListener('submit', async e => {
       toast('Classroom saved successfully.');
 
     
+    } else if (form.id === 'studentRulesForm') {
+      const requireGuardianPhone = form.querySelector(
+        '[name="requireGuardianPhone"]'
+      ).checked;
+
+      const r = await api('/api/system-settings', {
+        method: 'PUT',
+        body: JSON.stringify({
+          settings: {
+            ...(state.data.systemSettings || {}),
+            requireGuardianPhone
+          }
+        })
+      });
+
+      state.data.systemSettings = r.settings || {};
+
+      await refresh();
+      state.view = 'Settings';
+      render();
+      toast('Student registration rules saved successfully.');
+
+    } else if (form.id === 'systemContactForm') {
+
     } else if (form.id === 'systemContactForm') {
       const r = await api('/api/system-settings', {
         method: 'PUT',
