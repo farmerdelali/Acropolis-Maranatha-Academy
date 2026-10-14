@@ -691,9 +691,7 @@ const rows = d.payments.length
       </select>
     </label>
     <p class="muted">Your choice is remembered on this device.</p>
-  `);
-} 
-  panel('School contact details',`
+  `); panel('School contact details',`
     <form id="systemContactForm">
       <label class="field">School phone number
         <input name="contactPhone" type="tel" maxlength="40"
@@ -719,7 +717,7 @@ const rows = d.payments.length
       </div>
     </form>
   `);
-
+}
 
 else if (state.view === 'Match Students') {
   const normalize = value =>
