@@ -373,6 +373,246 @@ const rows = d.payments.length
   : '<div class="empty">No payments recorded yet.</div>';
  
  html+=panel('Payment history',rows);
+
+}else if(state.view==='Feeding Dashboard' ||
+         state.view==='Feeding Settings' ||
+         state.view==='Student Feeding Plans' ||
+         state.view==='Record Feeding Payment' ||
+         state.view==='Feeding Payment History' ||
+         state.view==='Feeding Reports'){
+
+ const feeding = state.data.feeding || {
+   settings: [],
+   students: [],
+   payments: []
+ };
+ const feedingStudents = feeding.students || [];
+ const feedingPayments = feeding.payments || [];
+ const feedingSettings = feeding.settings || [];
+ const enrolledCount = feedingStudents.filter(s=>s.enrolled).length;
+ const feedingTotal = feedingPayments.reduce((sum,p)=>sum+Number(p.amount||0),0);
+ const periods = [
+   ['WEEKLY','Weekly'],
+   ['MONTHLY','Monthly'],
+   ['TERMLY','Termly']
+ ];
+ const groups = [
+   ['PRESCHOOL_KG2','Pre-school to KG2'],
+   ['BASIC1_BASIC3','Basic 1 to Basic 3'],
+   ['BASIC4_BASIC9','Basic 4 to Basic 9']
+ ];
+ const studentOptions = feedingStudents.map(s=>
+   `<option value="${esc(s.id)}">${esc(s.full_name)} — ${esc(s.class_name||'Class not set')}</option>`
+ ).join('');
+ const groupOptions = groups.map(([value,label])=>
+   `<option value="${value}">${label}</option>`
+ ).join('');
+ const periodOptions = periods.map(([value,label])=>
+   `<option value="${value}">${label}</option>`
+ ).join('');
+
+ if(state.view==='Feeding Dashboard'){
+   html=pageHead(
+     'Feeding Management',
+     'Manage feeding charges, student plans and feeding receipts separately from tuition.'
+   )+
+   `<div class="cards">
+     ${stat('Active students on feeding',enrolledCount,'Enrolled feeding plans')}
+     ${stat('Feeding receipts',feedingPayments.length,'Recorded transactions')}
+     ${stat('Feeding payments received',money(feedingTotal),'Feeding only')}
+     ${stat('Students registered',feedingStudents.length,'Active student records')}
+   </div>`+
+   panel('Feeding actions',`
+     <div class="toolbar">
+       <button class="btn primary" data-view="Feeding Settings">Set feeding charges</button>
+       <button class="btn soft" data-view="Student Feeding Plans">Student feeding plans</button>
+       <button class="btn soft" data-view="Record Feeding Payment">Record feeding payment</button>
+       <button class="btn soft" data-view="Feeding Payment History">Payment history</button>
+       <button class="btn soft" data-view="Feeding Reports">Feeding reports</button>
+     </div>
+   `)+
+   panel('Recent feeding payments',
+     feedingPayments.length
+       ? `<div class="table-wrap"><table>
+           <thead><tr><th>Receipt</th><th>Student</th><th>Period</th><th>Amount</th><th>Date</th></tr></thead>
+           <tbody>${feedingPayments.slice(0,8).map(p=>`
+             <tr>
+               <td><b>${esc(p.receipt_no)}</b></td>
+               <td>${esc(p.student_name)}</td>
+               <td>${esc(p.payment_period)}</td>
+               <td>${money(p.amount)}</td>
+               <td>${p.payment_date?new Date(p.payment_date).toLocaleDateString():'—'}</td>
+             </tr>`).join('')}
+           </tbody></table></div>`
+       : '<div class="empty">No feeding payments recorded yet.</div>'
+   );
+ }
+
+ else if(state.view==='Feeding Settings'){
+   html=pageHead(
+     'Feeding Settings',
+     'Set weekly, monthly and termly feeding charges for each student group.'
+   )+
+   panel('Group feeding charges',`
+     <form id="feedingSettingsForm">
+       <label class="field">Student group
+         <select name="studentGroup" required>${groupOptions}</select>
+       </label>
+       <label class="field">Weekly charge (GH₵)
+         <input name="weeklyAmount" type="number" min="0" step="0.01" required value="0">
+       </label>
+       <label class="field">Monthly charge (GH₵)
+         <input name="monthlyAmount" type="number" min="0" step="0.01" required value="0">
+       </label>
+       <label class="field">Termly charge (GH₵)
+         <input name="termlyAmount" type="number" min="0" step="0.01" required value="0">
+       </label>
+       <div class="form-actions">
+         <button class="btn primary" type="submit">Save group charges</button>
+       </div>
+     </form>
+   `)+
+   panel('Saved feeding charges',
+     feedingSettings.length
+       ? `<div class="table-wrap"><table>
+           <thead><tr><th>Group</th><th>Weekly</th><th>Monthly</th><th>Termly</th></tr></thead>
+           <tbody>${feedingSettings.map(s=>`
+             <tr>
+               <td>${esc(groups.find(g=>g[0]===s.student_group)?.[1]||s.student_group)}</td>
+               <td>${money(s.weekly_amount)}</td>
+               <td>${money(s.monthly_amount)}</td>
+               <td>${money(s.termly_amount)}</td>
+             </tr>`).join('')}
+           </tbody></table></div>`
+       : '<div class="empty">No feeding charges have been configured yet.</div>'
+   );
+ }
+
+ else if(state.view==='Student Feeding Plans'){
+   html=pageHead(
+     'Student Feeding Plans',
+     'Enrol students in feeding and select their weekly, monthly or termly payment period.'
+   )+
+   panel('Set up or update a student plan',`
+     <form id="feedingPlanForm">
+       <label class="field">Student
+         <select name="studentId" required>
+           <option value="">Choose a student</option>${studentOptions}
+         </select>
+       </label>
+       <label class="field">Payment period
+         <select name="paymentPeriod" required>${periodOptions}</select>
+       </label>
+       <label class="field">Feeding enrolment
+         <select name="enrolled" required>
+           <option value="true">Enrolled</option>
+           <option value="false">Not enrolled</option>
+         </select>
+       </label>
+       <div class="form-actions">
+         <button class="btn primary" type="submit">Save student plan</button>
+       </div>
+     </form>
+   `)+
+   panel('Student feeding status',
+     feedingStudents.length
+       ? `<div class="table-wrap"><table>
+           <thead><tr><th>Student</th><th>Student ID</th><th>Class</th><th>Group</th><th>Period</th><th>Status</th></tr></thead>
+           <tbody>${feedingStudents.map(s=>`
+             <tr>
+               <td><b>${esc(s.full_name)}</b></td>
+               <td>${esc(s.student_code||'—')}</td>
+               <td>${esc(s.class_name||'—')}</td>
+               <td>${esc(groups.find(g=>g[0]===s.student_group)?.[1]||'Group not recognised')}</td>
+               <td>${esc(s.payment_period||'Not set')}</td>
+               <td>${s.enrolled?'Enrolled':'Not enrolled'}</td>
+             </tr>`).join('')}
+           </tbody></table></div>`
+       : '<div class="empty">Register students first to create feeding plans.</div>'
+   );
+ }
+
+ else if(state.view==='Record Feeding Payment'){
+   const eligible = feedingStudents.filter(s=>s.enrolled);
+   html=pageHead(
+     'Record Feeding Payment',
+     'Issue a separate feeding receipt. Tuition payments are not included here.'
+   )+
+   panel('New feeding receipt', eligible.length ? `
+     <form id="feedingPaymentForm">
+       <label class="field">Student
+         <select name="studentId" required>
+           <option value="">Choose an enrolled student</option>
+           ${eligible.map(s=>`<option value="${esc(s.id)}">${esc(s.full_name)} — ${esc(s.class_name||'')}</option>`).join('')}
+         </select>
+       </label>
+       <label class="field">Payment period
+         <select name="paymentPeriod" required>${periodOptions}</select>
+       </label>
+       <label class="field">Amount received (GH₵)
+         <input name="amount" type="number" min="0.01" max="10000000" step="0.01" required>
+       </label>
+       <label class="field">Period covered (e.g. Week 2 or Term 1)
+         <input name="periodDescription" maxlength="120" placeholder="Enter the period covered">
+       </label>
+       <div class="form-actions">
+         <button class="btn primary" type="submit">Record feeding payment</button>
+       </div>
+     </form>
+   ` : '<div class="empty">No enrolled students are available. Set up a student feeding plan first.</div>');
+ }
+
+ else if(state.view==='Feeding Payment History'){
+   html=pageHead(
+     'Feeding Payment History',
+     'Review feeding receipts. Changing a student’s plan does not remove previous receipts.'
+   )+
+   panel('Feeding receipts',
+     feedingPayments.length
+       ? `<div class="table-wrap"><table>
+           <thead><tr><th>Receipt</th><th>Student</th><th>Student ID</th><th>Period</th><th>Period covered</th><th>Amount</th><th>Date</th><th>Recorded by</th></tr></thead>
+           <tbody>${feedingPayments.map(p=>`
+             <tr>
+               <td><b>${esc(p.receipt_no)}</b></td>
+               <td>${esc(p.student_name)}</td>
+               <td>${esc(p.student_code||'—')}</td>
+               <td>${esc(p.payment_period)}</td>
+               <td>${esc(p.period_description||'—')}</td>
+               <td>${money(p.amount)}</td>
+               <td>${p.payment_date?new Date(p.payment_date).toLocaleDateString():'—'}</td>
+               <td>${esc(p.recorded_by_name||'—')}</td>
+             </tr>`).join('')}
+           </tbody></table></div>`
+       : '<div class="empty">No feeding receipts have been recorded yet.</div>'
+   );
+ }
+
+ else if(state.view==='Feeding Reports'){
+   const byPeriod = periods.map(([key,label])=>{
+     const items=feedingPayments.filter(p=>p.payment_period===key);
+     return {label,total:items.reduce((sum,p)=>sum+Number(p.amount||0),0),count:items.length};
+   });
+   html=pageHead(
+     'Feeding Reports',
+     'Review feeding income by payment period, independently of tuition.'
+   )+
+   `<div class="cards">
+     ${stat('Total feeding received',money(feedingTotal),'Feeding payments only')}
+     ${stat('Weekly receipts',byPeriod[0].count,'Transactions')}
+     ${stat('Monthly receipts',byPeriod[1].count,'Transactions')}
+     ${stat('Termly receipts',byPeriod[2].count,'Transactions')}
+   </div>`+
+   panel('Receipts by payment period',`
+     <div class="table-wrap"><table>
+       <thead><tr><th>Payment period</th><th>Number of receipts</th><th>Total received</th></tr></thead>
+       <tbody>${byPeriod.map(p=>`
+         <tr><td>${p.label}</td><td>${p.count}</td><td>${money(p.total)}</td></tr>
+       `).join('')}</tbody>
+     </table></div>
+   `);
+ }
+</escape>
+
 }else if(state.view==='Reports'){
  html=pageHead('Reports & data','Review school totals, recent activity and export a backup.',`<button class="btn primary" data-action="export">Export backup</button><button class="btn soft" data-action="csv">Export student CSV</button>`)+`<div class="cards">${stat('Active students',students.length,'Enrolment')}${stat('Total fees',money(expected),'Expected')}${stat('Payments',money(paid),'Collected')}${stat('Balance',money(Math.max(0,expected-paid)),'Expected less collected')}</div>`;
  html+=panel('Fee balance by student',`<div class="table-wrap"><table><thead><tr><th>Student</th><th>Class</th><th>Expected</th><th>Paid</th><th>Balance</th></tr></thead><tbody>${students.map(s=>`<tr><td>${esc(s.full_name)}</td><td>${esc(s.class_name)}</td><td>${money(s.total_fees)}</td><td>${money(s.paid)}</td><td>${money(Math.max(0,Number(s.total_fees)-Number(s.paid)))}</td></tr>`).join('')}</tbody></table></div>`);
