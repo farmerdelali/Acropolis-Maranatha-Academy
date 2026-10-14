@@ -116,12 +116,15 @@ function showApp(user) {
   const allowedMenus = menuByRole[user.role] || ['Dashboard'];
 
   $('#navItems').innerHTML = nav
-    .filter(([name]) => allowedMenus.includes(name))
-    .map(([name, icon]) =>
-      `<button class="nav-item ${state.view === name ? 'active' : ''}" type="button" data-view="${esc(name)}"><span class="nav-icon">${icon}</span><span>${esc(name)}</span></button>`
-    )
-    .join('');
+.filter(([name]) => allowedMenus.includes(name))
+.map(([name, icon]) => {
+if (name === 'Feeding Management') {
+return " <div class="nav-group"> <button class="nav-item" type="button" data-nav-toggle="feeding" aria-expanded="false"> <span class="nav-icon">${icon}</span> <span>Feeding Management</span> <span class="nav-chevron">⌄</span> </button> <div class="nav-submenu" data-nav-submenu="feeding" hidden> <button class="nav-subitem" type="button" data-view="Feeding Dashboard">Feeding Dashboard</button> <button class="nav-subitem" type="button" data-view="Feeding Settings">Feeding Settings</button> <button class="nav-subitem" type="button" data-view="Student Feeding Plans">Student Feeding Plans</button> <button class="nav-subitem" type="button" data-view="Record Feeding Payment">Record Feeding Payment</button> <button class="nav-subitem" type="button" data-view="Feeding Payment History">Feeding Payment History</button> <button class="nav-subitem" type="button" data-view="Feeding Reports">Feeding Reports</button> </div> </div>";
+}
 
+  return `<button class="nav-item ${state.view === name ? 'active' : ''}" type="button" data-view="${esc(name)}"><span class="nav-icon">${icon}</span><span>${esc(name)}</span></button>`;
+})
+.join('');
   closeDrawer();
   loadData().catch(e => toast(e.message, true));
 }
