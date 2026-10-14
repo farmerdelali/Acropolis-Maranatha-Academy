@@ -1813,7 +1813,15 @@ document.addEventListener('click', async e => {
   if (tab) {
     setAuthTab(tab.dataset.authTab);
     return;
+      if (button.dataset.navToggle === 'feeding') {
+    const submenu = document.querySelector('[data-nav-submenu="feeding"]');
+    const isOpen = button.getAttribute('aria-expanded') === 'true';
+
+    if (submenu) submenu.hidden = isOpen;
+    button.setAttribute('aria-expanded', String(!isOpen));
+    return;
   }
+  
 
   // Dashboard navigation
  
