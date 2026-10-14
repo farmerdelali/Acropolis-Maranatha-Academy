@@ -1816,6 +1816,9 @@ document.addEventListener('submit', async e => {
 'graduation-form',
 'classActivationForm',
 'classroomForm'
+    'feedingSettingsForm',
+'feedingPlanForm',
+'feedingPaymentForm',
 ];
 
   if (!allowedForms.includes(form.id)) return;
