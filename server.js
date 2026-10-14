@@ -667,7 +667,7 @@ app.get('/api/drop-off-denials', requireRole('ADMIN', 'BURSAR'), asyncRoute(asyn
   res.json({ denials: result.rows });
 }));
 
-app.post('/api/drop-off-denials', requireRole('ADMIN'), asyncRoute(async (req, res) => {
+app.post('/api/drop-off-denials', requireRole('ADMIN', 'BURSAR'), asyncRoute(async (req, res) => {
   const b = req.body || {};
   const studentId = Number(b.studentId);
   const personName = typeof b.personName === 'string' ? b.personName.trim() : '';
