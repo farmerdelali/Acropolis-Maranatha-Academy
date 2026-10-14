@@ -47,12 +47,25 @@ async function initDb() {
     REFERENCES users(id) ON DELETE SET NULL
   `);
 
+  
   await q(`
     ALTER TABLE classrooms
     ADD COLUMN IF NOT EXISTS assigned_employee_id BIGINT
     REFERENCES employees(id) ON DELETE SET NULL
   `);
+
+  await q(`
+    CREATE TABLE IF NOT EXISTS school_system_settings (
+      school_id BIGINT PRIMARY KEY
+        REFERENCES schools(id) ON DELETE CASCADE,
+      settings JSONB NOT NULL DEFAULT '{}'::jsonb,
+      updated_by BIGINT
+        REFERENCES users(id) ON DELETE SET NULL,
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    )
+  `);
 }
+
 
 
 app.get('/api/health', asyncRoute(async (_req, res) => { await q('SELECT 1'); res.json({ ok: true, service: 'Acropolis School Management API' }); }));
