@@ -1180,10 +1180,11 @@ function studentForm(s = null) {
         </label>
 
         <label class="field">Total fees (GHS) *
-          <input name="totalFees" type="number" min="0"
-            step="0.01" required
-            value="${Number(s?.total_fees || 0)}"
-            inputmode="decimal">
+         
+<select name="totalFees" required>
+  ${Array.from({length: 8000}, (_, i) => i + 1).map(amount => `<option value="${amount}" ${Number(s?.total_fees || 0) === amount ? 'selected' : ''}>GH₵${amount.toLocaleString('en-GH')}</option>`).join('')}
+</select>
+
         </label>
 
       </div>
