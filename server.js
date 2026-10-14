@@ -640,7 +640,7 @@ app.delete('/api/parents/:id', requireRole('ADMIN'), asyncRoute(async (req, res)
   res.json({ ok: true });
 }));
 // DROP-OFF DENIAL MANAGEMENT
-app.get('/api/drop-off-denials', requireRole('ADMIN'), asyncRoute(async (req, res) => {
+app.get('/api/drop-off-denials', requireRole('ADMIN', 'BURSAR'), asyncRoute(async (req, res) => {
   const result = await q(
     `SELECT d.id, d.student_id AS "studentId",
             s.full_name AS "studentName",
