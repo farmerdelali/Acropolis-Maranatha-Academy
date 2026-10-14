@@ -1182,7 +1182,7 @@ function studentForm(s = null) {
         <label class="field">Total fees (GHS) *
          
 <select name="totalFees" required>
-  ${Array.from({length: 8000}, (_, i) => i + 1).map(amount => `<option value="${amount}" ${Number(s?.total_fees || 0) === amount ? 'selected' : ''}>GH₵${amount.toLocaleString('en-GH')}</option>`).join('')}
+  ${Array.from({length: 2501}, (_, i) => i + 500).map(amount => `<option value="${amount}" ${Number(s?.total_fees || 0) === amount ? 'selected' : ''}>GH₵${amount.toLocaleString('en-GH')}</option>`).join('')}
 </select>
 
         </label>
@@ -1458,7 +1458,7 @@ function pickupPersonForm() {
 function paymentForm(){const students=state.data.students.filter(s=>!s.archived);if(!students.length)return toast('Register a student before recording payments.',true);openModal('Record payment',`<form id="paymentForm"><label class="field">Student<select name="studentId" required>${students.map(s=>`<option value="${s.id}">${esc(s.full_name)} · ${esc(s.student_code)}</option>`).join('')}</select></label>
 <label class="field">Amount (GHS)
 <select name="amount" required>
-  ${Array.from({length: 8000}, (_, i) => i + 1).map(amount => `<option value="${amount}">GH₵${amount.toLocaleString('en-GH')}</option>`).join('')}
+  ${Array.from({length: 2501}, (_, i) => i + 500).map(amount => `<option value="${amount}">GH₵${amount.toLocaleString('en-GH')}</option>`).join('')}
 </select>
 </label>
 <label class="field">Note / payment method<input name="note" maxlength="200" placeholder="Cash, bank transfer, term fees…"></label><div class="form-actions"><button type="button" class="btn soft" data-action="close-modal">Cancel</button><button class="btn primary" type="submit">Save payment</button></div></form>`);}
