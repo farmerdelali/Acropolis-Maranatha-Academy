@@ -1845,11 +1845,23 @@ return;
 
     const allowedMenus = menuByRole[state.user?.role] || ['Dashboard'];
 
-    if (!allowedMenus.includes(button.dataset.view)) {
-      toast('You do not have permission to open this page.', true);
-      return;
-    }
+   const feedingViews = [
+  'Feeding Dashboard',
+  'Feeding Settings',
+  'Student Feeding Plans',
+  'Record Feeding Payment',
+  'Feeding Payment History',
+  'Feeding Reports'
+];
 
+const canOpenFeeding =
+  ['ADMIN', 'HEADMASTER', 'BURSAR'].includes(state.user?.role) &&
+  feedingViews.includes(button.dataset.view);
+
+if (!allowedMenus.includes(button.dataset.view) && !canOpenFeeding) {
+  toast('You do not have permission to open this page.', true);
+  return;
+}
     state.view = button.dataset.view;
     state.search = '';
     render();
