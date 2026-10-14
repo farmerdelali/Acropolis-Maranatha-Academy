@@ -174,6 +174,20 @@ app.put('/api/settings', requireRole('ADMIN'), asyncRoute(async (req, res) => {
   res.json({ settings: r.rows[0] });
 }));
 
+app.get('/api/student-registration-rules', requireAuth, asyncRoute(async (req, res) => {
+  const result = await q(
+    'SELECT settings FROM school_system_settings WHERE school_id = $1',
+    [schoolId(req)]
+  );
+
+  const settings = result.rows[0]?.settings || {};
+
+  res.json({
+    requireGuardianPhone: settings.requireGuardianPhone === true
+  });
+}));
+
+
 app.get('/api/system-settings', requireRole('ADMIN'), asyncRoute(async (req, res) => {
   const result = await q(
     `SELECT settings, updated_at AS "updatedAt"
