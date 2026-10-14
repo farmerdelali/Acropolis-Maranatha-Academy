@@ -2138,7 +2138,29 @@ document.addEventListener('submit', async e => {
       render();
       toast('Classroom saved successfully.');
 
+    
+    } else if (form.id === 'systemContactForm') {
+      const r = await api('/api/system-settings', {
+        method: 'PUT',
+        body: JSON.stringify({
+          settings: {
+            ...(state.data.systemSettings || {}),
+            contactPhone: v.contactPhone.trim(),
+            contactEmail: v.contactEmail.trim(),
+            contactAddress: v.contactAddress.trim()
+          }
+        })
+      });
+
+      state.data.systemSettings = r.settings || {};
+
+      await refresh();
+      state.view = 'Settings';
+      render();
+      toast('School contact details saved successfully.');
+
     } else if (form.id === 'settingsForm') {
+
       const r = await api('/api/settings', {
         method: 'PUT',
         body: JSON.stringify(v)
