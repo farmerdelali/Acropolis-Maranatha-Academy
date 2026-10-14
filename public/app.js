@@ -2182,7 +2182,6 @@ document.addEventListener('submit', async e => {
       render();
       toast('Student registration rules saved successfully.');
 
-    } else if (form.id === 'systemContactForm') {
 
     } else if (form.id === 'systemContactForm') {
       const r = await api('/api/system-settings', {
