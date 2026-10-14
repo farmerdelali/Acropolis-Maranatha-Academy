@@ -1908,6 +1908,7 @@ document.addEventListener('submit', async e => {
     'userForm',
     'settingsForm',
         'systemContactForm',
+            'studentRulesForm',
 'graduation-form',
 'classActivationForm',
 'classroomForm',
