@@ -183,6 +183,14 @@ employees = employeeResult.employees || [];
 }
 let systemSettings = {};
 
+let registrationRules = { requireGuardianPhone: false };
+
+try {
+  registrationRules = await api('/api/student-registration-rules');
+} catch (error) {
+  console.warn('Student registration rules could not be loaded:', error);
+}
+
 if (state.user && state.user.role === 'ADMIN') {
   try {
     const settingsResult = await api('/api/system-settings');
@@ -192,7 +200,7 @@ if (state.user && state.user.role === 'ADMIN') {
   }
 }
 state.data = {
-  ...d,
+  ...d,  registrationRules,
   parents,
   denials,
   pickupPersons,
