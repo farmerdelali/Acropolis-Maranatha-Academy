@@ -2918,7 +2918,18 @@ if (!allowedMenus.includes(button.dataset.view) && !canOpenFeeding) {
 
   try {
     switch (action) { 
-        
+        case 'apply-fee-report': {
+    const start = document.getElementById('feeReportStart')?.value;
+    const end = document.getElementById('feeReportEnd')?.value;
+    if (!start || !end || start > end) {
+      toast('Please select a valid start and end date.', true);
+      break;
+    }
+    state.feeReportStart = start;
+    state.feeReportEnd = end;
+    render();
+    break;
+  }
       case 'back-to-settings':
         if (state.user?.role !== 'ADMIN') {
           throw new Error('Only administrators can access Settings.');
