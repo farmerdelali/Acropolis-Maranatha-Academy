@@ -1915,6 +1915,76 @@ app.post(
       client.release();
     }
   })
+);app.get(
+  '/api/attendance/registers',
+  requireRole('ADMIN', 'HEADMASTER', 'TEACHER'),
+  asyncRoute(async (req, res) => {
+    const sid = schoolId(req);
+    const className = typeof req.query.className === 'string'
+      ? req.query.className.trim()
+      : '';
+    const from = typeof req.query.from === 'string' ? req.query.from : '';
+    const to = typeof req.query.to === 'string' ? req.query.to : '';
+
+    const validDate = value =>
+      !value || (
+        /^\d{4}-\d{2}-\d{2}$/.test(value) &&
+        !Number.isNaN(Date.parse(value))
+      );
+
+    if (!validDate(from) || !validDate(to)) {
+      return res.status(400).json({
+        error: 'Use valid dates in YYYY-MM-DD format.'
+      });
+    }
+
+    if (from && to && from > to) {
+      return res.status(400).json({
+        error: 'The start date must not be after the end date.'
+      });
+    }
+
+    const result = await q(
+      `SELECT
+         r.id,
+         r.class_name,
+         r.attendance_date,
+         r.session_name,
+         r.status,
+         r.created_at,
+         r.submitted_at,
+         COALESCE(
+           json_agg(
+             json_build_object(
+               'studentId', s.id,
+               'studentCode', s.student_code,
+               'studentName', s.full_name,
+               'status', ae.status,
+               'reason', ae.reason
+             )
+             ORDER BY s.full_name
+           ) FILTER (WHERE ae.id IS NOT NULL),
+           '[]'::json
+         ) AS entries
+       FROM attendance_registers r
+       LEFT JOIN attendance_entries ae
+         ON ae.register_id = r.id
+        AND ae.school_id = r.school_id
+       LEFT JOIN students s
+         ON s.id = ae.student_id
+        AND s.school_id = ae.school_id
+       WHERE r.school_id = $1
+         AND ($2 = '' OR r.class_name = $2)
+         AND ($3 = '' OR r.attendance_date >= $3::date)
+         AND ($4 = '' OR r.attendance_date <= $4::date)
+       GROUP BY r.id
+       ORDER BY r.attendance_date DESC, r.class_name, r.session_name
+       LIMIT 100`,
+      [sid, className, from, to]
+    );
+
+    res.json({ registers: result.rows });
+  })
 );
 /* =========================================================
    FEEDING MANAGEMENT API
