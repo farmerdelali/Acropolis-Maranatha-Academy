@@ -717,35 +717,34 @@ const rows = d.payments.length
 const maxClassCount=Math.max(0,...Object.values(classCounts));
 html+=panel('Student enrolment by class',students.length?`<div style="display:grid;gap:16px;padding:8px 0">${Object.entries(classCounts).sort((a,b)=>b[1]-a[1]).map(([name,count])=>`<div><div style="display:flex;justify-content:space-between;gap:12px;margin-bottom:7px"><span>${esc(name)}</span><b>${count}</b></div><div style="height:10px;background:var(--bg);border-radius:8px;overflow:hidden"><div style="height:100%;width:${count/maxClassCount*100}%;background:var(--gold);border-radius:8px;transition:width .5s ease"></div></div></div>`).join('')}</div>`:'<div class="empty">No student records available to chart yet.</div>');
 
-  
-const feeReportPayments=(d.payments||[]).filter(p=>p.paid_at&&Number.isFinite(new Date(p.paid_at).getTime()));
-const feeReportDates=feeReportPayments.map(p=>new Date(p.paid_at)).sort((a,b)=>a-b);
-const feeReportToday=new Date();
-const feeReportDefaultStart=feeReportDates.length?new Date(feeReportDates[0].getFullYear(),feeReportDates[0].getMonth(),1):new Date(feeReportToday.getFullYear(),feeReportToday.getMonth(),1);
-const feeReportDefaultEnd=new Date(feeReportToday.getFullYear(),feeReportToday.getMonth()+1,0);
-const feeReportStart=state.feeReportStart||"${feeReportDefaultStart.getFullYear()}-${String(feeReportDefaultStart.getMonth()+1).padStart(2,'0')}-01";
-const feeReportEnd=state.feeReportEnd||"${feeReportDefaultEnd.getFullYear()}-${String(feeReportDefaultEnd.getMonth()+1).padStart(2,'0')}-${String(feeReportDefaultEnd.getDate()).padStart(2,'0')}";
-const feeReportStartDate=new Date("${feeReportStart}T00:00:00");
-const feeReportEndDate=new Date("${feeReportEnd}T23:59:59.999");
-const feeReportValid=feeReportStart&&feeReportEnd&&!Number.isNaN(feeReportStartDate.getTime())&&!Number.isNaN(feeReportEndDate.getTime())&&feeReportStartDate<=feeReportEndDate;
-const feeReportMonths=[];
-if(feeReportValid){
-let cursor=new Date(feeReportStartDate.getFullYear(),feeReportStartDate.getMonth(),1);
-const last=new Date(feeReportEndDate.getFullYear(),feeReportEndDate.getMonth(),1);
-while(cursor<=last&&feeReportMonths.length<120){
-feeReportMonths.push({key:"${cursor.getFullYear()}-${String(cursor.getMonth()+1).padStart(2,'0')}",label:cursor.toLocaleDateString('en-GH',{month:'short',year:'numeric'}),total:0});
-cursor.setMonth(cursor.getMonth()+1);
-}
-}
-feeReportPayments.forEach(p=>{
-const date=new Date(p.paid_at);
-if(!feeReportValid||date<feeReportStartDate||date>feeReportEndDate)return;
-const key="${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}";
-const month=feeReportMonths.find(m=>m.key===key);
-if(month)month.total+=Number(p.amount)||0;
-});
-const feeReportMax=Math.max(1,...feeReportMonths.map(m=>m.total));
-html+=panel('Monthly fee collection · Selected period',"<div style="display:flex;flex-wrap:wrap;gap:12px;margin-bottom:16px"><label class="field" style="flex:1;min-width:140px">Start date<input id="feeReportStart" type="date" value="${esc(feeReportStart)}" max="${esc(feeReportEnd)}"></label><label class="field" style="flex:1;min-width:140px">End date<input id="feeReportEnd" type="date" value="${esc(feeReportEnd)}" min="${esc(feeReportStart)}"></label><button type="button" class="btn primary" data-action="apply-fee-report">Apply dates</button></div>${!feeReportValid?'<div class="empty">Please select a valid start date and end date.</div>':"<div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;align-items:end;padding:12px 0">${feeReportMonths.map(m=>"<div style="text-align:center;min-width:0"><div style="font-size:11px;font-weight:600;margin-bottom:6px;overflow-wrap:anywhere">${money(m.total)}</div><div style="height:100px;display:flex;align-items:end;justify-content:center"><div title="${esc(m.label)}: ${money(m.total)}" style="width:70%;max-width:38px;height:${m.total/feeReportMax*100}%;min-height:${m.total>0?4:0}px;background:var(--gold);border-radius:6px 6px 0 0;transition:height .4s ease"></div></div><div style="font-size:11px;margin-top:8px;color:var(--muted)">${esc(m.label)}</div></div>").join('')}</div><p class="muted">Showing ${feeReportMonths.length} months. Collections are based on payment dates recorded in the system.</p>"}");
+ const feeReportPayments=(d.payments||[]).filter(p=>p.paid_at&&Number.isFinite(new Date(p.paid_at).getTime()));
+  const feeReportDates=feeReportPayments.map(p=>new Date(p.paid_at)).sort((a,b)=>a-b);
+  const feeReportToday=new Date();
+  const feeReportDefaultStart=feeReportDates.length?new Date(feeReportDates[0].getFullYear(),feeReportDates[0].getMonth(),1):new Date(feeReportToday.getFullYear(),feeReportToday.getMonth(),1);
+  const feeReportDefaultEnd=new Date(feeReportToday.getFullYear(),feeReportToday.getMonth()+1,0);
+  const feeReportStart=state.feeReportStart||`${feeReportDefaultStart.getFullYear()}-${String(feeReportDefaultStart.getMonth()+1).padStart(2,'0')}-01`;
+  const feeReportEnd=state.feeReportEnd||`${feeReportDefaultEnd.getFullYear()}-${String(feeReportDefaultEnd.getMonth()+1).padStart(2,'0')}-${String(feeReportDefaultEnd.getDate()).padStart(2,'0')}`;
+  const feeReportStartDate=new Date(`${feeReportStart}T00:00:00`);
+  const feeReportEndDate=new Date(`${feeReportEnd}T23:59:59.999`);
+  const feeReportValid=feeReportStart&&feeReportEnd&&!Number.isNaN(feeReportStartDate.getTime())&&!Number.isNaN(feeReportEndDate.getTime())&&feeReportStartDate<=feeReportEndDate;
+  const feeReportMonths=[];
+  if(feeReportValid){
+    let cursor=new Date(feeReportStartDate.getFullYear(),feeReportStartDate.getMonth(),1);
+    const last=new Date(feeReportEndDate.getFullYear(),feeReportEndDate.getMonth(),1);
+    while(cursor<=last&&feeReportMonths.length<120){
+      feeReportMonths.push({key:`${cursor.getFullYear()}-${String(cursor.getMonth()+1).padStart(2,'0')}`,label:cursor.toLocaleDateString('en-GH',{month:'short',year:'numeric'}),total:0});
+      cursor.setMonth(cursor.getMonth()+1);
+    }
+  }
+  feeReportPayments.forEach(p=>{
+    const date=new Date(p.paid_at);
+    if(!feeReportValid||date<feeReportStartDate||date>feeReportEndDate)return;
+    const key=`${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}`;
+    const month=feeReportMonths.find(m=>m.key===key);
+    if(month)month.total+=Number(p.amount)||0;
+  });
+  const feeReportMax=Math.max(1,...feeReportMonths.map(m=>m.total));
+  html+=panel('Monthly fee collection · Selected period',`<div style="display:flex;flex-wrap:wrap;gap:12px;margin-bottom:16px"><label class="field" style="flex:1;min-width:140px">Start date<input id="feeReportStart" type="date" value="${esc(feeReportStart)}" max="${esc(feeReportEnd)}"></label><label class="field" style="flex:1;min-width:140px">End date<input id="feeReportEnd" type="date" value="${esc(feeReportEnd)}" min="${esc(feeReportStart)}"></label><button type="button" class="btn primary" data-action="apply-fee-report">Apply dates</button></div>${!feeReportValid?'<div class="empty">Please select a valid start date and end date.</div>':`<div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;align-items:end;padding:12px 0">${feeReportMonths.map(m=>`<div style="text-align:center;min-width:0"><div style="font-size:11px;font-weight:600;margin-bottom:6px;overflow-wrap:anywhere">${money(m.total)}</div><div style="height:100px;display:flex;align-items:end;justify-content:center"><div title="${esc(m.label)}: ${money(m.total)}" style="width:70%;max-width:38px;height:${m.total/feeReportMax*100}%;min-height:${m.total>0?4:0}px;background:var(--gold);border-radius:6px 6px 0 0;transition:height .4s ease"></div></div><div style="font-size:11px;margin-top:8px;color:var(--muted)">${esc(m.label)}</div></div>`).join('')}</div><p class="muted">Showing ${feeReportMonths.length} months. Collections are based on payment dates recorded in the system.</p>`}`); 
   html+=panel('Fee balance by student',`<div class="table-wrap"><table><thead><tr><th>Student</th><th>Class</th><th>Expected</th><th>Paid</th><th>Balance</th></tr></thead><tbody>${students.map(s=>`<tr><td>${esc(s.full_name)}</td><td>${esc(s.class_name)}</td><td>${money(s.total_fees)}</td><td>${money(s.paid)}</td><td>${money(Math.max(0,Number(s.total_fees)-Number(s.paid)))}</td></tr>`).join('')}</tbody></table></div>`);
  api('/api/reports').then(r=>{if(state.view!=='Reports')return;const box=$('#auditBody');if(box)box.innerHTML=r.audit.length?r.audit.map(a=>`<div class="report-row"><span><b>${esc(a.action.replaceAll('_',' '))}</b> · ${esc(a.entity_type)}</span><small>${new Date(a.created_at).toLocaleString()}</small></div>`).join(''):'<div class="empty">No activity yet.</div>';}).catch(()=>{});
  html+=panel('Recent activity','<div id="auditBody" class="report-list"><div class="empty">Loading activity…</div></div>');
