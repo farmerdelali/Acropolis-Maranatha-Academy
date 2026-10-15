@@ -2436,6 +2436,27 @@ case 'add-pickup-person':
         break;
       }
 
+      case 'delete-parent': {
+        if (state.user?.role !== 'ADMIN') {
+          throw new Error('Only administrators can delete parents.');
+        }
+
+        const parentId = button.dataset.id;
+        const parentName = button.dataset.name || 'this parent';
+
+        if (confirm(`Delete ${parentName}? This action cannot be undone.`)) {
+          await api('/api/parents/' + encodeURIComponent(parentId), {
+            method: 'DELETE'
+          });
+
+          await refresh();
+          state.view = 'Parents';
+          render();
+          toast('Parent deleted successfully.');
+        }
+        break;
+      }
+
       case 'add-student':
       case 'add-student':
         studentForm();
