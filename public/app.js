@@ -738,12 +738,7 @@ const rows = d.payments.length
         >
         Require a parent or guardian phone number for new student registrations
       </label>
-
       <div class="form-actions">
-        <button class="btn primary" type="submit">
-          Save registration rules
-        </button>
-         <div class="form-actions">
         <button class="btn primary" type="submit">
           Save registration rules
         </button>
@@ -760,8 +755,7 @@ const rows = d.payments.length
     </div>
   `);
 } else if (state.view === 'Match Students') {
-} else if (state.view === 'Match Students') {
-  const normalize = value =>
+       const normalize = value =>
     String(value || '').trim().toLowerCase().replace(/\s+/g, ' ');
 
   const surname = value => {
