@@ -743,18 +743,23 @@ const rows = d.payments.length
         <button class="btn primary" type="submit">
           Save registration rules
         </button>
+         <div class="form-actions">
+        <button class="btn primary" type="submit">
+          Save registration rules
+        </button>
+      </div>
+    </form>
+  `)+
+  panel('System management',`
+    <p class="muted">Manage class configuration, attendance rules and system security.</p>
+    <div class="settings-menu">
+      <button type="button" class="btn soft" data-action="class-management-settings">
+        <span>Class Management Settings</span>
+        <span>Manage class levels, capacity and activation →</span>
+      </button>
     </div>
-</form>
-
-")+ panel('System management',"
-<p class="muted">Manage class configuration, attendance rules and system security.</p>
-<div class="settings-menu">
-<button type="button" class="btn soft" data-action="class-management-settings">
-<span>Class Management Settings</span>
-<span>Manage class levels, capacity and activation →</span>
-</button>
-</div>
-`);
+  `);
+} else if (state.view === 'Match Students') {
 } else if (state.view === 'Match Students') {
   const normalize = value =>
     String(value || '').trim().toLowerCase().replace(/\s+/g, ' ');
