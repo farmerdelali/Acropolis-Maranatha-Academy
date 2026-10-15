@@ -370,50 +370,69 @@ html+=dashboardCalendar();
       return counts;
     }, {})
   ).sort((a, b) => b[1] - a[1]);
+const classTotal = classCounts.reduce((sum, item) => sum + item[1], 0);
+  const chartColors = [
+    '#101c3a', '#ffb900', '#147b55', '#b42332',
+    '#4676c8', '#8b5cf6', '#0e9aa7', '#e8793e'
+  ];
 
-  const maxClassCount = Math.max(1, ...classCounts.map(item => item[1]));
-  const maxFees = Math.max(1, expected, paid);
+  let angle = 0;
+  const pieSlices = classCounts.map(([name, count], index) => {
+    const start = angle;
+    angle += classTotal ? count / classTotal * 360 : 0;
+    return `${chartColors[index % chartColors.length]} ${start}deg ${angle}deg`;
+  });
 
   html += panel(
-    'Student enrolment by class',
+    'Student distribution by class',
     classCounts.length
-      ? `<div style="display:grid;gap:14px">
-          ${classCounts.map(([className, count]) => `
-            <div>
-              <div style="display:flex;justify-content:space-between;gap:12px;margin-bottom:6px">
-                <span>${esc(className)}</span>
-                <strong>${count}</strong>
+      ? `<div style="display:flex;align-items:center;gap:22px;flex-wrap:wrap">
+          <div style="width:180px;height:180px;max-width:100%;border-radius:50%;
+            background:conic-gradient(${pieSlices.join(',')});
+            flex-shrink:0;border:1px solid var(--bg)"
+            role="img"
+            aria-label="Pie chart showing student distribution by class"></div>
+          <div style="display:grid;gap:10px;min-width:150px;flex:1">
+            ${classCounts.map(([name, count], index) => `
+              <div style="display:flex;align-items:center;gap:8px">
+                <span style="width:12px;height:12px;border-radius:3px;flex-shrink:0;
+                  background:${chartColors[index % chartColors.length]}"></span>
+                <span style="flex:1">${esc(name)}</span>
+                <strong>${count} (${Math.round(count / classTotal * 100)}%)</strong>
               </div>
-              <div style="height:10px;background:var(--bg);border-radius:8px;overflow:hidden">
-                <div style="height:100%;width:${count / maxClassCount * 100}%;background:var(--navy2);border-radius:8px"></div>
-              </div>
-            </div>
-          `).join('')}
+            `).join('')}
+          </div>
         </div>`
       : '<div class="empty">No student records available to chart yet.</div>'
   );
 
+  const outstanding = Math.max(0, expected - paid);
+  const feeBars = [
+    ['Fees expected', expected, '#101c3a'],
+    ['Payments received', paid, '#147b55'],
+    ['Outstanding balance', outstanding, '#ffb900']
+  ];
+  const maxFees = Math.max(1, ...feeBars.map(item => item[1]));
+
   html += panel(
     'School fees overview',
     `<div style="display:grid;gap:18px">
-      ${[
-        ['Fees expected', expected],
-        ['Payments received', paid],
-        ['Outstanding balance', Math.max(0, expected - paid)]
-      ].map(([label, amount]) => `
+      ${feeBars.map(([label, amount, color]) => `
         <div>
-          <div style="display:flex;justify-content:space-between;gap:12px;margin-bottom:6px">
+          <div style="display:flex;justify-content:space-between;gap:12px;
+            margin-bottom:7px;flex-wrap:wrap">
             <span>${label}</span>
             <strong>${money(amount)}</strong>
           </div>
-          <div style="height:12px;background:var(--bg);border-radius:8px;overflow:hidden">
-            <div style="height:100%;width:${Math.min(100, amount / maxFees * 100)}%;background:var(--gold);border-radius:8px"></div>
+          <div style="height:18px;background:var(--bg);border-radius:8px;overflow:hidden">
+            <div style="height:100%;width:${amount / maxFees * 100}%;
+              background:${color};border-radius:8px;transition:width .4s ease"></div>
           </div>
         </div>
       `).join('')}
     </div>`
   );
-  html+=panel('Recently registered students',studentRows(students.slice(0,6),false),`<button class="btn soft" data-view="Students">View all</button>`);
+    html+=panel('Recently registered students',studentRows(students.slice(0,6),false),`<button class="btn soft" data-view="Students">View all</button>`);
  html+=panel('Quick actions',`<div class="toolbar"><button class="btn primary" data-action="add-student">Register student</button>${['ADMIN','TEACHER'].includes(state.user.role)?'<button class="btn soft" data-action="add-mark">Enter examination mark</button>':''}${['ADMIN','BURSAR'].includes(state.user.role)?'<button class="btn soft" data-action="add-payment">Record payment</button>':''}<button class="btn soft" data-view="Reports">Open reports</button></div>`);
 }else if(state.view==='Students'){
  html=pageHead('Student records','Register, search and maintain student information.',`<button class="btn primary" data-action="add-student">+ Register student</button>`)+`<section class="panel"><div class="panel-body"><div class="toolbar"><input id="studentSearch" placeholder="Search name, ID, class or guardian…" value="${esc(state.search)}"><button class="btn soft" data-action="clear-search">Clear</button></div>${studentRows(students.filter(s=>[s.full_name,s.student_code,s.class_name,s.guardian_name,s.guardian_phone].join(' ').toLowerCase().includes(state.search.toLowerCase())))}</div></section>`;
