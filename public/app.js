@@ -2419,6 +2419,23 @@ case 'add-pickup-person':
         parentForm();
         break;
 
+      case 'edit-parent': {
+        if (state.user?.role !== 'ADMIN') {
+          throw new Error('Only administrators can edit parents.');
+        }
+
+        const parent = (state.data.parents || []).find(
+          p => String(p.id) === String(button.dataset.id)
+        );
+
+        if (parent) {
+          parentForm(parent);
+        } else {
+          toast('Parent record not found. Please refresh.', true);
+        }
+        break;
+      }
+
       case 'add-student':
       case 'add-student':
         studentForm();
