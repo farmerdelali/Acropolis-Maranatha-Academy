@@ -95,7 +95,8 @@ function showApp(user) {
       'Pickup Persons',
       'Graduations',
       'Class Activations',
-      'Classrooms',
+            'Classrooms',
+      'Attendance Register',
       'Marks',
       'Fees & Payments',
       'Reports'
@@ -104,8 +105,9 @@ function showApp(user) {
     TEACHER: [
       'Dashboard',
       'Students',
-      'Marks',
-      'Classrooms'
+            'Marks',
+      'Classrooms',
+      'Attendance Register'
     ],
 
     BURSAR: [
