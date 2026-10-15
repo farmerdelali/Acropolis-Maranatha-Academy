@@ -2233,6 +2233,53 @@ toast(parentId ? 'Parent updated successfully.' : 'Parent registered successfull
       toast('Classroom saved successfully.');
 
     
+    } else if (form.id === 'classManagementSettingsForm') {
+      const classLevels = String(v.classLevels || '')
+        .split('\n')
+        .map(level => level.trim())
+        .filter(Boolean);
+
+      const defaultCapacity = Number(v.defaultCapacity);
+
+      const allowInactivePlacement = form.querySelector(
+        '[name="allowInactivePlacement"]'
+      ).checked;
+
+      if (!classLevels.length) {
+        throw new Error('Enter at least one class level.');
+      }
+
+      if (
+        !Number.isInteger(defaultCapacity) ||
+        defaultCapacity < 1 ||
+        defaultCapacity > 500
+      ) {
+        throw new Error(
+          'Default class capacity must be between 1 and 500.'
+        );
+      }
+
+      const r = await api('/api/system-settings', {
+        method: 'PUT',
+        body: JSON.stringify({
+          settings: {
+            ...(state.data.systemSettings || {}),
+            classManagement: {
+              classLevels,
+              defaultCapacity,
+              allowInactivePlacement
+            }
+          }
+        })
+      });
+
+      state.data.systemSettings = r.settings || {};
+
+      await refresh();
+      state.view = 'Class Management Settings';
+      render();
+      toast('Class Management Settings saved successfully.');
+
     } else if (form.id === 'studentRulesForm') {
       const requireGuardianPhone = form.querySelector(
         '[name="requireGuardianPhone"]'
