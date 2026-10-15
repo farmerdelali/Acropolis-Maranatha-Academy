@@ -2002,8 +2002,7 @@ await api(
   await refresh();
   state.view = 'Parents';
   render();
-  toast('Parent registered successfully.');
-
+toast(parentId ? 'Parent updated successfully.' : 'Parent registered successfully.');
     } else if (form.id === 'dropOffDenialForm') {
       await api('/api/drop-off-denials', {
         method: 'POST',
