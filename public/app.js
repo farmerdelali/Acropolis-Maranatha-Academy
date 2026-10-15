@@ -2166,6 +2166,49 @@ async function refresh(){await loadData();}
 async function download(url,filename){const r=await fetch(url,{credentials:'same-origin'});if(!r.ok){let b={};try{b=await r.json()}catch{}throw new Error(b.error||'Download failed');}const blob=await r.blob(),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=filename;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),1500);}
 
 document.addEventListener('change', e => {
+  if (e.target.id === 'attendanceClass') {
+const selectedClass = e.target.value;
+const rows = document.getElementById('attendanceStudentRows');
+const count = document.getElementById('attendanceStudentCount');
+const saveButton = document.querySelector(
+'#attendanceRegisterForm button[type="submit"]'
+);
+
+if (!rows) return;
+
+const students = (state.data.students || []).filter(s =>
+  !s.archived &&
+  String(s.class_name || '').trim() === selectedClass
+);
+
+rows.innerHTML = students.map(s => `
+  <tr data-attendance-student
+      data-class-name="${esc(s.class_name || '')}">
+    <td>${esc(s.student_code || '—')}</td>
+    <td><strong>${esc(s.full_name || 'Unnamed student')}</strong></td>
+    <td>
+      <select name="status_${esc(s.id)}"
+              data-attendance-status="${esc(s.id)}" required>
+        <option value="PRESENT">Present</option>
+        <option value="ABSENT">Absent</option>
+        <option value="LATE">Late</option>
+        <option value="EXCUSED">Excused</option>
+      </select>
+    </td>
+    <td>
+      <input name="reason_${esc(s.id)}"
+             data-attendance-reason="${esc(s.id)}"
+             maxlength="250" placeholder="Optional note">
+    </td>
+  </tr>
+`).join('');
+
+if (count) count.textContent = students.length;
+if (saveButton) saveButton.disabled = students.length === 0;
+
+return;
+
+}
   if (e.target.id === 'calendarMonth') {
     state.calendarMonth = Number(e.target.value);
     render();
