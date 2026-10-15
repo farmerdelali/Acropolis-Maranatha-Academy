@@ -754,6 +754,44 @@ const rows = d.payments.length
       </button>
     </div>
   `);
+  } else if (state.view === 'Class Management Settings') {
+const classSettings = (state.data.systemSettings || {}).classManagement || {};
+const classLevels = Array.isArray(classSettings.classLevels)
+? classSettings.classLevels.join('\n')
+: 'Pre-Nursery\nNursery 1\nNursery 2\nKG 1\nKG 2\nBasic 1\nBasic 2\nBasic 3\nBasic 4\nBasic 5\nBasic 6\nJHS 1\nJHS 2\nJHS 3';
+
+html = pageHead(
+'Class Management Settings',
+'Configure class levels, class capacity and student placement.',
+'<button class="btn soft" data-action="back-to-settings">← Back to Settings</button>'
+) +
+panel('Class structure and capacity', `
+<form id="classManagementSettingsForm">
+<label class="field">
+Class levels
+<textarea name="classLevels" rows="10" required maxlength="3000"
+placeholder="Enter one class level per line">${esc(classLevels)}</textarea>
+<small>Enter one level per line, from Pre-Nursery through JHS.</small>
+</label>
+
+  <label class="field">
+    Default maximum students per class
+    <input name="defaultCapacity" type="number" min="1" max="500"
+      required value="${esc(classSettings.defaultCapacity || 40)}">
+  </label>
+
+  <label class="field">
+    <input type="checkbox" name="allowInactivePlacement"
+      ${classSettings.allowInactivePlacement === true ? 'checked' : ''}>
+    Allow student placement into inactive classes
+  </label>
+
+  <div class="form-actions">
+    <button class="btn primary" type="submit">Save Class Management Settings</button>
+  </div>
+</form>
+
+`);
 } else if (state.view === 'Match Students') {
        const normalize = value =>
     String(value || '').trim().toLowerCase().replace(/\s+/g, ' ');
