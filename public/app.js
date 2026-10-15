@@ -904,7 +904,7 @@ html = pageHead(
 
 'Manage parent and guardian contacts and their linked students.',
 
-<th>Actions</th>
+
 state.user && state.user.role === 'ADMIN'
 ? '<button type="button" class="btn primary" data-action="add-parent">+ Register Parent</button>'
 : ''
@@ -919,7 +919,10 @@ state.user && state.user.role === 'ADMIN'
             <th>Relationship</th>
             <th>Phone</th>
             <th>Email</th>
-            <th>Linked students</th>
+            
+<th>Linked students</th>
+<th>Actions</th>
+
           </tr>
         </thead>
         <tbody>${parentRows}</tbody>
