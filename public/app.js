@@ -2161,10 +2161,11 @@ document.addEventListener('click', e => {
 
 document.addEventListener('submit', async e => {
   const form = e.target;
+       'classroomForm',
     'classManagementSettingsForm',
-          'attendanceRegisterForm',
     'attendanceRegisterForm',
     'attendanceSettingsForm',
+    'feedingSettingsForm',
   const allowedForms = [
   'registerForm',
   'loginForm',
