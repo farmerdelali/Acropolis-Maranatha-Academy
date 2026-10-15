@@ -2474,6 +2474,14 @@ if (!allowedMenus.includes(button.dataset.view) && !canOpenFeeding) {
         render();
         break;
 
+      case 'attendance-settings':
+        if (state.user?.role !== 'ADMIN') {
+          throw new Error('Only administrators can manage attendance settings.');
+        }
+        state.view = 'Attendance Settings';
+        render();
+        break;
+
        case 'class-management-settings':
     if (state.user?.role !== 'ADMIN') {
       throw new Error('Only administrators can manage class settings.');
