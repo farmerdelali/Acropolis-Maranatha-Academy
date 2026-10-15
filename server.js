@@ -64,6 +64,40 @@ async function initDb() {
       updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     )
   `);
+
+  await q(`
+    CREATE TABLE IF NOT EXISTS attendance_registers (
+      id BIGSERIAL PRIMARY KEY,
+      school_id BIGINT NOT NULL REFERENCES schools(id) ON DELETE CASCADE,
+      class_name TEXT NOT NULL,
+      attendance_date DATE NOT NULL,
+      session_name TEXT NOT NULL DEFAULT 'Morning',
+      status TEXT NOT NULL DEFAULT 'DRAFT'
+        CHECK (status IN ('DRAFT', 'SUBMITTED')),
+      created_by BIGINT REFERENCES users(id) ON DELETE SET NULL,
+      submitted_by BIGINT REFERENCES users(id) ON DELETE SET NULL,
+      submitted_at TIMESTAMPTZ,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      UNIQUE (school_id, class_name, attendance_date, session_name)
+    )
+  `);
+
+  await q(`
+    CREATE TABLE IF NOT EXISTS attendance_entries (
+      id BIGSERIAL PRIMARY KEY,
+      school_id BIGINT NOT NULL REFERENCES schools(id) ON DELETE CASCADE,
+      register_id BIGINT NOT NULL
+        REFERENCES attendance_registers(id) ON DELETE CASCADE,
+      student_id BIGINT NOT NULL
+        REFERENCES students(id) ON DELETE CASCADE,
+      status TEXT NOT NULL
+        CHECK (status IN ('PRESENT', 'ABSENT', 'LATE', 'EXCUSED')),
+      reason TEXT NOT NULL DEFAULT '',
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      UNIQUE (register_id, student_id)
+    )
+  `);
 }
 
 
