@@ -2562,12 +2562,19 @@ return;
   if (button.dataset.view) {
     const menuByRole = {
       ADMIN: nav.map(([name]) => name),
-      HEADMASTER: [
-        'Dashboard', 'Students', 'Match Students', 'Parents',
-        'Pickup Persons', 'Graduations', 'Class Activations',
-        'Classrooms', 'Marks', 'Fees & Payments', 'Reports'
-      ],
-      TEACHER: ['Dashboard', 'Students', 'Marks', 'Classrooms'],
+    
+HEADMASTER: [
+  'Dashboard', 'Students', 'Match Students', 'Parents',
+  'Pickup Persons', 'Graduations', 'Class Activations',
+  'Classrooms', 'Attendance Register', 'Marks',
+  'Fees & Payments', 'Reports'
+],
+
+TEACHER: [
+  'Dashboard', 'Students', 'Marks', 'Classrooms',
+  'Attendance Register'
+],
+
       BURSAR: [
   'Dashboard',
   'Fees & Payments',
