@@ -1660,7 +1660,42 @@ if (!result.rowCount) return res.status(404).json({ error: 'Classroom not found.
 await audit(req, 'classroom_deleted', 'classroom', req.params.id);
 res.json({ ok: true, message: 'Classroom deleted.' });
 }));
+/* =========================================================
+   ATTENDANCE API — LOAD CLASSES, STUDENTS AND REGISTERS
+   ========================================================= */
 
+app.get(
+  '/api/attendance/bootstrap',
+  requireRole('ADMIN', 'HEADMASTER', 'TEACHER'),
+  asyncRoute(async (req, res) => {
+    const sid = schoolId(req);
+
+    const [classResult, studentResult] = await Promise.all([
+      q(
+        `SELECT DISTINCT class_name
+         FROM classrooms
+         WHERE school_id = $1
+           AND class_name <> ''
+           AND status = 'ACTIVE'
+         ORDER BY class_name`,
+        [sid]
+      ),
+      q(
+        `SELECT id, student_code, full_name, class_name
+         FROM students
+         WHERE school_id = $1
+           AND archived = false
+         ORDER BY class_name, full_name`,
+        [sid]
+      )
+    ]);
+
+    res.json({
+      classes: classResult.rows.map(row => row.class_name),
+      students: studentResult.rows
+    });
+  })
+);
 /* =========================================================
    FEEDING MANAGEMENT API
    Separate from tuition payments.
