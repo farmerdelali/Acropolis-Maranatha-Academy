@@ -2161,7 +2161,9 @@ document.addEventListener('click', e => {
 
 document.addEventListener('submit', async e => {
   const form = e.target;
-
+    'classManagementSettingsForm',
+    'attendanceRegisterForm',
+    'attendanceSettingsForm',
   const allowedForms = [
   'registerForm',
   'loginForm',
