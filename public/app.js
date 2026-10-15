@@ -2185,12 +2185,13 @@ if (!rows) return;
 
 const students = (state.data.students || []).filter(s =>
   !s.archived &&
-  String(s.class_name || '').trim() === selectedClass
+  String(s.class_name || s.class || s.className || '').trim() === selectedClass
 );
 
 rows.innerHTML = students.map(s => `
   <tr data-attendance-student
-      data-class-name="${esc(s.class_name || '')}">
+      data-class-name="${esc(s.class_name || s.class || s.className || '')}">
+
     <td>${esc(s.student_code || '—')}</td>
     <td><strong>${esc(s.full_name || 'Unnamed student')}</strong></td>
     <td>
