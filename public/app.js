@@ -2049,6 +2049,7 @@ document.addEventListener('submit', async e => {
 'classActivationForm',
 'classroomForm',
     'classManagementSettingsForm',
+    'attendanceSettingsForm',
     'feedingSettingsForm',
 'feedingPlanForm',
 'feedingPaymentForm',
