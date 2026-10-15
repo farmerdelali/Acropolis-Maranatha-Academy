@@ -363,31 +363,56 @@ function render(){const d=state.data,students=d.students.filter(s=>!s.archived),
 if(state.view==='Dashboard'){
  html=pageHead('School overview',`Welcome back, ${state.user.username}. Here is your school's current position.`,`<button class="btn primary" data-action="add-student">+ Register student</button>`)+`<div class="cards">${stat('Active students',students.length,'Currently enrolled')}${stat('Fees expected',money(expected),'Total registered fees')}${stat('Payments received',money(paid),'All recorded receipts')}${stat('Students with balance',owing,'Students with outstanding fees')}</div>`;
 html+=dashboardCalendar();
-  const classCounts = Object.entries(students.reduce((counts, student) => {
-const className = String(student.class_name || 'Unassigned');
-counts[className] = (counts[className] || 0) + 1;
-return counts;
-}, {})).sort((a, b) => b[1] - a[1]);
+  const classCounts = Object.entries(
+    students.reduce((counts, student) => {
+      const className = String(student.class_name || 'Unassigned');
+      counts[className] = (counts[className] || 0) + 1;
+      return counts;
+    }, {})
+  ).sort((a, b) => b[1] - a[1]);
 
-const maxClassCount = Math.max(1, ...classCounts.map(item => item[1]));
-const maxFees = Math.max(1, expected, paid);
+  const maxClassCount = Math.max(1, ...classCounts.map(item => item[1]));
+  const maxFees = Math.max(1, expected, paid);
 
-html += panel('Student enrolment by class',
-classCounts.length
-? "<div style="display:grid;gap:14px"> ${classCounts.map(([className, count]) => "
-<div>
-<div style="display:flex;justify-content:space-between;gap:12px;margin-bottom:6px">
-<span>${esc(className)}</span>
-<strong>${count}</strong>
-</div>
-<div style="height:10px;background:var(--bg);border-radius:8px;overflow:hidden">
-<div style="height:100%;width:${count / maxClassCount * 100}%;background:var(--navy2);border-radius:8px"></div>
-</div>
-</div>
-").join('')} </div>"
-: '<div class="empty">No student records available to chart yet.</div>'
-);
+  html += panel(
+    'Student enrolment by class',
+    classCounts.length
+      ? `<div style="display:grid;gap:14px">
+          ${classCounts.map(([className, count]) => `
+            <div>
+              <div style="display:flex;justify-content:space-between;gap:12px;margin-bottom:6px">
+                <span>${esc(className)}</span>
+                <strong>${count}</strong>
+              </div>
+              <div style="height:10px;background:var(--bg);border-radius:8px;overflow:hidden">
+                <div style="height:100%;width:${count / maxClassCount * 100}%;background:var(--navy2);border-radius:8px"></div>
+              </div>
+            </div>
+          `).join('')}
+        </div>`
+      : '<div class="empty">No student records available to chart yet.</div>'
+  );
 
+  html += panel(
+    'School fees overview',
+    `<div style="display:grid;gap:18px">
+      ${[
+        ['Fees expected', expected],
+        ['Payments received', paid],
+        ['Outstanding balance', Math.max(0, expected - paid)]
+      ].map(([label, amount]) => `
+        <div>
+          <div style="display:flex;justify-content:space-between;gap:12px;margin-bottom:6px">
+            <span>${label}</span>
+            <strong>${money(amount)}</strong>
+          </div>
+          <div style="height:12px;background:var(--bg);border-radius:8px;overflow:hidden">
+            <div style="height:100%;width:${Math.min(100, amount / maxFees * 100)}%;background:var(--gold);border-radius:8px"></div>
+          </div>
+        </div>
+      `).join('')}
+    </div>`
+  );
 html += panel('School fees overview',
 "<div style="display:grid;gap:18px"> ${[ ['Fees expected', expected], ['Payments received', paid], ['Outstanding balance', Math.max(0, expected - paid)] ].map(([label, amount]) => "
 <div>
