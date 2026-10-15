@@ -2457,6 +2457,15 @@ if (!allowedMenus.includes(button.dataset.view) && !canOpenFeeding) {
 
   try {
     switch (action) { 
+        
+      case 'back-to-settings':
+        if (state.user?.role !== 'ADMIN') {
+          throw new Error('Only administrators can access Settings.');
+        }
+        state.view = 'Settings';
+        render();
+        break;
+
        case 'class-management-settings':
     if (state.user?.role !== 'ADMIN') {
       throw new Error('Only administrators can manage class settings.');
