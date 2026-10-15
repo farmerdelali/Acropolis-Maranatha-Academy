@@ -1696,6 +1696,140 @@ app.get(
     });
   })
 );
+app.post(
+  '/api/attendance/registers',
+  requireRole('ADMIN', 'HEADMASTER'),
+  asyncRoute(async (req, res) => {
+    const sid = schoolId(req);
+    const { className, attendanceDate, sessionName = 'Morning', entries } = req.body || {};
+
+    if (
+      !validText(className, 100) ||
+      typeof attendanceDate !== 'string' ||
+      !/^\d{4}-\d{2}-\d{2}$/.test(attendanceDate) ||
+      !validText(sessionName, 40) ||
+      !Array.isArray(entries) ||
+      entries.length === 0 ||
+      entries.length > 500
+    ) {
+      return res.status(400).json({
+        error: 'Provide a class, valid date, session and attendance entries.'
+      });
+    }
+
+    const allowedStatuses = ['PRESENT', 'ABSENT', 'LATE', 'EXCUSED'];
+    const seen = new Set();
+
+    for (const entry of entries) {
+      const id = Number(entry?.studentId);
+      if (
+        !Number.isSafeInteger(id) ||
+        id <= 0 ||
+        !allowedStatuses.includes(entry?.status) ||
+        seen.has(id)
+      ) {
+        return res.status(400).json({
+          error: 'Each student must have one valid attendance status.'
+        });
+      }
+      seen.add(id);
+    }
+
+    const client = await pool.connect();
+
+    try {
+      await client.query('BEGIN');
+
+      const students = await client.query(
+        `SELECT id
+         FROM students
+         WHERE school_id = $1
+           AND class_name = $2
+           AND archived = false
+           AND id = ANY($3::bigint[])`,
+        [sid, className.trim(), [...seen]]
+      );
+
+      if (students.rowCount !== seen.size) {
+        await client.query('ROLLBACK');
+        return res.status(400).json({
+          error: 'One or more students do not belong to this class.'
+        });
+      }
+
+      const existing = await client.query(
+        `SELECT id, status
+         FROM attendance_registers
+         WHERE school_id = $1
+           AND class_name = $2
+           AND attendance_date = $3
+           AND session_name = $4
+         FOR UPDATE`,
+        [sid, className.trim(), attendanceDate, sessionName.trim()]
+      );
+
+      let registerId;
+
+      if (existing.rowCount) {
+        if (existing.rows[0].status === 'SUBMITTED') {
+          await client.query('ROLLBACK');
+          return res.status(409).json({
+            error: 'This register has already been submitted and is locked.'
+          });
+        }
+
+        registerId = existing.rows[0].id;
+        await client.query(
+          'DELETE FROM attendance_entries WHERE register_id = $1 AND school_id = $2',
+          [registerId, sid]
+        );
+      } else {
+        const created = await client.query(
+          `INSERT INTO attendance_registers
+            (school_id, class_name, attendance_date, session_name, created_by)
+           VALUES ($1, $2, $3, $4, $5)
+           RETURNING id`,
+          [sid, className.trim(), attendanceDate, sessionName.trim(), req.session.user.id]
+        );
+        registerId = created.rows[0].id;
+      }
+
+      for (const entry of entries) {
+        await client.query(
+          `INSERT INTO attendance_entries
+            (school_id, register_id, student_id, status, reason)
+           VALUES ($1, $2, $3, $4, $5)`,
+          [
+            sid,
+            registerId,
+            Number(entry.studentId),
+            entry.status,
+            typeof entry.reason === 'string' ? entry.reason.trim().slice(0, 250) : ''
+          ]
+        );
+      }
+
+      await client.query(
+        'UPDATE attendance_registers SET updated_at = NOW() WHERE id = $1 AND school_id = $2',
+        [registerId, sid]
+      );
+
+      await client.query('COMMIT');
+      await audit(req, 'attendance_register_saved', 'attendance_register', registerId);
+
+      res.json({
+        ok: true,
+        registerId,
+        message: 'Attendance register saved as a draft.'
+      });
+    } catch (error) {
+      await client.query('ROLLBACK').catch(() => {});
+      throw error;
+    } finally {
+      client.release();
+    }
+  })
+);
 /* =========================================================
    FEEDING MANAGEMENT API
    Separate from tuition payments.
