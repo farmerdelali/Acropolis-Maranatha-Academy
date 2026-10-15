@@ -1829,6 +1829,92 @@ app.post(
       client.release();
     }
   })
+);app.post(
+  '/api/attendance/registers/:id/submit',
+  requireRole('ADMIN', 'HEADMASTER'),
+  asyncRoute(async (req, res) => {
+    const sid = schoolId(req);
+    const registerId = Number(req.params.id);
+
+    if (!Number.isSafeInteger(registerId) || registerId <= 0) {
+      return res.status(400).json({ error: 'Invalid attendance register.' });
+    }
+
+    const client = await pool.connect();
+
+    try {
+      await client.query('BEGIN');
+
+      const result = await client.query(
+        `SELECT id, class_name, status
+         FROM attendance_registers
+         WHERE id = $1 AND school_id = $2
+         FOR UPDATE`,
+        [registerId, sid]
+      );
+
+      if (!result.rowCount) {
+        await client.query('ROLLBACK');
+        return res.status(404).json({ error: 'Attendance register not found.' });
+      }
+
+      const register = result.rows[0];
+
+      if (register.status === 'SUBMITTED') {
+        await client.query('ROLLBACK');
+        return res.status(409).json({ error: 'This register is already submitted.' });
+      }
+
+      const counts = await client.query(
+        `SELECT
+           (SELECT COUNT(*)
+            FROM students
+            WHERE school_id = $1
+              AND class_name = $2
+              AND archived = false) AS total_students,
+           (SELECT COUNT(*)
+            FROM attendance_entries
+            WHERE school_id = $1
+              AND register_id = $3) AS marked_students`,
+        [sid, register.class_name, registerId]
+      );
+
+      if (
+        Number(counts.rows[0].total_students) === 0 ||
+        Number(counts.rows[0].total_students) !==
+          Number(counts.rows[0].marked_students)
+      ) {
+        await client.query('ROLLBACK');
+        return res.status(400).json({
+          error: 'Mark every active student in this class before submitting.'
+        });
+      }
+
+      await client.query(
+        `UPDATE attendance_registers
+         SET status = 'SUBMITTED',
+             submitted_by = $1,
+             submitted_at = NOW(),
+             updated_at = NOW()
+         WHERE id = $2 AND school_id = $3`,
+        [req.session.user.id, registerId, sid]
+      );
+
+      await client.query('COMMIT');
+
+      await audit(req, 'attendance_register_submitted', 'attendance_register', registerId);
+
+      res.json({
+        ok: true,
+        message: 'Attendance submitted and locked successfully.'
+      });
+    } catch (error) {
+      await client.query('ROLLBACK').catch(() => {});
+      throw error;
+    } finally {
+      client.release();
+    }
+  })
 );
 /* =========================================================
    FEEDING MANAGEMENT API
