@@ -413,19 +413,6 @@ html+=dashboardCalendar();
       `).join('')}
     </div>`
   );
-html += panel('School fees overview',
-"<div style="display:grid;gap:18px"> ${[ ['Fees expected', expected], ['Payments received', paid], ['Outstanding balance', Math.max(0, expected - paid)] ].map(([label, amount]) => "
-<div>
-<div style="display:flex;justify-content:space-between;gap:12px;margin-bottom:6px">
-<span>${label}</span>
-<strong>${money(amount)}</strong>
-</div>
-<div style="height:12px;background:var(--bg);border-radius:8px;overflow:hidden">
-<div style="height:100%;width:${Math.min(100, amount / maxFees * 100)}%;background:var(--gold);border-radius:8px"></div>
-</div>
-</div>
-").join('')} </div>"
-);
   html+=panel('Recently registered students',studentRows(students.slice(0,6),false),`<button class="btn soft" data-view="Students">View all</button>`);
  html+=panel('Quick actions',`<div class="toolbar"><button class="btn primary" data-action="add-student">Register student</button>${['ADMIN','TEACHER'].includes(state.user.role)?'<button class="btn soft" data-action="add-mark">Enter examination mark</button>':''}${['ADMIN','BURSAR'].includes(state.user.role)?'<button class="btn soft" data-action="add-payment">Record payment</button>':''}<button class="btn soft" data-view="Reports">Open reports</button></div>`);
 }else if(state.view==='Students'){
