@@ -876,7 +876,7 @@ html = `
 
 }
 } else if (state.view === 'Parents') {
-const parents = d.parents || [];
+
 const parentRows = parents.length
   ? parents.map(p => `
     <tr>
@@ -884,14 +884,26 @@ const parentRows = parents.length
       <td>${esc(p.relationship || '—')}</td>
       <td>${esc(p.phone || '—')}</td>
       <td>${esc(p.email || '—')}</td>
-      <td>${esc(p.student_names || p.studentNames || '—')}</td>
+      <td>${esc((p.students || []).map(s => s.name || s.full_name || '').join(', ') || p.student_names || p.studentNames || '—')}</td>
+      <td>
+        ${state.user?.role === 'ADMIN' ? `
+          <button type="button" class="btn soft"
+            data-action="edit-parent" data-id="${esc(p.id)}">Edit</button>
+          <button type="button" class="btn danger"
+            data-action="delete-parent" data-id="${esc(p.id)}"
+            data-name="${esc(p.full_name || p.fullName || '')}">Delete</button>
+        ` : '—'}
+      </td>
     </tr>
+  `).join('')
+  : '<tr><td colspan="6">No parents or guardians registered yet.</td></tr>';
+
   `).join('')
 : '<tr><td colspan="5">No parents or guardians registered yet.</td></tr>';
 
 html = pageHead(
 'Parents & Guardians',
-'Manage parent and guardian contacts and their linked students.',
+'Manage parent and guardian contacts and their linked students.',<th>Actions</th>
 state.user && state.user.role === 'ADMIN'
 ? '<button type="button" class="btn primary" data-action="add-parent">+ Register Parent</button>'
 : ''
