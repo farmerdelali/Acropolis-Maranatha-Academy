@@ -745,11 +745,10 @@ const rows = d.payments.length
         </button>
       </div>
     </form>
-  `);
-}
-}
 
-else if (state.view === 'Match Students') {
+  `);
+} else if (state.view === 'Match Students') {
+
   const normalize = value =>
     String(value || '').trim().toLowerCase().replace(/\s+/g, ' ');
 
