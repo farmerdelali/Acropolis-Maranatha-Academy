@@ -864,7 +864,134 @@ placeholder="Enter one class level per line">${esc(classLevels)}</textarea>
     </form>
   `);
   
+
+} else if (state.view === 'Attendance Register') {
+  const attendanceClasses = [
+    ...new Set(
+      (d.classrooms || [])
+        .filter(c => !c.status || c.status === 'ACTIVE')
+        .map(c => c.class_name)
+        .filter(Boolean)
+    )
+  ];
+
+  const selectedClass = attendanceClasses[0] || '';
+
+  const attendanceStudents = students.filter(
+    s => !s.archived && s.class_name === selectedClass
+  );
+
+  const today = new Date();
+  const todayString = [
+    today.getFullYear(),
+    String(today.getMonth() + 1).padStart(2, '0'),
+    String(today.getDate()).padStart(2, '0')
+  ].join('-');
+
+  html = pageHead(
+    'Attendance Register',
+    'Record daily attendance for each student in the selected class.'
+  );
+
+  html += panel('Register details', `
+    <form id="attendanceRegisterForm">
+      <div class="form-grid">
+        <label class="field">
+          Select class
+          <select name="className" id="attendanceClass" required>
+            <option value="">Choose a class</option>
+            ${attendanceClasses.map(name => `
+              <option value="${esc(name)}"
+                ${name === selectedClass ? 'selected' : ''}>
+                ${esc(name)}
+              </option>
+            `).join('')}
+          </select>
+        </label>
+
+        <label class="field">
+          Attendance date
+          <input type="date" name="attendanceDate"
+            value="${todayString}" required>
+        </label>
+
+        <label class="field">
+          Session
+          <select name="sessionName" required>
+            <option value="Morning">Morning</option>
+            <option value="Afternoon">Afternoon</option>
+          </select>
+        </label>
+      </div>
+
+      <div class="toolbar" style="margin:16px 0">
+        <button class="btn soft" type="button"
+          data-action="attendance-mark-all">
+          Mark all present
+        </button>
+        <span>
+          Students in selected class:
+          <strong id="attendanceStudentCount">
+            ${attendanceStudents.length}
+          </strong>
+        </span>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Student ID</th>
+              <th>Student name</th>
+              <th>Attendance status</th>
+              <th>Reason / note</th>
+            </tr>
+          </thead>
+          <tbody id="attendanceStudentRows">
+            ${attendanceStudents.map(s => `
+              <tr data-attendance-student
+                data-class-name="${esc(s.class_name)}">
+                <td>${esc(s.student_code || '—')}</td>
+                <td><strong>${esc(s.full_name)}</strong></td>
+                <td>
+                  <select name="status_${esc(s.id)}"
+                    data-attendance-status="${esc(s.id)}"
+                    required>
+                    <option value="PRESENT">Present</option>
+                    <option value="ABSENT">Absent</option>
+                    <option value="LATE">Late</option>
+                    <option value="EXCUSED">Excused</option>
+                  </select>
+                </td>
+                <td>
+                  <input name="reason_${esc(s.id)}"
+                    data-attendance-reason="${esc(s.id)}"
+                    maxlength="250"
+                    placeholder="Optional note">
+                </td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </div>
+
+      ${attendanceClasses.length ? '' : `
+        <p class="empty">
+          No active classes were found. Set up your classrooms first.
+        </p>
+      `}
+
+      <div class="form-actions">
+        <button class="btn primary" type="submit"
+          ${attendanceStudents.length ? '' : 'disabled'}>
+          Save attendance draft
+        </button>
+      </div>
+    </form>
+  `);
+
 } else if (state.view === 'Match Students') {
+
        const normalize = value =>
     String(value || '').trim().toLowerCase().replace(/\s+/g, ' ');
 
