@@ -899,15 +899,13 @@ const parentRows = parents.length
   : '<tr><td colspan="6">No parents or guardians registered yet.</td></tr>';
 
 
+
 html = pageHead(
-'Parents & Guardians',
-
-'Manage parent and guardian contacts and their linked students.',
-
-
-state.user && state.user.role === 'ADMIN'
-? '<button type="button" class="btn primary" data-action="add-parent">+ Register Parent</button>'
-: ''
+  'Parents & Guardians',
+  'Manage parent and guardian contacts and their linked students.',
+  state.user && state.user.role === 'ADMIN'
+    ? '<button type="button" class="btn primary" data-action="add-parent">+ Register Parent</button>'
+    : ''
 ) + `
 
   <section class="panel">
