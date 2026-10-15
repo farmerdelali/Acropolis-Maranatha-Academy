@@ -754,6 +754,12 @@ const rows = d.payments.length
         <span>Class Management Settings</span>
         <span>Manage class levels, capacity and activation →</span>
       </button>
+      
+      <button type="button" class="btn soft" data-action="attendance-settings">
+        <span>Attendance Settings</span>
+        <span>Configure attendance rules, permissions and reports →</span>
+      </button>
+
     </div>
   `);
   } else if (state.view === 'Class Management Settings') {
