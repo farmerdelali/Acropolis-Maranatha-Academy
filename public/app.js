@@ -1979,6 +1979,7 @@ document.addEventListener('submit', async e => {
 'graduation-form',
 'classActivationForm',
 'classroomForm',
+    'classManagementSettingsForm',
     'feedingSettingsForm',
 'feedingPlanForm',
 'feedingPaymentForm',
