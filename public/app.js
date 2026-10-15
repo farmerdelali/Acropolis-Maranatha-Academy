@@ -2480,6 +2480,48 @@ toast(parentId ? 'Parent updated successfully.' : 'Parent registered successfull
       render();
       toast('Class Management Settings saved successfully.');
 
+    } else if (form.id === 'attendanceRegisterForm') {
+      if (!['ADMIN', 'HEADMASTER'].includes(state.user?.role)) {
+        throw new Error('You do not have permission to save attendance registers.');
+      }
+
+      const className = String(v.className || '').trim();
+      const attendanceDate = String(v.attendanceDate || '');
+      const sessionName = String(v.sessionName || 'Morning');
+
+      const entries = Array.from(
+        form.querySelectorAll('[data-attendance-status]')
+      ).map(select => {
+        const studentId = Number(select.dataset.attendanceStatus);
+        const reasonInput = form.querySelector(
+          `[data-attendance-reason="${studentId}"]`
+        );
+
+        return {
+          studentId,
+          status: select.value,
+          reason: reasonInput ? reasonInput.value.trim() : ''
+        };
+      });
+
+      if (!className || !attendanceDate || !entries.length) {
+        throw new Error('Select a class with students and a valid attendance date.');
+      }
+
+      await api('/api/attendance/registers', {
+        method: 'POST',
+        body: JSON.stringify({
+          className,
+          attendanceDate,
+          sessionName,
+          entries
+        })
+      });
+
+      state.view = 'Attendance Register';
+      render();
+      toast('Attendance register saved as a draft.');
+
     } else if (form.id === 'attendanceSettingsForm') {
       const schoolDays = String(v.schoolDays || '')
         .split(',')
