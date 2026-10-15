@@ -2350,6 +2350,88 @@ toast(parentId ? 'Parent updated successfully.' : 'Parent registered successfull
       render();
       toast('Class Management Settings saved successfully.');
 
+    } else if (form.id === 'attendanceSettingsForm') {
+      const schoolDays = String(v.schoolDays || '')
+        .split(',')
+        .map(day => day.trim())
+        .filter(Boolean);
+
+      const sessions = String(v.sessions || '')
+        .split(',')
+        .map(session => session.trim())
+        .filter(Boolean);
+
+      const cutoffTime = String(v.cutoffTime || '');
+      const absenceThreshold = Number(v.absenceThreshold);
+
+      const enabled = form.querySelector(
+        '[name="enabled"]'
+      ).checked;
+
+      const lockSubmittedRegisters = form.querySelector(
+        '[name="lockSubmittedRegisters"]'
+      ).checked;
+
+      const validDays = [
+        'Monday', 'Tuesday', 'Wednesday', 'Thursday',
+        'Friday', 'Saturday', 'Sunday'
+      ];
+
+      if (
+        !schoolDays.length ||
+        schoolDays.some(day =>
+          !validDays.some(valid =>
+            valid.toLowerCase() === day.toLowerCase()
+          )
+        )
+      ) {
+        throw new Error(
+          'Enter valid school days, separated by commas.'
+        );
+      }
+
+      if (!sessions.length) {
+        throw new Error('Enter at least one attendance session.');
+      }
+
+      if (!/^\d{2}:\d{2}$/.test(cutoffTime)) {
+        throw new Error('Enter a valid register cut-off time.');
+      }
+
+      if (
+        !Number.isInteger(absenceThreshold) ||
+        absenceThreshold < 1 ||
+        absenceThreshold > 30
+      ) {
+        throw new Error(
+          'The absence alert threshold must be between 1 and 30.'
+        );
+      }
+
+      const r = await api('/api/system-settings', {
+        method: 'PUT',
+        body: JSON.stringify({
+          settings: {
+            ...(state.data.systemSettings || {}),
+            attendance: {
+              enabled,
+              schoolDays,
+              sessions,
+              cutoffTime,
+              absenceThreshold,
+              lockSubmittedRegisters
+            }
+          }
+        })
+      });
+
+      state.data.systemSettings = r.settings || {};
+
+      await refresh();
+      state.view = 'Attendance Settings';
+      render();
+      toast('Attendance Settings saved successfully.');
+
     } else if (form.id === 'studentRulesForm') {
       const requireGuardianPhone = form.querySelector(
         '[name="requireGuardianPhone"]'
