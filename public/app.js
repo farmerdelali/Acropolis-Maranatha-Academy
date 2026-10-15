@@ -800,6 +800,67 @@ placeholder="Enter one class level per line">${esc(classLevels)}</textarea>
 </form>
 
 `);
+  
+} else if (state.view === 'Attendance Settings') {
+  const attendanceSettings =
+    (state.data.systemSettings || {}).attendance || {};
+
+  html = pageHead(
+    'Attendance Settings',
+    'Configure attendance recording, register submission and absence alerts.',
+    '<button class="btn soft" data-action="back-to-settings">← Back to Settings</button>'
+  ) +
+  panel('Attendance control', `
+    <form id="attendanceSettingsForm">
+      <label class="field">
+        <input type="checkbox" name="enabled"
+          ${attendanceSettings.enabled === true ? 'checked' : ''}>
+        Enable attendance recording
+      </label>
+
+      <label class="field">
+        School days
+        <input name="schoolDays" required maxlength="100"
+          value="${esc((attendanceSettings.schoolDays || ['Monday','Tuesday','Wednesday','Thursday','Friday']).join(', '))}"
+          placeholder="Monday, Tuesday, Wednesday, Thursday, Friday">
+        <small>Separate days with commas.</small>
+      </label>
+
+      <label class="field">
+        Attendance sessions
+        <input name="sessions" required maxlength="200"
+          value="${esc((attendanceSettings.sessions || ['Morning']).join(', '))}"
+          placeholder="Morning, Afternoon">
+        <small>For example: Morning, Afternoon.</small>
+      </label>
+
+      <label class="field">
+        Register submission cut-off time
+        <input type="time" name="cutoffTime" required
+          value="${esc(attendanceSettings.cutoffTime || '09:00')}">
+      </label>
+
+      <label class="field">
+        Repeated absence alert threshold
+        <input type="number" name="absenceThreshold" min="1" max="30"
+          required value="${esc(attendanceSettings.absenceThreshold || 3)}">
+        <small>Flag a student after this many consecutive absences.</small>
+      </label>
+
+      <label class="field">
+        <input type="checkbox" name="lockSubmittedRegisters"
+          ${attendanceSettings.lockSubmittedRegisters !== false ? 'checked' : ''}>
+        Lock registers after submission
+      </label>
+
+      <div class="form-actions">
+        <button class="btn primary" type="submit">
+          Save Attendance Settings
+        </button>
+      </div>
+    </form>
+  `);
+  
 } else if (state.view === 'Match Students') {
        const normalize = value =>
     String(value || '').trim().toLowerCase().replace(/\s+/g, ' ');
