@@ -1988,10 +1988,16 @@ document.addEventListener('submit', async e => {
   v.studentIds = Array.from(studentSelect.selectedOptions)
     .map(option => Number(option.value));
 
-  await api('/api/parents', {
-    method: 'POST',
+
+const parentId = form.dataset.id;
+
+await api(
+  parentId ? `/api/parents/${parentId}` : '/api/parents',
+  {
+    method: parentId ? 'PUT' : 'POST',
     body: JSON.stringify(v)
-  });
+  }
+);
 
   await refresh();
   state.view = 'Parents';
