@@ -935,20 +935,27 @@ placeholder="Enter one class level per line">${esc(classLevels)}</textarea>
   
 
 } else if (state.view === 'Attendance Register') {
+  
   const attendanceClasses = [
-    ...new Set(
-      (d.classrooms || [])
+    ...new Set([
+      ...(d.classrooms || [])
         .filter(c => !c.status || c.status === 'ACTIVE')
-        .map(c => c.class_name)
+        .map(c => String(c.class_name || '').trim())
+        .filter(Boolean),
+      ...students
+        .filter(s => !s.archived)
+        .map(s => String(s.class_name || s.class || s.className || '').trim())
         .filter(Boolean)
-    )
+    ])
   ];
 
   const selectedClass = attendanceClasses[0] || '';
 
-  const attendanceStudents = students.filter(
-    s => !s.archived && s.class_name === selectedClass
+  const attendanceStudents = students.filter(s =>
+    !s.archived &&
+    String(s.class_name || s.class || s.className || '').trim() === selectedClass
   );
+
 
   const today = new Date();
   const todayString = [
