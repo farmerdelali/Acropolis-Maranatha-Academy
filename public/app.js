@@ -2371,6 +2371,13 @@ if (!allowedMenus.includes(button.dataset.view) && !canOpenFeeding) {
 
   try {
     switch (action) { 
+       case 'class-management-settings':
+    if (state.user?.role !== 'ADMIN') {
+      throw new Error('Only administrators can manage class settings.');
+    }
+    state.view = 'Class Management Settings';
+    render();
+    break; 
       case 'add-drop-off-denial':
         dropOffDenialForm();
         break;
