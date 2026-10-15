@@ -743,11 +743,7 @@ const rows = d.payments.length
           Save registration rules
         </button>
         
-      <button type="button" class="btn soft" data-action="attendance-settings">
-        <span>Attendance Settings</span>
-        <span>Configure attendance rules, permissions and reports →</span>
-      </button>
-
+      
       </div>
     </form>
   `)+
