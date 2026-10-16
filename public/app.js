@@ -156,7 +156,11 @@ if (name === 'Feeding Management') {
  
 async function loadData() {
   const d = await api('/api/bootstrap');
-  
+    let teacherAssignments = { assignments: [] };
+
+  if (state.user && ['ADMIN', 'HEADMASTER'].includes(state.user.role)) {
+    teacherAssignments = await api('/api/teacher-subject-assignments');
+  }
   let feeding = { settings: [], students: [], payments: [] };
 
   if (state.user && ['ADMIN', 'HEADMASTER', 'BURSAR'].includes(state.user.role)) {
@@ -214,7 +218,8 @@ state.data = {
     graduations,
     classActivations,
   classActivationClasses,
-  classrooms
+    classrooms,
+  teacherAssignments: teacherAssignments.assignments || []
 };
 
   $('#schoolTitle').textContent = d.school.name;
