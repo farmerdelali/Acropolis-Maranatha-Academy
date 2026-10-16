@@ -3370,7 +3370,51 @@ case 'assign-classroom-teacher': {
   toast('Classroom teacher assignment saved successfully.');
   break;
 }
-       case 'add-teacher-subject-assignment':
+             case 'save-teacher-subject-assignment': {
+        const form = button.closest('form#teacherSubjectAssignmentForm');
+
+        if (!form) {
+          throw new Error('Assignment form not found. Please reopen it.');
+        }
+
+        const teacherId = Number(form.elements.teacherId.value);
+        const className = form.elements.className.value;
+        const subject = form.elements.subject.value;
+        const assignmentId = form.elements.id.value;
+
+        if (!teacherId || !className || !subject) {
+          throw new Error('Please select a teacher, class, and subject.');
+        }
+
+        button.disabled = true;
+        button.textContent = 'Please wait…';
+
+        try {
+          await api(
+            assignmentId
+              ? '/api/teacher-subject-assignments/' + encodeURIComponent(assignmentId)
+              : '/api/teacher-subject-assignments',
+            {
+              method: assignmentId ? 'PUT' : 'POST',
+              body: JSON.stringify({ teacherId, className, subject })
+            }
+          );
+
+          await refresh();
+          state.view = 'Teacher Subject Assignments';
+          render();
+
+          toast(assignmentId
+            ? 'Teacher assignment updated successfully.'
+            : 'Teacher assignment saved successfully.');
+        } finally {
+          button.disabled = false;
+          button.textContent = 'Save Assignment';
+        }
+
+        break;
+      }
+      case 'add-teacher-subject-assignment':
         teacherSubjectAssignmentForm();
         break;
 
