@@ -2346,7 +2346,7 @@ function teacherSubjectAssignmentForm(assignment = null) {
   }
 
   openModal(assignment ? 'Edit Teacher Assignment' : 'Assign Teacher', `
-    <form id="teacherSubjectAssignmentForm">
+   <form id="teacherSubjectAssignmentForm" novalidate>
       <input type="hidden" name="id" value="${esc(assignment?.id || '')}">
 
       <label class="field">Teacher
