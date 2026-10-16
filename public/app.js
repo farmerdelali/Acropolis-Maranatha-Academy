@@ -2563,9 +2563,8 @@ document.addEventListener('submit', async e => {
 'feedingPaymentForm',
 ];
 
-  if (!allowedForms.includes(form.id)) return;
-  e.preventDefault();
-
+ e.preventDefault();
+if (!allowedForms.includes(form.id)) return;
   const fd = new FormData(form);
   const v = Object.fromEntries(fd.entries());
   const submit = form.querySelector('button[type="submit"]');
