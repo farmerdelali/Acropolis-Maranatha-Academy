@@ -3363,10 +3363,10 @@ case 'assign-classroom-teacher': {
     method: 'PUT',
    body: JSON.stringify({ employeeId: select.value || null })
   });
-
-  await refresh();
-  state.view = 'Classrooms';
-  render();
+          await refresh();
+          closeModal();
+          state.view = 'Teacher Subject Assignments';
+          render();
   toast('Classroom teacher assignment saved successfully.');
   break;
 }
