@@ -1938,10 +1938,40 @@ function studentForm(s = null) {
           </select>
         </label>
 
-        <label class="field">Parent / guardian name
+        
+        <div class="field-section">
+          <h3>Parent / Guardian 1</h3>
+        </div>
+
+        <label class="field">Parent / guardian 1 name
           <input name="guardianName" maxlength="120"
             value="${esc(s?.guardian_name || '')}"
-            placeholder="Enter parent or guardian name">
+            placeholder="Enter first parent's full name">
+        </label>
+
+        <label class="field">Parent / guardian 1 phone${!s && state.data.registrationRules?.requireGuardianPhone ? ' *' : ''}
+          <input name="guardianPhone" type="tel" maxlength="40"
+            inputmode="tel"
+            ${!s && state.data.registrationRules?.requireGuardianPhone ? 'required' : ''}
+            value="${esc(s?.guardian_phone || '')}"
+            placeholder="e.g. 024 000 0000">
+        </label>
+
+        <div class="field-section">
+          <h3>Parent / Guardian 2</h3>
+        </div>
+
+        <label class="field">Parent / guardian 2 name
+          <input name="guardian2Name" maxlength="120"
+            value="${esc(s?.guardian2_name || '')}"
+            placeholder="Enter second parent's full name">
+        </label>
+
+        <label class="field">Parent / guardian 2 phone
+          <input name="guardian2Phone" type="tel" maxlength="40"
+            inputmode="tel"
+            value="${esc(s?.guardian2_phone || '')}"
+            placeholder="e.g. 020 000 0000">
         </label>
 
         
