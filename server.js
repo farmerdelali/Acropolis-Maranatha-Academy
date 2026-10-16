@@ -42,6 +42,14 @@ async function initDb() {
   await q(sql);
 
   await q(`
+    ALTER TABLE marks
+    ADD COLUMN IF NOT EXISTS class_score NUMERIC(5,2) NOT NULL DEFAULT 0
+      CHECK (class_score >= 0 AND class_score <= 30),
+    ADD COLUMN IF NOT EXISTS exam_score NUMERIC(5,2) NOT NULL DEFAULT 0
+      CHECK (exam_score >= 0 AND exam_score <= 70)
+  `);
+
+  await q(`
     ALTER TABLE classrooms
     ADD COLUMN IF NOT EXISTS assigned_teacher_id BIGINT
     REFERENCES users(id) ON DELETE SET NULL
@@ -306,7 +314,69 @@ app.post('/api/students', requireAuth, asyncRoute(async (req,res)=>{
 }));
 app.put('/api/students/:id', requireRole('ADMIN','TEACHER'), asyncRoute(async(req,res)=>{const b=req.body||{};if(!validText(b.fullName,120)||!validText(b.className,60))return res.status(400).json({error:'Student name and class are required.'});const r=await q('UPDATE students SET full_name=$1,class_name=$2,gender=$3,guardian_name=$4,guardian_phone=$5,total_fees=$6 WHERE id=$7 AND school_id=$8 AND archived=false RETURNING *',[b.fullName.trim(),b.className.trim(),String(b.gender||'').slice(0,20),String(b.guardianName||'').slice(0,120),String(b.guardianPhone||'').slice(0,40),Math.max(0,Number(b.totalFees||0)),req.params.id,schoolId(req)]);if(!r.rowCount)return res.status(404).json({error:'Student not found.'});await audit(req,'student_updated','student',req.params.id);res.json({student:r.rows[0]})}));
 app.delete('/api/students/:id', requireRole('ADMIN'), asyncRoute(async(req,res)=>{const r=await q('UPDATE students SET archived=true WHERE id=$1 AND school_id=$2 AND archived=false RETURNING id',[req.params.id,schoolId(req)]);if(!r.rowCount)return res.status(404).json({error:'Student not found.'});await audit(req,'student_archived','student',req.params.id);res.json({ok:true})}));
-app.post('/api/marks', requireRole('ADMIN','TEACHER'), asyncRoute(async(req,res)=>{const b=req.body||{},score=Number(b.score);if(!b.studentId||!validText(b.subject,80)||!Number.isFinite(score)||score<0||score>100)return res.status(400).json({error:'Choose a student and subject, and enter a score from 0 to 100.'});const st=await q('SELECT id FROM students WHERE id=$1 AND school_id=$2 AND archived=false',[b.studentId,schoolId(req)]);if(!st.rowCount)return res.status(404).json({error:'Student not found.'});const r=await q(`INSERT INTO marks(school_id,student_id,subject,term,score) VALUES($1,$2,$3,$4,$5) ON CONFLICT(school_id,student_id,subject,term) DO UPDATE SET score=EXCLUDED.score RETURNING *`,[schoolId(req),b.studentId,b.subject.trim(),validText(b.term,40)?b.term.trim():'Term 1',score]);await audit(req,'mark_saved','mark',r.rows[0].id);res.status(201).json({mark:r.rows[0]})}));
+
+app.post('/api/marks', requireRole('ADMIN', 'TEACHER'), asyncRoute(async (req, res) => {
+  const b = req.body || {};
+  const classScore = Number(b.classScore);
+  const examScore = Number(b.examScore);
+  const totalScore = classScore + examScore;
+
+  if (
+    !b.studentId ||
+    !validText(b.subject, 80) ||
+    !Number.isFinite(classScore) ||
+    !Number.isFinite(examScore) ||
+    classScore < 0 || classScore > 30 ||
+    examScore < 0 || examScore > 70
+  ) {
+    return res.status(400).json({
+      error: 'Choose a student and subject. Class Score must be 0–30 and Exams Score must be 0–70.'
+    });
+  }
+
+  const st = await q(
+    'SELECT id, class_name FROM students WHERE id=$1 AND school_id=$2 AND archived=false',
+    [b.studentId, schoolId(req)]
+  );
+
+  if (!st.rowCount) {
+    return res.status(404).json({ error: 'Student not found.' });
+  }
+
+  if (
+    validText(b.className, 60) &&
+    st.rows[0].class_name !== b.className.trim()
+  ) {
+    return res.status(400).json({
+      error: 'The selected student does not belong to the selected class.'
+    });
+  }
+
+  const term = validText(b.term, 40) ? b.term.trim() : 'Term 1';
+
+  const r = await q(`
+    INSERT INTO marks
+      (school_id, student_id, subject, term, score, class_score, exam_score)
+    VALUES ($1, $2, $3, $4, $5, $6, $7)
+    ON CONFLICT (school_id, student_id, subject, term)
+    DO UPDATE SET
+      score = EXCLUDED.score,
+      class_score = EXCLUDED.class_score,
+      exam_score = EXCLUDED.exam_score
+    RETURNING *
+  `, [
+    schoolId(req),
+    b.studentId,
+    b.subject.trim(),
+    term,
+    totalScore,
+    classScore,
+    examScore
+  ]);
+
+  await audit(req, 'mark_saved', 'mark', r.rows[0].id);
+  res.status(201).json({ mark: r.rows[0] });
+}));
 
 app.post('/api/payments', requireRole('ADMIN', 'BURSAR'), asyncRoute(async (req, res) => {
   const b = req.body || {};
