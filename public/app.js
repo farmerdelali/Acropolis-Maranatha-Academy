@@ -3401,7 +3401,7 @@ case 'assign-classroom-teacher': {
           );
 
                           await refresh();
-          closeModal();
+          document.querySelector('.modal')?.remove();
           state.view = 'Teacher Subject Assignments';
           render();
           toast(assignmentId
