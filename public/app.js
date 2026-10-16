@@ -3400,10 +3400,10 @@ case 'assign-classroom-teacher': {
             }
           );
 
-          await refresh();
+                  await refresh();
+          closeModal();
           state.view = 'Teacher Subject Assignments';
           render();
-
           toast(assignmentId
             ? 'Teacher assignment updated successfully.'
             : 'Teacher assignment saved successfully.');
