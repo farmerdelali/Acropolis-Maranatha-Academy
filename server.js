@@ -365,7 +365,29 @@ app.post('/api/marks', requireRole('ADMIN', 'TEACHER'), asyncRoute(async (req, r
       error: 'The selected student does not belong to the selected class.'
     });
   }
+  if (req.session.user.role === 'TEACHER') {
+    const assignment = await q(
+      `SELECT id
+       FROM teacher_subject_assignments
+       WHERE school_id = $1
+         AND teacher_id = $2
+         AND class_name = $3
+         AND lower(subject) = lower($4)
+       LIMIT 1`,
+      [
+        schoolId(req),
+        req.session.user.id,
+        st.rows[0].class_name,
+        b.subject.trim()
+      ]
+    );
 
+    if (!assignment.rowCount) {
+      return res.status(403).json({
+        error: 'You are not assigned to teach this subject in this class.'
+      });
+    }
+  }
   const term = validText(b.term, 40) ? b.term.trim() : 'Term 1';
 
   const r = await q(`
