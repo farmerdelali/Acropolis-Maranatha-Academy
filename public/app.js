@@ -2197,7 +2197,90 @@ function paymentForm(){const students=state.data.students.filter(s=>!s.archived)
   <option value="Other">Other</option>
 </select>
 </label><div class="form-actions"><button type="button" class="btn soft" data-action="close-modal">Cancel</button><button class="btn primary" type="submit">Save payment</button></div></form>`);}
-function markForm(){const students=state.data.students.filter(s=>!s.archived);if(!students.length)return toast('Register a student before entering marks.',true);openModal('Enter examination mark',`<form id="markForm"><label class="field">Student<select name="studentId" required>${students.map(s=>`<option value="${s.id}">${esc(s.full_name)} · ${esc(s.class_name)}</option>`).join('')}</select></label><label class="field">Subject<input name="subject" required maxlength="80" placeholder="e.g. Mathematics"></label><label class="field">Term<input name="term" maxlength="40" value="Term 1" required></label><label class="field">Score (%)<input name="score" type="number" min="0" max="100" step="0.01" required inputmode="decimal"></label><div class="form-actions"><button type="button" class="btn soft" data-action="close-modal">Cancel</button><button class="btn primary" type="submit">Save mark</button></div></form>`);}
+
+const MARK_SUBJECTS_BY_CLASS = {
+  'Nursery 1': ['Numeracy', 'Phoenics', 'Creativity', 'Nature and Science'],
+  'Nursery 2': ['Numeracy', 'Writing', 'Creativity', 'Nature and Science'],
+  'KG 1': ['Language and Literacy', 'Writing Skills', 'Jolly Phoenics', 'Numeracy', 'OWOP', 'Creative Arts'],
+  'KG 2': ['Language and Literacy', 'Writing Skills', 'Jolly Phoenics', 'Numeracy', 'OWOP', 'Creative Arts'],
+  'Basic 1': ['History', 'English', 'Maths', 'Creative Arts', 'Science', 'French', 'R.M.E', 'Twi', 'Computing'],
+  'Basic 2': ['History', 'English', 'Maths', 'Creative Arts', 'Science', 'French', 'R.M.E', 'Twi', 'Computing'],
+  'Basic 3': ['History', 'English', 'Maths', 'Creative Arts', 'Science', 'French', 'R.M.E', 'Twi', 'Computing'],
+  'Basic 4': ['History', 'English', 'Maths', 'Creative Arts', 'Science', 'French', 'R.M.E', 'Twi', 'Computing'],
+  'Basic 5': ['History', 'English', 'Maths', 'Creative Arts', 'Science', 'French', 'R.M.E', 'Twi', 'Computing'],
+  'Basic 6': ['History', 'English', 'Maths', 'Creative Arts', 'Science', 'French', 'R.M.E', 'Twi', 'Computing'],
+  'Basic 7': ['Social Studies', 'English', 'Maths', 'Creative Arts & Design', 'Integrated Science', 'French', 'R.M.E', 'Twi', 'Computing', 'Career Technology'],
+  'Basic 8': ['Social Studies', 'English', 'Maths', 'Creative Arts & Design', 'Integrated Science', 'French', 'R.M.E', 'Twi', 'Computing', 'Career Technology'],
+  'Basic 9': ['Social Studies', 'English', 'Maths', 'Creative Arts & Design', 'Integrated Science', 'French', 'R.M.E', 'Twi', 'Computing', 'Career Technology'],
+  'JHS 1': ['Social Studies', 'English', 'Maths', 'Creative Arts & Design', 'Integrated Science', 'French', 'R.M.E', 'Twi', 'Computing', 'Career Technology'],
+  'JHS 2': ['Social Studies', 'English', 'Maths', 'Creative Arts & Design', 'Integrated Science', 'French', 'R.M.E', 'Twi', 'Computing', 'Career Technology'],
+  'JHS 3': ['Social Studies', 'English', 'Maths', 'Creative Arts & Design', 'Integrated Science', 'French', 'R.M.E', 'Twi', 'Computing', 'Career Technology']
+};
+
+function markForm() {
+  const students = state.data.students.filter(s => !s.archived);
+  if (!students.length) {
+    return toast('Register a student before entering marks.', true);
+  }
+
+  const classes = [...new Set([
+    'Nursery 1', 'Nursery 2', 'KG 1', 'KG 2',
+    'Basic 1', 'Basic 2', 'Basic 3', 'Basic 4', 'Basic 5', 'Basic 6',
+    'JHS 1', 'JHS 2', 'JHS 3', 'Basic 7', 'Basic 8', 'Basic 9'
+  ])];
+
+  const initialClass = students[0].class_name || classes[0];
+  const classOptions = classes.map(c =>
+    `<option value="${esc(c)}" ${c === initialClass ? 'selected' : ''}>${esc(c)}</option>`
+  ).join('');
+
+  const classStudents = students.filter(s => s.class_name === initialClass);
+  const studentOptions = classStudents.map(s =>
+    `<option value="${esc(s.id)}">${esc(s.full_name)} · ${esc(s.student_code || '')}</option>`
+  ).join('');
+
+  const subjects = MARK_SUBJECTS_BY_CLASS[initialClass] || [];
+  const subjectOptions = subjects.map(s =>
+    `<option value="${esc(s)}">${esc(s)}</option>`
+  ).join('');
+
+  openModal('Enter examination marks', `
+    <form id="markForm">
+      <label class="field">Class
+        <select id="markClass" name="className" required>${classOptions}</select>
+      </label>
+      <label class="field">Student
+        <select id="markStudent" name="studentId" required>
+          <option value="">Choose student</option>${studentOptions}
+        </select>
+      </label>
+      <label class="field">Subject
+        <select id="markSubject" name="subject" required>
+          <option value="">Choose subject</option>${subjectOptions}
+        </select>
+      </label>
+      <label class="field">Term
+        <select name="term" required>
+          <option>Term 1</option>
+          <option>Term 2</option>
+          <option>Term 3</option>
+        </select>
+      </label>
+      <label class="field">Class Score (out of 30)
+        <input name="classScore" type="number" min="0" max="30" step="0.01" required inputmode="decimal">
+      </label>
+      <label class="field">Exams Score (out of 70)
+        <input name="examScore" type="number" min="0" max="70" step="0.01" required inputmode="decimal">
+      </label>
+      <p class="muted">Total score: Class Score + Exams Score, out of 100.</p>
+      <div class="form-actions">
+        <button type="button" class="btn soft" data-action="close-modal">Cancel</button>
+        <button class="btn primary" type="submit">Save marks</button>
+      </div>
+    </form>
+  `);
+}
+
 function userForm(){openModal('Create staff account',`<form id="userForm"><label class="field">Username<input name="username" required minlength="3" maxlength="60" autocomplete="off"></label><label class="field">Role<select name="role"><option value="HEADMASTER">Headmaster — school oversight and academic management</option>
 <option value="TEACHER">Teacher — students and marks</option>
 <option value="BURSAR">Bursar — fees and payments</option></select></label><label class="field">Temporary password <small>At least 10 characters</small><input name="password" type="password" required minlength="10" autocomplete="new-password"></label><div class="form-actions"><button type="button" class="btn soft" data-action="close-modal">Cancel</button><button class="btn primary" type="submit">Create account</button></div></form>`);}
@@ -2205,6 +2288,36 @@ async function refresh(){await loadData();}
 async function download(url,filename){const r=await fetch(url,{credentials:'same-origin'});if(!r.ok){let b={};try{b=await r.json()}catch{}throw new Error(b.error||'Download failed');}const blob=await r.blob(),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=filename;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),1500);}
 
 document.addEventListener('change', e => {
+ 
+  if (e.target.id === 'markClass') {
+    const selectedClass = e.target.value;
+
+    const students = (state.data.students || []).filter(s =>
+      !s.archived && String(s.class_name || '').trim() === selectedClass
+    );
+
+    const studentSelect = document.getElementById('markStudent');
+    const subjectSelect = document.getElementById('markSubject');
+
+    if (studentSelect) {
+      studentSelect.innerHTML =
+        '<option value="">Choose student</option>' +
+        students.map(s =>
+          `<option value="${esc(s.id)}">${esc(s.full_name)} · ${esc(s.student_code || '')}</option>`
+        ).join('');
+    }
+
+    const subjects = MARK_SUBJECTS_BY_CLASS[selectedClass] || [];
+
+    if (subjectSelect) {
+      subjectSelect.innerHTML =
+        '<option value="">Choose subject</option>' +
+        subjects.map(s =>
+          `<option value="${esc(s)}">${esc(s)}</option>`
+        ).join('');
+    }
+  }
+ 
   if (e.target.id === 'attendanceClass') {
 const selectedClass = e.target.value;
 const rows = document.getElementById('attendanceStudentRows');
