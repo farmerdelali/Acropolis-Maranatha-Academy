@@ -37,6 +37,7 @@ const nav = [
     ['Feeding Management','🍽','Feeding fees and payment plans'],
   ['Reports','▤','Reports and audit'],
   ['Users','⚙','Staff accounts'],
+  ['Teacher Subject Assignments','✓','Assign teachers to classes and subjects'],
   ['Settings','⚙','School configuration']
 ];
 
@@ -99,8 +100,9 @@ function showApp(user) {
       'Attendance Register',
       'Marks',
       'Fees & Payments',
-      'Reports'
-    ],
+'Reports',
+'Teacher Subject Assignments'
+],
 
     TEACHER: [
       'Dashboard',
