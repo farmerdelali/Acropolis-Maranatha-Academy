@@ -2391,7 +2391,16 @@ async function refresh(){await loadData();}
 async function download(url,filename){const r=await fetch(url,{credentials:'same-origin'});if(!r.ok){let b={};try{b=await r.json()}catch{}throw new Error(b.error||'Download failed');}const blob=await r.blob(),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=filename;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),1500);}
 
 document.addEventListener('change', e => {
- 
+   if (e.target.id === 'assignmentClass') {
+    const subjectSelect = document.getElementById('assignmentSubject');
+    const subjects = MARK_SUBJECTS_BY_CLASS[e.target.value] || [];
+
+    if (subjectSelect) {
+      subjectSelect.innerHTML = subjects.map(s =>
+        `<option value="${esc(s)}">${esc(s)}</option>`
+      ).join('');
+    }
+  }
   if (e.target.id === 'markClass') {
     const selectedClass = e.target.value;
 
