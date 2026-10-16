@@ -2382,7 +2382,7 @@ function teacherSubjectAssignmentForm(assignment = null) {
 
       <div class="form-actions">
         <button type="button" class="btn soft" data-action="close-modal">Cancel</button>
-        <button type="submit" class="btn primary">Save Assignment</button>
+        <button type="button" class="btn primary" data-action="save-teacher-subject-assignment">Save Assignment</button>
       </div>
     </form>
   `);
