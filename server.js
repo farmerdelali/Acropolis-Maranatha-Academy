@@ -351,7 +351,44 @@ app.post('/api/students', requireAuth, asyncRoute(async (req,res)=>{
   await audit(req, 'student_created', 'student', r.rows[0].id);
   res.status(201).json({ student: r.rows[0] });
 }));
-app.put('/api/students/:id', requireRole('ADMIN','TEACHER'), asyncRoute(async(req,res)=>{const b=req.body||{};if(!validText(b.fullName,120)||!validText(b.className,60))return res.status(400).json({error:'Student name and class are required.'});const r=await q('UPDATE students SET full_name=$1,class_name=$2,gender=$3,guardian_name=$4,guardian_phone=$5,total_fees=$6 WHERE id=$7 AND school_id=$8 AND archived=false RETURNING *',[b.fullName.trim(),b.className.trim(),String(b.gender||'').slice(0,20),String(b.guardianName||'').slice(0,120),String(b.guardianPhone||'').slice(0,40),Math.max(0,Number(b.totalFees||0)),req.params.id,schoolId(req)]);if(!r.rowCount)return res.status(404).json({error:'Student not found.'});await audit(req,'student_updated','student',req.params.id);res.json({student:r.rows[0]})}));
+
+app.put('/api/students/:id', requireRole('ADMIN', 'TEACHER'), asyncRoute(async (req, res) => {
+  const b = req.body || {};
+
+  if (!validText(b.fullName, 120) || !validText(b.className, 60)) {
+    return res.status(400).json({ error: 'Student name and class are required.' });
+  }
+
+  const r = await q(
+    `UPDATE students
+     SET full_name=$1, class_name=$2, gender=$3,
+         guardian_name=$4, guardian_phone=$5,
+         guardian2_name=$6, guardian2_phone=$7,
+         total_fees=$8
+     WHERE id=$9 AND school_id=$10 AND archived=false
+     RETURNING *`,
+    [
+      b.fullName.trim(),
+      b.className.trim(),
+      String(b.gender || '').slice(0, 20),
+      String(b.guardianName || '').slice(0, 120),
+      String(b.guardianPhone || '').slice(0, 40),
+      String(b.guardian2Name || '').slice(0, 120),
+      String(b.guardian2Phone || '').slice(0, 40),
+      Math.max(0, Number(b.totalFees || 0)),
+      req.params.id,
+      schoolId(req)
+    ]
+  );
+
+  if (!r.rowCount) {
+    return res.status(404).json({ error: 'Student not found.' });
+  }
+
+  await audit(req, 'student_updated', 'student', req.params.id);
+  res.json({ student: r.rows[0] });
+}));
+
 app.delete('/api/students/:id', requireRole('ADMIN'), asyncRoute(async(req,res)=>{const r=await q('UPDATE students SET archived=true WHERE id=$1 AND school_id=$2 AND archived=false RETURNING id',[req.params.id,schoolId(req)]);if(!r.rowCount)return res.status(404).json({error:'Student not found.'});await audit(req,'student_archived','student',req.params.id);res.json({ok:true})}));
 
 app.post('/api/marks', requireRole('ADMIN', 'TEACHER'), asyncRoute(async (req, res) => {
