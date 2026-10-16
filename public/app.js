@@ -3362,6 +3362,36 @@ case 'assign-classroom-teacher': {
   toast('Classroom teacher assignment saved successfully.');
   break;
 }
+       case 'add-teacher-subject-assignment':
+        teacherSubjectAssignmentForm();
+        break;
+
+      case 'edit-teacher-subject-assignment': {
+        const assignment = (state.data.teacherAssignments || [])
+          .find(a => String(a.id) === String(button.dataset.id));
+
+        if (!assignment) {
+          throw new Error('Teacher assignment not found. Please refresh.');
+        }
+
+        teacherSubjectAssignmentForm(assignment);
+        break;
+      }
+
+      case 'delete-teacher-subject-assignment':
+        if (confirm('Remove this teacher subject assignment?')) {
+          await api(
+            '/api/teacher-subject-assignments/' +
+              encodeURIComponent(button.dataset.id),
+            { method: 'DELETE' }
+          );
+
+          await refresh();
+          state.view = 'Teacher Subject Assignments';
+          render();
+          toast('Teacher assignment removed successfully.');
+        }
+        break;   
       case 'add-user':
         userForm();
         break;
