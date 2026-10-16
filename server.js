@@ -40,6 +40,11 @@ function validText(value, max = 120) { return typeof value === 'string' && value
 async function initDb() {
   const sql = fs.readFileSync(path.join(__dirname, 'db', 'schema.sql'), 'utf8');
   await q(sql);
+    await q(`
+    ALTER TABLE students
+    ADD COLUMN IF NOT EXISTS guardian2_name TEXT NOT NULL DEFAULT '',
+    ADD COLUMN IF NOT EXISTS guardian2_phone TEXT NOT NULL DEFAULT ''
+  `);
   await q(`
     CREATE TABLE IF NOT EXISTS teacher_subject_assignments (
       id BIGSERIAL PRIMARY KEY,
