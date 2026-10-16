@@ -1975,14 +1975,7 @@ function studentForm(s = null) {
         </label>
 
         
-        <label class="field">Parent / guardian phone${!s && state.data.registrationRules?.requireGuardianPhone ? ' *' : ''}
-          <input name="guardianPhone" type="tel" maxlength="40"
-            inputmode="tel"
-            ${!s && state.data.registrationRules?.requireGuardianPhone ? 'required' : ''}
-            value="${esc(s?.guardian_phone || '')}"
-            placeholder="e.g. 024 000 0000">
-        </label>
-
+       
         <label class="field">Total fees (GHS) *
          
 <select name="totalFees" required>
