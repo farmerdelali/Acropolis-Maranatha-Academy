@@ -45,11 +45,6 @@ async function initDb() {
     ADD COLUMN IF NOT EXISTS guardian2_name TEXT NOT NULL DEFAULT '',
     ADD COLUMN IF NOT EXISTS guardian2_phone TEXT NOT NULL DEFAULT ''
   `);
-    await q(`
-    ALTER TABLE students
-    ADD COLUMN IF NOT EXISTS guardian2_name TEXT NOT NULL DEFAULT '',
-    ADD COLUMN IF NOT EXISTS guardian2_phone TEXT NOT NULL DEFAULT ''
-  `);
   await q(`
     CREATE TABLE IF NOT EXISTS teacher_subject_assignments (
       id BIGSERIAL PRIMARY KEY,
