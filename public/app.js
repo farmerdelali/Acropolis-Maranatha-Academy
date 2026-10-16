@@ -759,7 +759,49 @@ html+=panel('Student enrolment by class',students.length?`<div style="display:gr
  html+=panel('Recent activity','<div id="auditBody" class="report-list"><div class="empty">Loading activity…</div></div>');
 }else if(state.view==='Users'){
  const users=d.users||[];html=pageHead('Staff & user accounts','Create staff accounts with role-based permissions.',`<button class="btn primary" data-action="add-user">+ Add user</button>`)+panel('School users',users.length?`<div class="table-wrap"><table><thead><tr><th>Username</th><th>Role</th><th>Created</th><th>Action</th></tr></thead><tbody>${users.map(u=>`<tr><td><b>${esc(u.username)}</b></td><td><span class="badge">${esc(u.role)}</span></td><td>${new Date(u.created_at).toLocaleDateString()}</td><td>${String(u.id)===String(state.user.id)?'<small>Current account</small>':`<button class="btn danger" data-action="delete-user" data-id="${u.id}" data-username="${esc(u.username)}">Remove</button>`}</td></tr>`).join('')}</tbody></table></div>`:'<div class="empty">No staff accounts found.</div>')+'<p class="muted">Administrators manage staff access. Teachers manage students and marks. Bursars manage payments.</p>';
+}else if(state.view==='Teacher Subject Assignments'){
+  const teachers = (d.users || []).filter(u => u.role === 'TEACHER');
+  const assignments = d.teacherAssignments || [];
+  const classes = Object.keys(MARK_SUBJECTS_BY_CLASS);
 
+  html = pageHead(
+    'Teacher Subject Assignments',
+    'Assign teachers to the classes and subjects they teach.',
+    `<button class="btn primary" data-action="add-teacher-subject-assignment">+ Assign Teacher</button>`
+  ) + panel(
+    'Current Assignments',
+    assignments.length ? `
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Teacher</th>
+              <th>Class</th>
+              <th>Subject</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${assignments.map(a => `
+              <tr>
+                <td>${esc(a.teacher_name)}</td>
+                <td>${esc(a.class_name)}</td>
+                <td>${esc(a.subject)}</td>
+                <td>
+                  <button class="btn soft"
+                    data-action="edit-teacher-subject-assignment"
+                    data-id="${a.id}">Edit</button>
+                  <button class="btn danger"
+                    data-action="delete-teacher-subject-assignment"
+                    data-id="${a.id}">Remove</button>
+                </td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </div>
+    ` : '<div class="empty">No teacher subject assignments have been created yet.</div>'
+  );
 }else if(state.view==='Settings'){
   const school=d.school||{};
   html=pageHead(
@@ -2293,6 +2335,58 @@ function markForm() {
 function userForm(){openModal('Create staff account',`<form id="userForm"><label class="field">Username<input name="username" required minlength="3" maxlength="60" autocomplete="off"></label><label class="field">Role<select name="role"><option value="HEADMASTER">Headmaster — school oversight and academic management</option>
 <option value="TEACHER">Teacher — students and marks</option>
 <option value="BURSAR">Bursar — fees and payments</option></select></label><label class="field">Temporary password <small>At least 10 characters</small><input name="password" type="password" required minlength="10" autocomplete="new-password"></label><div class="form-actions"><button type="button" class="btn soft" data-action="close-modal">Cancel</button><button class="btn primary" type="submit">Create account</button></div></form>`);}
+function teacherSubjectAssignmentForm(assignment = null) {
+  const teachers = (state.data.users || []).filter(u => u.role === 'TEACHER');
+  const classes = Object.keys(MARK_SUBJECTS_BY_CLASS);
+  const selectedClass = assignment?.class_name || classes[0] || '';
+  const subjects = MARK_SUBJECTS_BY_CLASS[selectedClass] || [];
+
+  if (!teachers.length) {
+    return toast('Create a teacher account first.', true);
+  }
+
+  openModal(assignment ? 'Edit Teacher Assignment' : 'Assign Teacher', `
+    <form id="teacherSubjectAssignmentForm">
+      <input type="hidden" name="id" value="${esc(assignment?.id || '')}">
+
+      <label class="field">Teacher
+        <select name="teacherId" required>
+          <option value="">Choose teacher</option>
+          ${teachers.map(t => `
+            <option value="${t.id}" ${String(t.id) === String(assignment?.teacher_id || '') ? 'selected' : ''}>
+              ${esc(t.username)}
+            </option>
+          `).join('')}
+        </select>
+      </label>
+
+      <label class="field">Class
+        <select name="className" id="assignmentClass" required>
+          ${classes.map(c => `
+            <option value="${esc(c)}" ${c === selectedClass ? 'selected' : ''}>
+              ${esc(c)}
+            </option>
+          `).join('')}
+        </select>
+      </label>
+
+      <label class="field">Subject
+        <select name="subject" id="assignmentSubject" required>
+          ${subjects.map(s => `
+            <option value="${esc(s)}" ${s === assignment?.subject ? 'selected' : ''}>
+              ${esc(s)}
+            </option>
+          `).join('')}
+        </select>
+      </label>
+
+      <div class="form-actions">
+        <button type="button" class="btn soft" data-action="close-modal">Cancel</button>
+        <button type="submit" class="btn primary">Save Assignment</button>
+      </div>
+    </form>
+  `);
+}
 async function refresh(){await loadData();}
 async function download(url,filename){const r=await fetch(url,{credentials:'same-origin'});if(!r.ok){let b={};try{b=await r.json()}catch{}throw new Error(b.error||'Download failed');}const blob=await r.blob(),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=filename;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),1500);}
 
