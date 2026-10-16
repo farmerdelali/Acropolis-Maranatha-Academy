@@ -2676,6 +2676,31 @@ toast(parentId ? 'Parent updated successfully.' : 'Parent registered successfull
     ? 'Student details updated successfully.'
     : 'Student registered successfully.');
 
+    } else if (form.id === 'teacherSubjectAssignmentForm') {
+      const assignmentId = v.id;
+
+      await api(
+        assignmentId
+          ? '/api/teacher-subject-assignments/' + encodeURIComponent(assignmentId)
+          : '/api/teacher-subject-assignments',
+        {
+          method: assignmentId ? 'PUT' : 'POST',
+          body: JSON.stringify({
+            teacherId: Number(v.teacherId),
+            className: v.className,
+            subject: v.subject
+          })
+        }
+      );
+
+      await refresh();
+      state.view = 'Teacher Subject Assignments';
+      render();
+      toast(assignmentId
+        ? 'Teacher assignment updated successfully.'
+        : 'Teacher assignment saved successfully.');
+
+
     } else if (form.id === 'feedingSettingsForm') {
       await api('/api/feeding/settings', {
         method: 'PUT',
