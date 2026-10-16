@@ -166,7 +166,7 @@ app.get('/api/bootstrap', requireAuth, asyncRoute(async (req, res) => {
 
     q('SELECT m.*,s.full_name AS student_name,s.student_code,s.class_name FROM marks m JOIN students s ON s.id=m.student_id WHERE m.school_id=$1 ORDER BY m.created_at DESC', [sid]),
 
-    req.session.user.role === 'ADMIN'
+    ['ADMIN', 'HEADMASTER'].includes(req.session.user.role)
       ? q('SELECT id,username,role,created_at FROM users WHERE school_id=$1 ORDER BY created_at', [sid])
       : Promise.resolve({ rows: [] }),
 
