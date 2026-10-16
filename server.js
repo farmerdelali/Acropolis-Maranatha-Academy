@@ -45,6 +45,11 @@ async function initDb() {
     ADD COLUMN IF NOT EXISTS guardian2_name TEXT NOT NULL DEFAULT '',
     ADD COLUMN IF NOT EXISTS guardian2_phone TEXT NOT NULL DEFAULT ''
   `);
+    await q(`
+    ALTER TABLE students
+    ADD COLUMN IF NOT EXISTS guardian2_name TEXT NOT NULL DEFAULT '',
+    ADD COLUMN IF NOT EXISTS guardian2_phone TEXT NOT NULL DEFAULT ''
+  `);
   await q(`
     CREATE TABLE IF NOT EXISTS teacher_subject_assignments (
       id BIGSERIAL PRIMARY KEY,
@@ -329,7 +334,27 @@ app.post('/api/students', requireAuth, asyncRoute(async (req,res)=>{
 
   const totalFees=Number(b.totalFees||0); if(!Number.isFinite(totalFees)||totalFees<0) return res.status(400).json({error:'Fees must be zero or more.'});
   const code=validText(b.studentCode,40)?b.studentCode.trim():`AMA-${Date.now().toString().slice(-8)}`;
-  const r=await q('INSERT INTO students(school_id,student_code,full_name,class_name,gender,guardian_name,guardian_phone,total_fees) VALUES($1,$2,$3,$4,$5,$6,$7,$8) RETURNING *',[schoolId(req),code,b.fullName.trim(),b.className.trim(),String(b.gender||'').slice(0,20),String(b.guardianName||'').slice(0,120),String(b.guardianPhone||'').slice(0,40),totalFees]); await audit(req,'student_created','student',r.rows[0].id); res.status(201).json({student:r.rows[0]});
+    const r = await q(
+    `INSERT INTO students
+    (school_id, student_code, full_name, class_name, gender,
+     guardian_name, guardian_phone, guardian2_name, guardian2_phone, total_fees)
+    VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)
+    RETURNING *`,
+    [
+      schoolId(req),
+      code,
+      b.fullName.trim(),
+      b.className.trim(),
+      String(b.gender || '').slice(0, 20),
+      String(b.guardianName || '').slice(0, 120),
+      String(b.guardianPhone || '').slice(0, 40),
+      String(b.guardian2Name || '').slice(0, 120),
+      String(b.guardian2Phone || '').slice(0, 40),
+      totalFees
+    ]
+  );
+  await audit(req, 'student_created', 'student', r.rows[0].id);
+  res.status(201).json({ student: r.rows[0] });
 }));
 app.put('/api/students/:id', requireRole('ADMIN','TEACHER'), asyncRoute(async(req,res)=>{const b=req.body||{};if(!validText(b.fullName,120)||!validText(b.className,60))return res.status(400).json({error:'Student name and class are required.'});const r=await q('UPDATE students SET full_name=$1,class_name=$2,gender=$3,guardian_name=$4,guardian_phone=$5,total_fees=$6 WHERE id=$7 AND school_id=$8 AND archived=false RETURNING *',[b.fullName.trim(),b.className.trim(),String(b.gender||'').slice(0,20),String(b.guardianName||'').slice(0,120),String(b.guardianPhone||'').slice(0,40),Math.max(0,Number(b.totalFees||0)),req.params.id,schoolId(req)]);if(!r.rowCount)return res.status(404).json({error:'Student not found.'});await audit(req,'student_updated','student',req.params.id);res.json({student:r.rows[0]})}));
 app.delete('/api/students/:id', requireRole('ADMIN'), asyncRoute(async(req,res)=>{const r=await q('UPDATE students SET archived=true WHERE id=$1 AND school_id=$2 AND archived=false RETURNING id',[req.params.id,schoolId(req)]);if(!r.rowCount)return res.status(404).json({error:'Student not found.'});await audit(req,'student_archived','student',req.params.id);res.json({ok:true})}));
