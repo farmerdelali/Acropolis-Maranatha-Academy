@@ -531,7 +531,94 @@ app.delete('/api/payments/:id', requireRole('ADMIN'), asyncRoute(async (req, res
 
     
   app.delete('/api/users/:id', requireRole('ADMIN'), asyncRoute(async(req,res)=>{if(String(req.params.id)===String(req.session.user.id))return res.status(400).json({error:'You cannot delete your own active account.'});const r=await q('DELETE FROM users WHERE id=$1 AND school_id=$2 RETURNING id',[req.params.id,schoolId(req)]);if(!r.rowCount)return res.status(404).json({error:'User not found.'});await audit(req,'user_deleted','user',req.params.id);res.json({ok:true})}));
+app.get('/api/teacher-subject-assignments', requireRole('ADMIN', 'HEADMASTER'), asyncRoute(async (req, res) => {
+  const r = await q(
+    `SELECT a.id, a.teacher_id, u.username AS teacher_name,
+            a.class_name, a.subject, a.created_at
+     FROM teacher_subject_assignments a
+     JOIN users u ON u.id = a.teacher_id
+     WHERE a.school_id = $1
+     ORDER BY u.username, a.class_name, a.subject`,
+    [schoolId(req)]
+  );
+  res.json({ assignments: r.rows });
+}));
 
+app.post('/api/teacher-subject-assignments', requireRole('ADMIN', 'HEADMASTER'), asyncRoute(async (req, res) => {
+  const b = req.body || {};
+  if (!b.teacherId || !validText(b.className, 60) || !validText(b.subject, 80)) {
+    return res.status(400).json({ error: 'Choose a teacher, class and subject.' });
+  }
+
+  const teacher = await q(
+    `SELECT id FROM users
+     WHERE id = $1 AND school_id = $2 AND role = 'TEACHER'`,
+    [b.teacherId, schoolId(req)]
+  );
+
+  if (!teacher.rowCount) {
+    return res.status(400).json({ error: 'Choose a valid teacher account.' });
+  }
+
+  try {
+    const r = await q(
+      `INSERT INTO teacher_subject_assignments
+       (school_id, teacher_id, class_name, subject, assigned_by)
+       VALUES ($1, $2, $3, $4, $5)
+       RETURNING *`,
+      [schoolId(req), b.teacherId, b.className.trim(), b.subject.trim(), req.session.user.id]
+    );
+    await audit(req, 'teacher_subject_assigned', 'teacher_subject_assignment', r.rows[0].id);
+    res.status(201).json({ assignment: r.rows[0] });
+  } catch (err) {
+    if (err.code === '23505') {
+      return res.status(409).json({ error: 'This teacher already has this class and subject assignment.' });
+    }
+    throw err;
+  }
+}));
+
+app.put('/api/teacher-subject-assignments/:id', requireRole('ADMIN', 'HEADMASTER'), asyncRoute(async (req, res) => {
+  const b = req.body || {};
+  if (!b.teacherId || !validText(b.className, 60) || !validText(b.subject, 80)) {
+    return res.status(400).json({ error: 'Choose a teacher, class and subject.' });
+  }
+
+  const r = await q(
+    `UPDATE teacher_subject_assignments a
+     SET teacher_id = $1, class_name = $2, subject = $3
+     WHERE a.id = $4 AND a.school_id = $5
+       AND EXISTS (
+         SELECT 1 FROM users u
+         WHERE u.id = $1 AND u.school_id = $5 AND u.role = 'TEACHER'
+       )
+     RETURNING a.*`,
+    [b.teacherId, b.className.trim(), b.subject.trim(), req.params.id, schoolId(req)]
+  );
+
+  if (!r.rowCount) {
+    return res.status(404).json({ error: 'Assignment or teacher account not found.' });
+  }
+
+  await audit(req, 'teacher_subject_assignment_updated', 'teacher_subject_assignment', req.params.id);
+  res.json({ assignment: r.rows[0] });
+}));
+
+app.delete('/api/teacher-subject-assignments/:id', requireRole('ADMIN', 'HEADMASTER'), asyncRoute(async (req, res) => {
+  const r = await q(
+    `DELETE FROM teacher_subject_assignments
+     WHERE id = $1 AND school_id = $2
+     RETURNING id`,
+    [req.params.id, schoolId(req)]
+  );
+
+  if (!r.rowCount) {
+    return res.status(404).json({ error: 'Assignment not found.' });
+  }
+
+  await audit(req, 'teacher_subject_assignment_deleted', 'teacher_subject_assignment', req.params.id);
+  res.json({ ok: true });
+}));
 app.get('/api/parents', requireAuth, asyncRoute(async (req, res) => {
   const result = await q(
     `SELECT p.*,
