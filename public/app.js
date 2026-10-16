@@ -2539,6 +2539,7 @@ document.addEventListener('submit', async e => {
 'markForm',
       'employeeForm',
     'userForm',
+    'teacherSubjectAssignmentForm',
     'settingsForm',
         'systemContactForm',
             'studentRulesForm',
