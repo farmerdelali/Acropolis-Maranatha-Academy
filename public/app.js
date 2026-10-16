@@ -3438,7 +3438,8 @@ case 'assign-classroom-teacher': {
             { method: 'DELETE' }
           );
 
-          await refresh();
+                    await refresh();
+          closeModal();
           state.view = 'Teacher Subject Assignments';
           render();
           toast('Teacher assignment removed successfully.');
