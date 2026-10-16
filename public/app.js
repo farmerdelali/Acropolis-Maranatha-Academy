@@ -3005,9 +3005,9 @@ HEADMASTER: [
   'Dashboard', 'Students', 'Match Students', 'Parents',
   'Pickup Persons', 'Graduations', 'Class Activations',
   'Classrooms', 'Attendance Register', 'Marks',
-  'Fees & Payments', 'Reports'
+  'Fees & Payments', 'Reports',
+  'Teacher Subject Assignments'
 ],
-
 TEACHER: [
   'Dashboard', 'Students', 'Marks', 'Classrooms',
   'Attendance Register'
