@@ -10,6 +10,8 @@ const bcrypt = require('bcryptjs');
 const { rateLimit } = require('express-rate-limit');
 const multer = require('multer');
 const ExcelJS = require('exceljs');
+const XLSX = require('xlsx');
+const mammoth = require('mammoth');
 const { parse } = require('csv-parse/sync');
 const app = express();
 const production = process.env.NODE_ENV === 'production';
