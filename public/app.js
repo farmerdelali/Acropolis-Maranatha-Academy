@@ -482,8 +482,9 @@ const classTotal = classCounts.reduce((sum, item) => sum + item[1], 0);
          Preview and validate file
        </button>
      </div>
-   </form>
- `);
+       </form>
+    <div id="importPreviewResults"></div>
+  `);
 
 }else if(state.view==='Marks'){
 
