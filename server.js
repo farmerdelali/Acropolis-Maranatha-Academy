@@ -97,10 +97,50 @@ async function readImportRows(file) {
     raw: false,
     blankrows: false
   });
-  } else {
-    throw new Error('Only CSV and Excel (.xlsx) files are supported.');
-  }
+   } else if (ext === '.docx') {
+    const result = await mammoth.convertToHtml({
+      buffer: file.buffer
+    });
 
+    const tableMatch = result.value.match(
+      /<table\b[\s\S]*?<\/table>/i
+    );
+
+    if (!tableMatch) {
+      throw new Error(
+        'The Word document must contain a table with column headings and data rows.'
+      );
+    }
+
+    const rowMatches = [
+      ...tableMatch[0].matchAll(/<tr\b[^>]*>([\s\S]*?)<\/tr>/gi)
+    ];
+
+    rawRows = rowMatches.map(rowMatch => {
+      const cellMatches = [
+        ...rowMatch[1].matchAll(
+          /<t[dh]\b[^>]*>([\s\S]*?)<\/t[dh]>/gi
+        )
+      ];
+
+      return cellMatches.map(cellMatch =>
+        cellMatch[1]
+          .replace(/<br\s*\/?>/gi, ' ')
+          .replace(/<[^>]*>/g, ' ')
+          .replace(/&nbsp;/gi, ' ')
+          .replace(/&amp;/gi, '&')
+          .replace(/&lt;/gi, '<')
+          .replace(/&gt;/gi, '>')
+          .replace(/&quot;/gi, '"')
+          .trim()
+      );
+    });
+
+  } else {
+    throw new Error(
+      'This file format is not supported yet.'
+    );
+  }
   if (rawRows.length < 2) {
     throw new Error('Include a header row and at least one data row.');
   }
