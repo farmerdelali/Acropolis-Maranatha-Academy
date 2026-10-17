@@ -640,7 +640,326 @@ app.post(
     });
   })
 );
+app.post(
+  '/api/import/commit',
+  requireRole('ADMIN'),
+  importUpload.single('importFile'),
+  asyncRoute(async (req, res) => {
+    if (!req.file) {
+      return res.status(400).json({
+        error: 'Choose the file you previewed before importing.'
+      });
+    }
 
+    const importType = String(req.body.importType || '');
+
+    if (!['students', 'marks'].includes(importType)) {
+      return res.status(400).json({
+        error: 'Choose student records or examination marks.'
+      });
+    }
+
+    let rows;
+
+    try {
+      rows = await readImportRows(req.file);
+    } catch (error) {
+      return res.status(400).json({
+        error: error.message || 'Could not read the uploaded file.'
+      });
+    }
+
+    if (rows.length > 200) {
+      return res.status(400).json({
+        error: 'Import no more than 200 records per file.'
+      });
+    }
+
+    const sid = schoolId(req);
+    const client = await pool.connect();
+
+    try {
+      await client.query('BEGIN');
+
+      const errors = [];
+      const prepared = [];
+      const seenCodes = new Set();
+      const seenNames = new Set();
+      const seenMarks = new Set();
+
+      for (const row of rows) {
+        const get = key => String(row[key] || '').trim();
+
+        if (importType === 'students') {
+          const fullName = get('fullname');
+          const className = get('classname');
+          let studentCode = get('studentcode');
+          const totalFeesText = get('totalfees');
+          const totalFees = totalFeesText === '' ? 0 : Number(totalFeesText);
+
+          if (!validText(fullName, 120)) {
+            errors.push(`Row ${row._rowNumber}: enter a valid full name.`);
+            continue;
+          }
+
+          if (!validText(className, 60)) {
+            errors.push(`Row ${row._rowNumber}: enter a valid class.`);
+            continue;
+          }
+
+          if (
+            totalFeesText !== '' &&
+            (!Number.isFinite(totalFees) || totalFees < 0)
+          ) {
+            errors.push(`Row ${row._rowNumber}: total fees must be zero or more.`);
+            continue;
+          }
+
+          if (studentCode && studentCode.length > 40) {
+            errors.push(`Row ${row._rowNumber}: student code is too long.`);
+            continue;
+          }
+
+          if (!studentCode) {
+            studentCode =
+              `AMA-${Date.now().toString(36).toUpperCase()}-${row._rowNumber}-${Math.random().toString(36).slice(2, 7).toUpperCase()}`;
+          }
+
+          const codeKey = studentCode.toLowerCase();
+
+          if (seenCodes.has(codeKey)) {
+            errors.push(`Row ${row._rowNumber}: duplicate student code in this file.`);
+            continue;
+          }
+
+          seenCodes.add(codeKey);
+
+          const existingCode = await client.query(
+            `SELECT id FROM students
+             WHERE school_id = $1
+               AND lower(student_code) = lower($2)
+             LIMIT 1`,
+            [sid, studentCode]
+          );
+
+          if (existingCode.rowCount) {
+            errors.push(`Row ${row._rowNumber}: student code already exists.`);
+            continue;
+          }
+
+          const nameKey = `${fullName.toLowerCase()}|${className.toLowerCase()}`;
+
+          if (seenNames.has(nameKey)) {
+            errors.push(`Row ${row._rowNumber}: the same student name and class appear more than once in this file.`);
+            continue;
+          }
+
+          seenNames.add(nameKey);
+
+          const similar = await client.query(
+            `SELECT id FROM students
+             WHERE school_id = $1
+               AND archived = false
+               AND lower(trim(full_name)) = lower(trim($2))
+               AND lower(trim(class_name)) = lower(trim($3))
+             LIMIT 1`,
+            [sid, fullName, className]
+          );
+
+          if (similar.rowCount) {
+            errors.push(`Row ${row._rowNumber}: a student with the same name and class already exists. Check the record before importing.`);
+            continue;
+          }
+
+          const gender = get('gender');
+          const guardianName = get('guardianname');
+          const guardianPhone = get('guardianphone');
+          const guardian2Name = get('guardian2name');
+          const guardian2Phone = get('guardian2phone');
+
+          if (
+            gender.length > 20 ||
+            guardianName.length > 120 ||
+            guardianPhone.length > 40 ||
+            guardian2Name.length > 120 ||
+            guardian2Phone.length > 40
+          ) {
+            errors.push(`Row ${row._rowNumber}: one or more optional fields exceed the allowed length.`);
+            continue;
+          }
+
+          prepared.push({
+            rowNumber: row._rowNumber,
+            studentCode,
+            fullName,
+            className,
+            gender,
+            guardianName,
+            guardianPhone,
+            guardian2Name,
+            guardian2Phone,
+            totalFees
+          });
+        } else {
+          const studentCode = get('studentcode');
+          const subject = get('subject');
+          const term = get('term') || 'Term 1';
+          const classScoreText = get('classscore');
+          const examScoreText = get('examscore');
+          const classScore = Number(classScoreText);
+          const examScore = Number(examScoreText);
+
+          if (!studentCode || !validText(subject, 80) || !validText(term, 40)) {
+            errors.push(`Row ${row._rowNumber}: student code, subject and term are required.`);
+            continue;
+          }
+
+          if (
+            classScoreText === '' ||
+            !Number.isFinite(classScore) ||
+            classScore < 0 ||
+            classScore > 30 ||
+            examScoreText === '' ||
+            !Number.isFinite(examScore) ||
+            examScore < 0 ||
+            examScore > 70
+          ) {
+            errors.push(`Row ${row._rowNumber}: class score must be 0–30 and exam score must be 0–70.`);
+            continue;
+          }
+
+          const studentResult = await client.query(
+            `SELECT id FROM students
+             WHERE school_id = $1
+               AND lower(student_code) = lower($2)
+               AND archived = false
+             LIMIT 1`,
+            [sid, studentCode]
+          );
+
+          if (!studentResult.rowCount) {
+            errors.push(`Row ${row._rowNumber}: no active student matches code "${studentCode}".`);
+            continue;
+          }
+
+          const studentId = studentResult.rows[0].id;
+          const markKey =
+            `${studentId}|${subject.toLowerCase()}|${term.toLowerCase()}`;
+
+          if (seenMarks.has(markKey)) {
+            errors.push(`Row ${row._rowNumber}: duplicate student, subject and term in this file.`);
+            continue;
+          }
+
+          seenMarks.add(markKey);
+
+          const existingMark = await client.query(
+            `SELECT id FROM marks
+             WHERE school_id = $1
+               AND student_id = $2
+               AND lower(subject) = lower($3)
+               AND lower(term) = lower($4)
+             LIMIT 1`,
+            [sid, studentId, subject, term]
+          );
+
+          if (existingMark.rowCount) {
+            errors.push(`Row ${row._rowNumber}: a mark already exists for this student, subject and term. Nothing will be overwritten.`);
+            continue;
+          }
+
+          prepared.push({
+            rowNumber: row._rowNumber,
+            studentId,
+            subject,
+            term,
+            classScore,
+            examScore,
+            totalScore: classScore + examScore
+          });
+        }
+      }
+
+      if (errors.length) {
+        await client.query('ROLLBACK');
+        return res.status(400).json({
+          error: 'No records were imported. Fix the following issues and upload the file again.',
+          details: errors.slice(0, 50),
+          totalErrors: errors.length
+        });
+      }
+
+      for (const record of prepared) {
+        if (importType === 'students') {
+          const inserted = await client.query(
+            `INSERT INTO students
+             (school_id, student_code, full_name, class_name, gender,
+              guardian_name, guardian_phone, guardian2_name,
+              guardian2_phone, total_fees)
+             VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)
+             RETURNING id`,
+            [
+              sid,
+              record.studentCode,
+              record.fullName,
+              record.className,
+              record.gender,
+              record.guardianName,
+              record.guardianPhone,
+              record.guardian2Name,
+              record.guardian2Phone,
+              record.totalFees
+            ]
+          );
+
+          await client.query(
+            `INSERT INTO audit_logs
+             (school_id, user_id, action, entity_type, entity_id)
+             VALUES ($1,$2,$3,$4,$5)`,
+            [sid, req.session.user.id, 'student_imported', 'student', String(inserted.rows[0].id)]
+          );
+        } else {
+          const inserted = await client.query(
+            `INSERT INTO marks
+             (school_id, student_id, subject, term, score, class_score, exam_score)
+             VALUES ($1,$2,$3,$4,$5,$6,$7)
+             RETURNING id`,
+            [
+              sid,
+              record.studentId,
+              record.subject,
+              record.term,
+              record.totalScore,
+              record.classScore,
+              record.examScore
+            ]
+          );
+
+          await client.query(
+            `INSERT INTO audit_logs
+             (school_id, user_id, action, entity_type, entity_id)
+             VALUES ($1,$2,$3,$4,$5)`,
+            [sid, req.session.user.id, 'mark_imported', 'mark', String(inserted.rows[0].id)]
+          );
+        }
+      }
+
+      await client.query('COMMIT');
+
+      res.json({
+        ok: true,
+        importType,
+        imported: prepared.length,
+        message: `Successfully imported ${prepared.length} ${importType === 'students' ? 'student records' : 'examination marks'}.`
+      });
+    } catch (error) {
+      await client.query('ROLLBACK');
+      throw error;
+    } finally {
+      client.release();
+    }
+  })
+);
 app.post('/api/students', requireAuth, asyncRoute(async (req,res)=>{
   if (!['ADMIN','TEACHER'].includes(req.session.user.role)) return res.status(403).json({error:'Only administrators and teachers can manage students.'});
   const b=req.body||{}; if(!validText(b.fullName,120)||!validText(b.className,60)) return res.status(400).json({error:'Student name and class are required.'});
