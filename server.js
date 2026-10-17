@@ -50,9 +50,9 @@ const importUpload = multer({
   fileFilter(req, file, cb) {
     const ext = path.extname(file.originalname || '').toLowerCase();
 
-    if (!['.csv', '.xlsx'].includes(ext)) {
-      return cb(
-        new Error('Only CSV and Excel (.xlsx) files are currently supported.')
+    if (!['.csv', '.xlsx', '.xls', '.docx', '.pdf'].includes(ext)) {
+    return cb(
+        new Error('Supported formats: CSV, Excel (.xlsx, .xls), Word (.docx), and text-based PDF.')
       );
     }
 
