@@ -33,6 +33,7 @@ const nav = [
     ['Classrooms','▤','Classroom management'],
   ['Attendance Register','◷','Class attendance and register history'],
   ['Marks','✓','Examinations'],
+  ['Import Data','⇧','Import student and marks files'],
   ['Fees & Payments','₵','Fees and receipts'],
     ['Feeding Management','🍽','Feeding fees and payment plans'],
   ['Reports','▤','Reports and audit'],
@@ -443,6 +444,47 @@ const classTotal = classCounts.reduce((sum, item) => sum + item[1], 0);
  html+=panel('Quick actions',`<div class="toolbar"><button class="btn primary" data-action="add-student">Register student</button>${['ADMIN','TEACHER'].includes(state.user.role)?'<button class="btn soft" data-action="add-mark">Enter examination mark</button>':''}${['ADMIN','BURSAR'].includes(state.user.role)?'<button class="btn soft" data-action="add-payment">Record payment</button>':''}<button class="btn soft" data-view="Reports">Open reports</button></div>`);
 }else if(state.view==='Students'){
  html=pageHead('Student records','Register, search and maintain student information.',`<button class="btn primary" data-action="add-student">+ Register student</button>`)+`<section class="panel"><div class="panel-body"><div class="toolbar"><input id="studentSearch" placeholder="Search name, ID, class or guardian…" value="${esc(state.search)}"><button class="btn soft" data-action="clear-search">Clear</button></div>${studentRows(students.filter(s=>[s.full_name,s.student_code,s.class_name,s.guardian_name,s.guardian_phone].join(' ').toLowerCase().includes(state.search.toLowerCase())))}</div></section>`;
+
+}else if(state.view==='Import Data'){
+ html=pageHead(
+   'Import Data',
+   'Import student records and examination marks using CSV or Excel files.'
+ )+
+ panel('Upload and validate records',`
+   <form id="importDataForm">
+     <label class="field">What would you like to import?
+       <select name="importType" required>
+         <option value="students">Student records</option>
+         <option value="marks">Examination marks</option>
+       </select>
+     </label>
+
+     <label class="field">Choose a CSV or Excel file
+       <input
+         type="file"
+         name="importFile"
+         accept=".csv,.xlsx"
+         required
+       >
+     </label>
+
+     <div style="padding:14px;border-radius:10px;background:var(--bg);margin:16px 0">
+       <strong>Before importing</strong>
+       <p style="margin:8px 0 0;color:var(--muted)">
+         Your file will be checked before records are saved.
+         We will identify invalid entries and possible duplicates.
+         Existing records must not be silently overwritten.
+       </p>
+     </div>
+
+     <div class="form-actions">
+       <button class="btn primary" type="submit">
+         Preview and validate file
+       </button>
+     </div>
+   </form>
+ `);
+
 }else if(state.view==='Marks'){
 
  const markRows=d.marks.length?`<div class="table-wrap"><table><thead><tr><th>Student</th><th>Student ID</th><th>Class</th><th>Subject</th><th>Term</th><th>Class Score / 30</th><th>Exams Score / 70</th><th>Total / 100</th><th>Grade</th><th>Actions</th></tr></thead><tbody>${d.marks.map(m=>{const total=Number(m.score)||0;return `<tr><td>${esc(m.student_name||'')}</td><td>${esc(m.student_code||'')}</td><td>${esc(m.class_name||'')}</td><td>${esc(m.subject)}</td><td>${esc(m.term)}</td><td>${m.class_score==null?'—':Number(m.class_score).toFixed(1)}</td><td>${m.exam_score==null?'—':Number(m.exam_score).toFixed(1)}</td><td><strong>${total.toFixed(1)}</strong></td><td><span class="badge">${grade(total)}</span></td><td>${state.user.role==='ADMIN'?`<button class="btn danger" data-action="delete-mark" data-id="${esc(m.id)}">Delete</button>`:'—'}</td></tr>`}).join('')}</tbody></table></div>`:'<div class="empty">No marks recorded yet. Use Enter mark to add results.</div>';
