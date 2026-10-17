@@ -49,16 +49,15 @@ const importUpload = multer({
   fileFilter(req, file, cb) {
     const ext = path.extname(file.originalname || '').toLowerCase();
 
-    const multer = require('multer');
-const ExcelJS = require('exceljs');
-const XLSX = require('xlsx');
-const mammoth = require('mammoth');
-const { parse } = require('csv-parse/sync');
+    if (!['.csv', '.xlsx'].includes(ext)) {
+      return cb(
+        new Error('Only CSV and Excel (.xlsx) files are currently supported.')
+      );
+    }
 
     cb(null, true);
   }
 });
-
 
 function normalizeImportHeader(value) {
   return String(value ?? '')
