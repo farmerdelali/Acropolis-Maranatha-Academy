@@ -56,6 +56,77 @@ const importUpload = multer({
 });
 
 
+function normalizeImportHeader(value) {
+  return String(value ?? '')
+    .trim()
+    .toLowerCase()
+    .replace(/[\s_-]+/g, '');
+}
+
+async function readImportRows(file) {
+  const ext = path.extname(file.originalname || '').toLowerCase();
+  let rawRows = [];
+
+  if (ext === '.csv') {
+    rawRows = parse(file.buffer.toString('utf8'), {
+      bom: true,
+      skip_empty_lines: true,
+      trim: true,
+      relax_column_count: true
+    });
+  } else if (ext === '.xlsx') {
+    const workbook = new ExcelJS.Workbook();
+    await workbook.xlsx.load(file.buffer);
+
+    const sheet = workbook.worksheets[0];
+
+    if (!sheet || sheet.rowCount < 2) {
+      throw new Error('The Excel file has no data rows.');
+    }
+
+    rawRows = [];
+
+    sheet.eachRow({ includeEmpty: false }, row => {
+      rawRows.push(
+        row.values.slice(1).map(cell => {
+          if (cell && typeof cell === 'object' && 'text' in cell) {
+            return String(cell.text ?? '').trim();
+          }
+
+          return cell == null ? '' : String(cell).trim();
+        })
+      );
+    });
+  } else {
+    throw new Error('Only CSV and Excel (.xlsx) files are supported.');
+  }
+
+  if (rawRows.length < 2) {
+    throw new Error('Include a header row and at least one data row.');
+  }
+
+  const headers = rawRows[0].map(normalizeImportHeader);
+
+  if (headers.some(header => !header)) {
+    throw new Error('Every column must have a header.');
+  }
+
+  if (new Set(headers).size !== headers.length) {
+    throw new Error('Duplicate column headings were found.');
+  }
+
+  return rawRows.slice(1).map((row, index) => {
+    const record = {};
+
+    headers.forEach((header, column) => {
+      record[header] = String(row[column] ?? '').trim();
+    });
+
+    record._rowNumber = index + 2;
+    return record;
+  });
+}
+
 async function initDb() {
   const sql = fs.readFileSync(path.join(__dirname, 'db', 'schema.sql'), 'utf8');
   await q(sql);
