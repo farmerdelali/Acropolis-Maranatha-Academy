@@ -2604,6 +2604,7 @@ document.addEventListener('click', e => {
 document.addEventListener('submit', async e => {
   const form = e.target;
   const allowedForms = [
+   'importDataForm', 
   'registerForm',
   'loginForm',
   'parentForm',
