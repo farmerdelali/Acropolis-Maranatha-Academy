@@ -8,7 +8,9 @@ const PgSession = require('connect-pg-simple')(session);
 const { Pool } = require('pg');
 const bcrypt = require('bcryptjs');
 const { rateLimit } = require('express-rate-limit');
-
+const multer = require('multer');
+const ExcelJS = require('exceljs');
+const { parse } = require('csv-parse/sync');
 const app = express();
 const production = process.env.NODE_ENV === 'production';
 if (!process.env.DATABASE_URL || !process.env.SESSION_SECRET) {
@@ -35,6 +37,23 @@ function requireRole(...roles) { return (req, res, next) => { if (!req.session.u
 function schoolId(req) { return req.session.user.schoolId; }
 async function audit(req, action, type = '', id = '') { await q('INSERT INTO audit_logs(school_id,user_id,action,entity_type,entity_id) VALUES($1,$2,$3,$4,$5)', [schoolId(req), req.session.user.id, action, type, String(id)]); }
 function validText(value, max = 120) { return typeof value === 'string' && value.trim().length > 0 && value.trim().length <= max; }
+
+const importUpload = multer({
+  storage: multer.memoryStorage(),
+  limits: {
+    fileSize: 5 * 1024 * 1024,
+    files: 1
+  },
+  fileFilter(req, file, cb) {
+    const ext = path.extname(file.originalname || '').toLowerCase();
+
+    if (!['.csv', '.xlsx'].includes(ext)) {
+      return cb(new Error('Only CSV and Excel (.xlsx) files are allowed.'));
+    }
+
+    cb(null, true);
+  }
+});
 
 
 async function initDb() {
