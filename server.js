@@ -397,6 +397,250 @@ app.put('/api/system-settings', requireRole('ADMIN'), asyncRoute(async (req, res
   });
 }));
 
+app.post(
+  '/api/import/preview',
+  requireRole('ADMIN'),
+  importUpload.single('importFile'),
+  asyncRoute(async (req, res) => {
+    if (!req.file) {
+      return res.status(400).json({
+        error: 'Choose a CSV or Excel (.xlsx) file first.'
+      });
+    }
+
+    const importType = String(req.body.importType || '');
+
+    if (!['students', 'marks'].includes(importType)) {
+      return res.status(400).json({
+        error: 'Choose either student records or examination marks.'
+      });
+    }
+
+    let rows;
+
+    try {
+      rows = await readImportRows(req.file);
+    } catch (error) {
+      return res.status(400).json({
+        error: error.message || 'Could not read the uploaded file.'
+      });
+    }
+
+    if (rows.length > 200) {
+      return res.status(400).json({
+        error: 'For safety, import no more than 200 records per file.'
+      });
+    }
+
+    const sid = schoolId(req);
+    const seenCodes = new Set();
+    const seenMarks = new Set();
+    const preview = [];
+
+    for (const row of rows) {
+      const errors = [];
+      const warnings = [];
+      const get = key => String(row[key] || '').trim();
+
+      if (importType === 'students') {
+        const fullName = get('fullname');
+        const className = get('classname');
+        const studentCode = get('studentcode');
+        const totalFeesText = get('totalfees');
+        const totalFees = totalFeesText === '' ? 0 : Number(totalFeesText);
+
+        if (!validText(fullName, 120)) {
+          errors.push('Full name is required (maximum 120 characters).');
+        }
+
+        if (!validText(className, 60)) {
+          errors.push('Class is required (maximum 60 characters).');
+        }
+
+        if (studentCode.length > 40) {
+          errors.push('Student code must not exceed 40 characters.');
+        }
+
+        if (
+          totalFeesText !== '' &&
+          (!Number.isFinite(totalFees) || totalFees < 0)
+        ) {
+          errors.push('Total fees must be a valid amount of zero or more.');
+        }
+
+        if (studentCode) {
+          const codeKey = studentCode.toLowerCase();
+
+          if (seenCodes.has(codeKey)) {
+            errors.push('This student code appears more than once in the file.');
+          }
+
+          seenCodes.add(codeKey);
+
+          if (studentCode.length <= 40) {
+            const existing = await q(
+              `SELECT id FROM students
+               WHERE school_id = $1 AND lower(student_code) = lower($2)
+               LIMIT 1`,
+              [sid, studentCode]
+            );
+
+            if (existing.rowCount) {
+              errors.push('This student code already exists in the school.');
+            }
+          }
+        }
+
+        if (fullName && className) {
+          const similar = await q(
+            `SELECT id FROM students
+             WHERE school_id = $1
+               AND archived = false
+               AND lower(trim(full_name)) = lower(trim($2))
+               AND lower(trim(class_name)) = lower(trim($3))
+             LIMIT 1`,
+            [sid, fullName, className]
+          );
+
+          if (similar.rowCount) {
+            warnings.push(
+              'A student with the same name and class already exists. Check before importing.'
+            );
+          }
+        }
+
+        preview.push({
+          rowNumber: row._rowNumber,
+          record: {
+            studentCode,
+            fullName,
+            className,
+            gender: get('gender'),
+            guardianName: get('guardianname'),
+            guardianPhone: get('guardianphone'),
+            guardian2Name: get('guardian2name'),
+            guardian2Phone: get('guardian2phone'),
+            totalFees
+          },
+          errors,
+          warnings,
+          valid: errors.length === 0
+        });
+      } else {
+        const studentCode = get('studentcode');
+        const subject = get('subject');
+        const term = get('term') || 'Term 1';
+        const classScoreText = get('classscore');
+        const examScoreText = get('examscore');
+        const classScore = Number(classScoreText);
+        const examScore = Number(examScoreText);
+
+        if (!studentCode) {
+          errors.push('Student code is required.');
+        }
+
+        if (!validText(subject, 80)) {
+          errors.push('Subject is required (maximum 80 characters).');
+        }
+
+        if (!validText(term, 40)) {
+          errors.push('Term must not exceed 40 characters.');
+        }
+
+        if (
+          classScoreText === '' ||
+          !Number.isFinite(classScore) ||
+          classScore < 0 ||
+          classScore > 30
+        ) {
+          errors.push('Class score must be between 0 and 30.');
+        }
+
+        if (
+          examScoreText === '' ||
+          !Number.isFinite(examScore) ||
+          examScore < 0 ||
+          examScore > 70
+        ) {
+          errors.push('Exam score must be between 0 and 70.');
+        }
+
+        let student = null;
+
+        if (studentCode) {
+          const found = await q(
+            `SELECT id, full_name, class_name
+             FROM students
+             WHERE school_id = $1
+               AND lower(student_code) = lower($2)
+               AND archived = false
+             LIMIT 1`,
+            [sid, studentCode]
+          );
+
+          if (!found.rowCount) {
+            errors.push('No active student matches this student code.');
+          } else {
+            student = found.rows[0];
+          }
+        }
+
+        if (student && subject && term) {
+          const markKey =
+            `${student.id}|${subject.toLowerCase()}|${term.toLowerCase()}`;
+
+          if (seenMarks.has(markKey)) {
+            errors.push('This student, subject and term appear more than once in the file.');
+          }
+
+          seenMarks.add(markKey);
+
+          const existingMark = await q(
+            `SELECT id FROM marks
+             WHERE school_id = $1
+               AND student_id = $2
+               AND lower(subject) = lower($3)
+               AND lower(term) = lower($4)
+             LIMIT 1`,
+            [sid, student.id, subject, term]
+          );
+
+          if (existingMark.rowCount) {
+            errors.push('A mark already exists for this student, subject and term. It will not be overwritten.');
+          }
+        }
+
+        preview.push({
+          rowNumber: row._rowNumber,
+          record: {
+            studentCode,
+            studentName: student?.full_name || '',
+            className: student?.class_name || '',
+            subject,
+            term,
+            classScore,
+            examScore,
+            totalScore: classScore + examScore
+          },
+          errors,
+          warnings,
+          valid: errors.length === 0
+        });
+      }
+    }
+
+    const validRows = preview.filter(row => row.valid).length;
+
+    res.json({
+      importType,
+      totalRows: preview.length,
+      validRows,
+      invalidRows: preview.length - validRows,
+      rows: preview
+    });
+  })
+);
+
 app.post('/api/students', requireAuth, asyncRoute(async (req,res)=>{
   if (!['ADMIN','TEACHER'].includes(req.session.user.role)) return res.status(403).json({error:'Only administrators and teachers can manage students.'});
   const b=req.body||{}; if(!validText(b.fullName,120)||!validText(b.className,60)) return res.status(400).json({error:'Student name and class are required.'});
