@@ -465,7 +465,7 @@ const classTotal = classCounts.reduce((sum, item) => sum + item[1], 0);
        <input
          type="file"
          name="importFile"
-         accept=".csv,.xlsx"
+         accept=".csv,.xlsx,.xls,.docx,.pdf"
          required
        >
      </label>
