@@ -136,6 +136,17 @@ async function readImportRows(file) {
           .trim()
       );
     });
+  } else if (ext === '.pdf') {
+    const result = await pdfParse(file.buffer);
+
+    const lines = result.text
+      .split(/\r?\n/)
+      .map(line => line.trim())
+      .filter(Boolean);
+
+    rawRows = lines.map(line =>
+      line.split(/\t+| {2,}/).map(cell => cell.trim())
+    );
 
   } else {
     throw new Error(
