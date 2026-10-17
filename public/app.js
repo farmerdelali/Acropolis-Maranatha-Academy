@@ -2712,9 +2712,9 @@ if (form.id === 'importDataForm') {
         : 'Preview complete. No validation errors or duplicate warnings found.'}</p>
     </div>
   `;
-} else if
+} else if (form.id === 'registerForm') {
  
-    if (form.id === 'registerForm') {
+  
       if (v.password !== v.confirmPassword) {
         throw new Error('Passwords do not match.');
       }
