@@ -12,6 +12,7 @@ const multer = require('multer');
 const ExcelJS = require('exceljs');
 const XLSX = require('xlsx');
 const mammoth = require('mammoth');
+const pdfParse = require('pdf-parse');
 const { parse } = require('csv-parse/sync');
 const app = express();
 const production = process.env.NODE_ENV === 'production';
