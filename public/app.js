@@ -2707,9 +2707,13 @@ if (form.id === 'importDataForm') {
           </tbody>
         </table>
       </div>
-      <p>${preview.invalidRows > 0 || hasWarnings
+            <p>${preview.invalidRows > 0 || hasWarnings
         ? 'Resolve the listed issues before importing.'
         : 'Preview complete. No validation errors or duplicate warnings found.'}</p>
+
+      ${preview.invalidRows === 0 && !hasWarnings
+        ? '<button type="button" class="btn primary" id="commitImportButton">Confirm and import records</button>'
+        : ''}
     </div>
   `;
 } else if (form.id === 'registerForm') {
@@ -3773,3 +3777,50 @@ $('#logoutBtn').addEventListener('click', async () => {
 
 
 (async function init(){try{const r=await api('/api/session');if(r.user){state.view='Dashboard';showApp(r.user);}else showAuth();}catch{showAuth();}})();
+
+document.addEventListener('click', async e => {
+  const button = e.target.closest('#commitImportButton');
+  if (!button) return;
+
+  const form = document.getElementById('importDataForm');
+  if (!form) {
+    toast('Please reopen Import Data and select your file.', true);
+    return;
+  }
+
+  const fileInput = form.querySelector('input[name="importFile"]');
+  if (!fileInput || !fileInput.files.length) {
+    toast('Please select the file again before importing.', true);
+    return;
+  }
+
+  if (!confirm('Import these records now? Existing records will not be overwritten.')) {
+    return;
+  }
+
+  button.disabled = true;
+  button.textContent = 'Importing...';
+
+  try {
+    const response = await fetch('/api/import/commit', {
+      method: 'POST',
+      credentials: 'same-origin',
+      body: new FormData(form)
+    });
+
+    const result = await response.json();
+
+    if (!response.ok) {
+      throw new Error(result.error || 'Import failed.');
+    }
+
+    await refresh();
+    state.view = 'Import Data';
+    render();
+    toast(result.message || 'Import completed successfully.');
+  } catch (error) {
+    toast(error.message || 'Import failed. Please try again.', true);
+    button.disabled = false;
+    button.textContent = 'Confirm and import records';
+  }
+});
