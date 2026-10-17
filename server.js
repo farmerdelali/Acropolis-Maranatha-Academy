@@ -77,29 +77,26 @@ async function readImportRows(file) {
       trim: true,
       relax_column_count: true
     });
-  } else if (ext === '.xlsx') {
-    const workbook = new ExcelJS.Workbook();
-    await workbook.xlsx.load(file.buffer);
+} else if (['.xlsx', '.xls'].includes(ext)) {
+  const workbook = XLSX.read(file.buffer, {
+    type: 'buffer'
+  });
 
-    const sheet = workbook.worksheets[0];
+  const firstSheetName = workbook.SheetNames[0];
+  const sheet = firstSheetName
+    ? workbook.Sheets[firstSheetName]
+    : null;
 
-    if (!sheet || sheet.rowCount < 2) {
-      throw new Error('The Excel file has no data rows.');
-    }
+  if (!sheet) {
+    throw new Error('The Excel file contains no worksheets.');
+  }
 
-    rawRows = [];
-
-    sheet.eachRow({ includeEmpty: false }, row => {
-      rawRows.push(
-        row.values.slice(1).map(cell => {
-          if (cell && typeof cell === 'object' && 'text' in cell) {
-            return String(cell.text ?? '').trim();
-          }
-
-          return cell == null ? '' : String(cell).trim();
-        })
-      );
-    });
+  rawRows = XLSX.utils.sheet_to_json(sheet, {
+    header: 1,
+    defval: '',
+    raw: false,
+    blankrows: false
+  });
   } else {
     throw new Error('Only CSV and Excel (.xlsx) files are supported.');
   }
