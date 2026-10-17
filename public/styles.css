@@ -911,3 +911,54 @@ body.dark-mode .nav-subitem.active {
 body.dark-mode .nav-submenu {
   border-left-color: #354156;
 }
+
+/* Premium school data import file chooser */
+.import-file-field {
+  display: grid;
+  gap: 10px;
+  padding: 18px;
+  border: 1px solid #dce2ee;
+  border-radius: 16px;
+  background: linear-gradient(145deg, #ffffff, #f4f6fb);
+  color: #101c3a;
+}
+
+.import-file-field .import-file-hint {
+  color: #6b7588;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.6;
+}
+
+.import-file-field input[type="file"] {
+  width: 100%;
+  min-height: 58px;
+  padding: 8px;
+  border: 1px dashed #aab5ca;
+  border-radius: 12px;
+  background: #fff;
+  color: #19243a;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.import-file-field input[type="file"]::file-selector-button {
+  margin-right: 12px;
+  padding: 12px 16px;
+  border: 0;
+  border-radius: 9px;
+  background: #101c3a;
+  color: #fff;
+  font-weight: 750;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.import-file-field input[type="file"]::file-selector-button:hover {
+  background: #1c2e57;
+}
+
+.import-file-field input[type="file"]:focus-visible {
+  outline: 3px solid #ffb900;
+  outline-offset: 3px;
+}
