@@ -459,7 +459,9 @@ const classTotal = classCounts.reduce((sum, item) => sum + item[1], 0);
        </select>
      </label>
 
-     <label class="field">Choose a CSV or Excel file
+     
+     <label class="field import-file-field">Choose a file to upload
+       <span class="import-file-hint">Browse your device or any storage locations available in the file picker.</span>
        <input
          type="file"
          name="importFile"
