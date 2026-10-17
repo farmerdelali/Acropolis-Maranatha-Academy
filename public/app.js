@@ -2642,6 +2642,78 @@ if (!allowedForms.includes(form.id)) return;
   }
 
   try {
+   
+if (form.id === 'importDataForm') {
+  const uploadData = new FormData(form);
+  const results = document.getElementById('importPreviewResults');
+
+  if (results) {
+    results.innerHTML = '<p>Checking your file...</p>';
+  }
+
+  const response = await fetch('/api/import/preview', {
+    method: 'POST',
+    credentials: 'same-origin',
+    body: uploadData
+  });
+
+  const preview = await response.json();
+
+  if (!response.ok) {
+    throw new Error(preview.error || 'Could not validate the file.');
+  }
+
+  if (!results) {
+    throw new Error('Preview area not found. Reopen Import Data.');
+  }
+
+  const hasWarnings = preview.rows.some(
+    row => row.warnings && row.warnings.length > 0
+  );
+
+  results.innerHTML = `
+    <div class="panel" style="margin-top:20px">
+      <h3>Import Preview</h3>
+      <p>Total rows: <strong>${preview.totalRows}</strong></p>
+      <p>Valid rows: <strong>${preview.validRows}</strong></p>
+      <p>Rows with errors: <strong>${preview.invalidRows}</strong></p>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Row</th><th>Record details</th><th>Validation</th></tr>
+          </thead>
+          <tbody>
+            ${preview.rows.map(row => {
+              const details = Object.entries(row.record || {})
+                .map(([key, value]) =>
+                  `<div><strong>${esc(key)}:</strong> ${esc(value ?? '')}</div>`
+                ).join('');
+
+              const issues = [
+                ...(row.errors || []),
+                ...(row.warnings || [])
+              ];
+
+              return `
+                <tr>
+                  <td>${esc(row.rowNumber)}</td>
+                  <td>${details}</td>
+                  <td>${issues.length
+                    ? issues.map(issue => `<div>${esc(issue)}</div>`).join('')
+                    : '<strong>Ready</strong>'}</td>
+                </tr>
+              `;
+            }).join('')}
+          </tbody>
+        </table>
+      </div>
+      <p>${preview.invalidRows > 0 || hasWarnings
+        ? 'Resolve the listed issues before importing.'
+        : 'Preview complete. No validation errors or duplicate warnings found.'}</p>
+    </div>
+  `;
+} else if
+ 
     if (form.id === 'registerForm') {
       if (v.password !== v.confirmPassword) {
         throw new Error('Passwords do not match.');
