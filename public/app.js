@@ -445,7 +445,8 @@ const classTotal = classCounts.reduce((sum, item) => sum + item[1], 0);
 }else if(state.view==='Students'){
 
  html=pageHead('Student records','Register, search and maintain student information.',`<button class="btn primary" data-action="add-student">+ Register student</button><button class="btn soft" data-action="student-documents">📁 Student Documents</button>`)+`<section class="panel"><div class="panel-body"><div class="toolbar"><input id="studentSearch" placeholder="Search name, ID, class or guardian…" value="${esc(state.search)}"><button class="btn soft" data-action="clear-search">Clear</button></div>${studentRows(students.filter(s=>[s.full_name,s.student_code,s.class_name,s.guardian_name,s.guardian_phone].join(' ').toLowerCase().includes(state.search.toLowerCase())))}</div></section>`;
-
+}else if(state.view==='Student Documents'){
+  html=pageHead('Student Documents','Manage documents belonging to your students.',`<button class="btn soft" data-view="Students">← Back to Students</button>`)+`<section class="panel"><div class="panel-body"><h3>Student Documents</h3><p>Document management will be set up here.</p></div></section>`;
 }else if(state.view==='Import Data'){
  html=pageHead(
    'Import Data',
@@ -3337,7 +3338,8 @@ if (!allowedMenus.includes(button.dataset.view) && !canOpenFeeding) {
   try {
     switch (action) { 
               case 'student-documents':
-        toast('Student document management will be added next.');
+       state.view = 'Student Documents';
+render();
         break;
         case 'apply-fee-report': {
     const start = document.getElementById('feeReportStart')?.value;
