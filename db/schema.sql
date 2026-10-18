@@ -310,3 +310,19 @@ ON student_feeding(school_id, student_id);
 
 CREATE INDEX IF NOT EXISTS feeding_payments_school_idx
 ON feeding_payments(school_id, payment_date DESC);
+CREATE TABLE IF NOT EXISTS student_documents (
+  id BIGSERIAL PRIMARY KEY,
+  school_id BIGINT NOT NULL
+    REFERENCES schools(id) ON DELETE CASCADE,
+  student_id BIGINT NOT NULL
+    REFERENCES students(id) ON DELETE CASCADE,
+  original_name TEXT NOT NULL,
+ file_data BYTEA NOT NULL,
+  mime_type TEXT NOT NULL,
+  size_bytes BIGINT NOT NULL CHECK (size_bytes > 0),
+  uploaded_by BIGINT REFERENCES users(id) ON DELETE SET NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS student_documents_lookup_idx
+ON student_documents (school_id, student_id, created_at DESC);
