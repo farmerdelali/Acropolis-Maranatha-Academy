@@ -445,8 +445,23 @@ const classTotal = classCounts.reduce((sum, item) => sum + item[1], 0);
 }else if(state.view==='Students'){
 
  html=pageHead('Student records','Register, search and maintain student information.',`<button class="btn primary" data-action="add-student">+ Register student</button><button class="btn soft" data-action="student-documents">📁 Student Documents</button>`)+`<section class="panel"><div class="panel-body"><div class="toolbar"><input id="studentSearch" placeholder="Search name, ID, class or guardian…" value="${esc(state.search)}"><button class="btn soft" data-action="clear-search">Clear</button></div>${studentRows(students.filter(s=>[s.full_name,s.student_code,s.class_name,s.guardian_name,s.guardian_phone].join(' ').toLowerCase().includes(state.search.toLowerCase())))}</div></section>`;
+
 }else if(state.view==='Student Documents'){
-  html=pageHead('Student Documents','Manage documents belonging to your students.',`<button class="btn soft" data-view="Students">← Back to Students</button>`)+`<section class="panel"><div class="panel-body"><h3>Student Documents</h3><p>Document management will be set up here.</p></div></section>`;
+  html=pageHead('Student Documents','Upload and manage documents for individual students.',`<button class="btn soft" data-view="Students">← Back to Students</button>`)+
+  `<section class="panel"><div class="panel-body">
+    <h3>Select Student</h3>
+    <div class="field">
+      <label for="documentStudent">Student</label>
+      <select id="documentStudent" required>
+        <option value="">Choose a student</option>
+        ${students.map(s=>`<option value="${esc(s.id)}">${esc(s.full_name)}${s.student_code?' · '+esc(s.student_code):''}</option>`).join('')}
+      </select>
+    </div>
+    <div id="studentDocumentArea">
+      <p>Select a student to manage their documents.</p>
+    </div>
+  </div></section>`;
+
 }else if(state.view==='Import Data'){
  html=pageHead(
    'Import Data',
@@ -2460,7 +2475,69 @@ function teacherSubjectAssignmentForm(assignment = null) {
 async function refresh(){await loadData();}
 async function download(url,filename){const r=await fetch(url,{credentials:'same-origin'});if(!r.ok){let b={};try{b=await r.json()}catch{}throw new Error(b.error||'Download failed');}const blob=await r.blob(),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=filename;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),1500);}
 
+async function loadStudentDocuments(studentId) {
+  const area = document.getElementById('studentDocumentArea');
+  if (!area) return;
+
+  if (!studentId) {
+    area.innerHTML = '<p>Select a student to manage their documents.</p>';
+    return;
+  }
+
+  area.innerHTML = '<p>Loading student documents…</p>';
+
+  try {
+    const result = await api(
+      `/api/students/${encodeURIComponent(studentId)}/documents`
+    );
+
+    const documents = result.documents || [];
+
+    area.innerHTML = `
+      <hr>
+      <h3>Upload a Document</h3>
+      <form id="studentDocumentUploadForm">
+        <input type="hidden" name="studentId" value="${esc(studentId)}">
+        <label class="field">
+          Choose file (PDF, JPG, PNG, DOC or DOCX)
+          <input type="file" name="document" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx" required>
+        </label>
+        <button type="submit" class="btn primary">Upload Document</button>
+      </form>
+      <hr>
+      <h3>Saved Documents (${documents.length})</h3>
+      ${
+        documents.length
+          ? `<div class="table-wrap"><table>
+              <thead><tr><th>Document</th><th>Size</th><th>Date Added</th><th>Actions</th></tr></thead>
+              <tbody>
+                ${documents.map(doc => `
+                  <tr>
+                    <td>${esc(doc.original_name)}</td>
+                    <td>${(Number(doc.size_bytes || 0) / 1024).toFixed(1)} KB</td>
+                    <td>${esc(doc.created_at ? new Date(doc.created_at).toLocaleDateString() : '')}</td>
+                    <td>
+                      <a class="btn soft" href="/api/student-documents/${encodeURIComponent(doc.id)}/file" target="_blank" rel="noopener">Open</a>
+                      <button type="button" class="btn danger" data-action="delete-student-document" data-id="${esc(doc.id)}" data-student-id="${esc(studentId)}">Delete</button>
+                    </td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table></div>`
+          : '<p>No documents have been uploaded for this student yet.</p>'
+      }
+    `;
+  } catch (error) {
+    area.innerHTML = `<p class="error">${esc(error.message || 'Could not load documents.')}</p>`;
+  }
+}
+
 document.addEventListener('change', e => {
+  
+  if (e.target.id === 'documentStudent') {
+    loadStudentDocuments(e.target.value);
+  }
+
    if (e.target.id === 'assignmentClass') {
     const subjectSelect = document.getElementById('assignmentSubject');
     const subjects = MARK_SUBJECTS_BY_CLASS[e.target.value] || [];
@@ -2635,6 +2712,57 @@ document.addEventListener('submit', async e => {
 ];
 
  e.preventDefault();
+  
+  if (form.id === 'studentDocumentUploadForm') {
+    const studentId = form.elements.studentId.value;
+    const fileInput = form.querySelector('input[name="document"]');
+    const file = fileInput.files[0];
+
+    if (!file) {
+      toast('Please choose a document first.', true);
+      return;
+    }
+
+    if (file.size > 10 * 1024 * 1024) {
+      toast('The document must be 10 MB or smaller.', true);
+      return;
+    }
+
+    const uploadButton = form.querySelector('button[type="submit"]');
+    uploadButton.disabled = true;
+    uploadButton.textContent = 'Uploading…';
+
+    try {
+      const uploadData = new FormData();
+      uploadData.append('document', file);
+
+      const response = await fetch(
+        `/api/students/${encodeURIComponent(studentId)}/documents`,
+        {
+          method: 'POST',
+          credentials: 'same-origin',
+          body: uploadData
+        }
+      );
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Document upload failed.');
+      }
+
+      toast('Document uploaded successfully.');
+      await loadStudentDocuments(studentId);
+    } catch (error) {
+      toast(error.message || 'Document upload failed.', true);
+    } finally {
+      uploadButton.disabled = false;
+      uploadButton.textContent = 'Upload Document';
+    }
+
+    return;
+  }
+
 if (!allowedForms.includes(form.id)) return;
   const fd = new FormData(form);
   const v = Object.fromEntries(fd.entries());
@@ -3337,6 +3465,29 @@ if (!allowedMenus.includes(button.dataset.view) && !canOpenFeeding) {
 
   try {
     switch (action) { 
+        
+      case 'delete-student-document': {
+        if (!confirm('Are you sure you want to permanently delete this student document?')) {
+          break;
+        }
+
+        const documentId = button.dataset.id;
+        const studentId = button.dataset.studentId;
+
+        try {
+          await api(`/api/student-documents/${encodeURIComponent(documentId)}`, {
+            method: 'DELETE'
+          });
+
+          toast('Student document deleted successfully.');
+          await loadStudentDocuments(studentId);
+        } catch (error) {
+          toast(error.message || 'Could not delete the document.', true);
+        }
+
+        break;
+      }
+
               case 'student-documents':
        state.view = 'Student Documents';
 render();
