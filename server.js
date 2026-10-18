@@ -59,7 +59,24 @@ const importUpload = multer({
     cb(null, true);
   }
 });
+const documentUpload = multer({
+  storage: multer.memoryStorage(),
+  limits: {
+    fileSize: 10 * 1024 * 1024,
+    files: 1
+  },
+  fileFilter(req, file, cb) {
+    const ext = path.extname(file.originalname || '').toLowerCase();
 
+    if (!['.pdf', '.jpg', '.jpeg', '.png', '.doc', '.docx'].includes(ext)) {
+      return cb(new Error(
+        'Supported document formats: PDF, JPG, PNG, DOC, and DOCX.'
+      ));
+    }
+
+    cb(null, true);
+  }
+});
 function normalizeImportHeader(value) {
   return String(value ?? '')
     .trim()
