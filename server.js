@@ -643,8 +643,8 @@ app.post(
         }
 
         if (!validText(subject, 80)) {
-          errors.push('Subject is required (maximum 80 characters).');
-        }
+  errors.push('Subject is required (maximum 80 characters).');
+}
 
         if (!validText(term, 40)) {
           errors.push('Term must not exceed 40 characters.');
@@ -688,9 +688,9 @@ app.post(
           }
         }
 
-        if (student && subject && term) {
+        if (student && finalSubject && term) {
           const markKey =
-            `${student.id}|${subject.toLowerCase()}|${term.toLowerCase()}`;
+         `${student.id}|${finalSubject.toLowerCase()}|${term.toLowerCase()}`  ;
 
           if (seenMarks.has(markKey)) {
             errors.push('This student, subject and term appear more than once in the file.');
@@ -705,7 +705,7 @@ app.post(
                AND lower(subject) = lower($3)
                AND lower(term) = lower($4)
              LIMIT 1`,
-            [sid, student.id, subject, term]
+            [sid, student.id, finalSubject, term]
           );
 
           if (existingMark.rowCount) {
@@ -715,12 +715,12 @@ app.post(
 
         preview.push({
           rowNumber: row._rowNumber,
-          record: {
-            studentCode,
-            studentName: student?.full_name || '',
-            className: student?.class_name || '',
-            subject,
-            term,
+         record: {
+  studentCode: student?.student_code || studentCode || '',
+  studentName: student?.full_name || resolvedStudentName || '',
+  className: student?.class_name || '',
+  subject: finalSubject,
+          term,
             classScore,
             examScore,
             totalScore: classScore + examScore
@@ -904,16 +904,67 @@ app.post(
             totalFees
           });
         } else {
-          const studentCode = get('studentcode');
-          const subject = get('subject');
-          const term = get('term') || 'Term 1';
-          const classScoreText = get('classscore');
-          const examScoreText = get('examscore');
+                   const studentCode =
+            get('studentcode') ||
+            get('admissionnumber') ||
+            get('admissionno') ||
+            get('column1');
+
+                   const studentName =
+            get('studentname') ||
+            get('fullname') ||
+            get('learnername') ||
+            get('name') ||
+            (!get('studentcode') &&
+             !get('admissionnumber') &&
+             !get('admissionno')
+              ? get('column1')
+              : '');
+          const subject =
+            get('subject') ||
+            get('course') ||
+            get('column2');
+
+          const column3 = get('column3');
+          const column4 = get('column4');
+          const column5 = get('column5');
+
+          const isNumeric = value =>
+            value !== '' && Number.isFinite(Number(value));
+
+          const term =
+            get('term') ||
+            get('semester') ||
+            (column5 ? column3 : 'Term 1') ||
+            'Term 1';
+
+          const classScoreText =
+            get('classscore') ||
+            get('cascore') ||
+            get('continuousassessment') ||
+            (column5
+              ? column4
+              : isNumeric(column3) ? column3 : '');
+
+          const examScoreText =
+            get('examscore') ||
+            get('examination') ||
+            get('finalexam') ||
+            (column5
+              ? column5
+              : isNumeric(column4) ? column4 : '');
+
           const classScore = Number(classScoreText);
           const examScore = Number(examScoreText);
 
-          if (!studentCode || !validText(subject, 80) || !validText(term, 40)) {
-            errors.push(`Row ${row._rowNumber}: student code, subject and term are required.`);
+          if (
+            (!studentCode && !studentName) ||
+            !validText(subject, 80) ||
+            !validText(term, 40)
+          ) {
+            errors.push(
+              `Row ${row._rowNumber}: student name or code, subject and term are required.`
+            );
             continue;
           }
 
@@ -927,30 +978,49 @@ app.post(
             examScore < 0 ||
             examScore > 70
           ) {
-            errors.push(`Row ${row._rowNumber}: class score must be 0–30 and exam score must be 0–70.`);
+            errors.push(
+              `Row ${row._rowNumber}: class score must be 0–30 and exam score must be 0–70.`
+            );
             continue;
           }
 
           const studentResult = await client.query(
-            `SELECT id FROM students
+            `SELECT id, student_code, full_name
+             FROM students
              WHERE school_id = $1
-               AND lower(student_code) = lower($2)
                AND archived = false
-             LIMIT 1`,
-            [sid, studentCode]
+               AND (
+                 ($2 <> '' AND lower(trim(student_code)) = lower(trim($2)))
+                 OR
+                 ($3 <> '' AND lower(trim(full_name)) = lower(trim($3)))
+               )
+             LIMIT 2`,
+            [sid, studentCode, studentName]
           );
 
           if (!studentResult.rowCount) {
-            errors.push(`Row ${row._rowNumber}: no active student matches code "${studentCode}".`);
+            errors.push(
+              `Row ${row._rowNumber}: no active student matches the supplied name or code.`
+            );
+            continue;
+          }
+
+          if (studentResult.rowCount > 1) {
+            errors.push(
+              `Row ${row._rowNumber}: this name matches multiple students. Use the student code instead.`
+            );
             continue;
           }
 
           const studentId = studentResult.rows[0].id;
+
           const markKey =
             `${studentId}|${subject.toLowerCase()}|${term.toLowerCase()}`;
 
           if (seenMarks.has(markKey)) {
-            errors.push(`Row ${row._rowNumber}: duplicate student, subject and term in this file.`);
+            errors.push(
+              `Row ${row._rowNumber}: duplicate student, subject and term in this file.`
+            );
             continue;
           }
 
@@ -967,7 +1037,9 @@ app.post(
           );
 
           if (existingMark.rowCount) {
-            errors.push(`Row ${row._rowNumber}: a mark already exists for this student, subject and term. Nothing will be overwritten.`);
+            errors.push(
+              `Row ${row._rowNumber}: a mark already exists for this student, subject and term. Nothing will be overwritten.`
+            );
             continue;
           }
 
