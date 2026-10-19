@@ -84,6 +84,7 @@ function normalizeImportHeader(value) {
     .replace(/[\s_-]+/g, '');
 }
 
+
 async function readImportRows(file) {
   const ext = path.extname(file.originalname || '').toLowerCase();
   let rawRows = [];
@@ -95,66 +96,81 @@ async function readImportRows(file) {
       trim: true,
       relax_column_count: true
     });
-} else if (['.xlsx', '.xls'].includes(ext)) {
-  const workbook = XLSX.read(file.buffer, {
-    type: 'buffer'
-  });
+  } else if (['.xlsx', '.xls'].includes(ext)) {
+    const workbook = XLSX.read(file.buffer, {
+      type: 'buffer'
+    });
 
-  const firstSheetName = workbook.SheetNames[0];
-  const sheet = firstSheetName
-    ? workbook.Sheets[firstSheetName]
-    : null;
+    const firstSheetName = workbook.SheetNames[0];
+    const sheet = firstSheetName
+      ? workbook.Sheets[firstSheetName]
+      : null;
 
-  if (!sheet) {
-    throw new Error('The Excel file contains no worksheets.');
-  }
+    if (!sheet) {
+      throw new Error('The Excel file contains no worksheets.');
+    }
 
-  rawRows = XLSX.utils.sheet_to_json(sheet, {
-    header: 1,
-    defval: '',
-    raw: false,
-    blankrows: false
-  });
-   } else if (ext === '.docx') {
+    rawRows = XLSX.utils.sheet_to_json(sheet, {
+      header: 1,
+      defval: '',
+      raw: false,
+      blankrows: false
+    });
+  } else if (ext === '.docx') {
     const result = await mammoth.convertToHtml({
       buffer: file.buffer
     });
 
-    const tableMatch = result.value.match(
-      /<table\b[\s\S]*?<\/table>/i
-    );
+    const tableMatches = [
+      ...result.value.matchAll(/<table\b[\s\S]*?<\/table>/gi)
+    ];
 
-    if (!tableMatch) {
+    if (!tableMatches.length) {
       throw new Error(
         'The Word document must contain a table with column headings and data rows.'
       );
     }
 
-    const rowMatches = [
-      ...tableMatch[0].matchAll(/<tr\b[^>]*>([\s\S]*?)<\/tr>/gi)
-    ];
-
-    rawRows = rowMatches.map(rowMatch => {
-      const cellMatches = [
-        ...rowMatch[1].matchAll(
-          /<t[dh]\b[^>]*>([\s\S]*?)<\/t[dh]>/gi
-        )
+    for (const tableMatch of tableMatches) {
+      const rowMatches = [
+        ...tableMatch[0].matchAll(/<tr\b[^>]*>([\s\S]*?)<\/tr>/gi)
       ];
 
-      return cellMatches.map(cellMatch =>
-        cellMatch[1]
-          .replace(/<br\s*\/?>/gi, ' ')
-          .replace(/<[^>]*>/g, ' ')
-          .replace(/&nbsp;/gi, ' ')
-          .replace(/&amp;/gi, '&')
-          .replace(/&lt;/gi, '<')
-          .replace(/&gt;/gi, '>')
-          .replace(/&quot;/gi, '"')
-          .trim()
-      );
-    });
+      for (const rowMatch of rowMatches) {
+        const cellMatches = [
+          ...rowMatch[1].matchAll(
+            /<t[dh]\b[^>]*>([\s\S]*?)<\/t[dh]>/gi
+          )
+        ];
+
+        const cells = cellMatches.map(cellMatch =>
+          cellMatch[1]
+            .replace(/<br\s*\/?>/gi, ' ')
+            .replace(/<\/p\s*>/gi, ' ')
+            .replace(/<[^>]*>/g, ' ')
+            .replace(/&nbsp;/gi, ' ')
+            .replace(/&amp;/gi, '&')
+            .replace(/&lt;/gi, '<')
+            .replace(/&gt;/gi, '>')
+            .replace(/&quot;/gi, '"')
+            .replace(/&#39;|&apos;/gi, "'")
+            .replace(/\s+/g, ' ')
+            .trim()
+        );
+
+        if (cells.some(Boolean)) {
+          rawRows.push(cells);
+        }
+      }
+    }
   } else if (ext === '.pdf') {
     const result = await pdfParse(file.buffer);
+
+    if (!result.text || !result.text.trim()) {
+      throw new Error(
+        'No readable text was found in this PDF. It may be scanned; use a text-based PDF or convert it to Excel.'
+      );
+    }
 
     const lines = result.text
       .split(/\r?\n/)
@@ -162,16 +178,34 @@ async function readImportRows(file) {
       .filter(Boolean);
 
     rawRows = lines.map(line =>
-      line.split(/\t+| {2,}/).map(cell => cell.trim())
+      line.includes('\t')
+        ? line.split(/\t+/).map(cell => cell.trim())
+        : line.split(/ {2,}/).map(cell => cell.trim())
     );
 
+    if (
+      rawRows.length < 2 ||
+      rawRows[0].length < 2 ||
+      !rawRows.slice(1).some(row => row.length > 1)
+    ) {
+      throw new Error(
+        'The PDF text could not be separated into columns reliably. Please use a text-based PDF with clearly separated columns, or upload the same marks in Excel or CSV.'
+      );
+    }
   } else {
     throw new Error(
-      'This file format is not supported yet.'
+      'Supported formats: CSV, Excel (.xlsx, .xls), Word (.docx), and text-based PDF.'
     );
   }
+
+  rawRows = rawRows.filter(row =>
+    Array.isArray(row) && row.some(cell => String(cell ?? '').trim() !== '')
+  );
+
   if (rawRows.length < 2) {
-    throw new Error('Include a header row and at least one data row.');
+    throw new Error(
+      'Include a header row and at least one data row.'
+    );
   }
 
   const headers = rawRows[0].map(normalizeImportHeader);
