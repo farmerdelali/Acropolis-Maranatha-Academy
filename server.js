@@ -1029,6 +1029,136 @@ app.post(
     }
   })
 );
+
+app.get('/api/students/:id/documents', requireAuth, asyncRoute(async (req, res) => {
+  const student = await q(
+    'SELECT id FROM students WHERE id = $1 AND school_id = $2',
+    [req.params.id, schoolId(req)]
+  );
+
+  if (!student.rows.length) {
+    return res.status(404).json({ error: 'Student not found.' });
+  }
+
+  const result = await q(
+    `SELECT id, student_id, original_name, mime_type, size_bytes,
+            uploaded_by, created_at
+     FROM student_documents
+     WHERE school_id = $1 AND student_id = $2
+     ORDER BY created_at DESC`,
+    [schoolId(req), req.params.id]
+  );
+
+  res.json({ documents: result.rows });
+}));
+
+app.post(
+  '/api/students/:id/documents',
+  requireAuth,
+  documentUpload.single('document'),
+  asyncRoute(async (req, res) => {
+    if (!['ADMIN', 'HEADMASTER', 'TEACHER'].includes(req.session.user.role)) {
+      return res.status(403).json({
+        error: 'You do not have permission to upload student documents.'
+      });
+    }
+
+    if (!req.file) {
+      return res.status(400).json({ error: 'Choose a document to upload.' });
+    }
+
+    const student = await q(
+      'SELECT id FROM students WHERE id = $1 AND school_id = $2',
+      [req.params.id, schoolId(req)]
+    );
+
+    if (!student.rows.length) {
+      return res.status(404).json({ error: 'Student not found.' });
+    }
+
+    const originalName = path.basename(req.file.originalname || 'document')
+      .replace(/[\r\n"]/g, '_')
+      .slice(0, 240);
+
+    const result = await q(
+      `INSERT INTO student_documents
+       (school_id, student_id, original_name, file_data, mime_type,
+        size_bytes, uploaded_by)
+       VALUES ($1, $2, $3, $4, $5, $6, $7)
+       RETURNING id, student_id, original_name, mime_type,
+                 size_bytes, uploaded_by, created_at`,
+      [
+        schoolId(req),
+        req.params.id,
+        originalName,
+        req.file.buffer,
+        req.file.mimetype || 'application/octet-stream',
+        req.file.size,
+        req.session.user.id
+      ]
+    );
+
+    await audit(req, 'student_document_uploaded', 'student_document',
+      String(result.rows[0].id));
+
+    res.status(201).json({
+      ok: true,
+      document: result.rows[0],
+      message: 'Student document uploaded successfully.'
+    });
+  })
+);
+
+app.get('/api/student-documents/:id/file', requireAuth, asyncRoute(async (req, res) => {
+  const result = await q(
+    `SELECT original_name, file_data, mime_type
+     FROM student_documents
+     WHERE id = $1 AND school_id = $2`,
+    [req.params.id, schoolId(req)]
+  );
+
+  if (!result.rows.length) {
+    return res.status(404).json({ error: 'Document not found.' });
+  }
+
+  const doc = result.rows[0];
+  const ext = path.extname(doc.original_name).toLowerCase();
+  const inline = ['.pdf', '.jpg', '.jpeg', '.png'].includes(ext);
+
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('Content-Type', doc.mime_type);
+  res.setHeader(
+    'Content-Disposition',
+    `${inline ? 'inline' : 'attachment'}; filename="${doc.original_name}"`
+  );
+
+  res.send(doc.file_data);
+}));
+
+app.delete('/api/student-documents/:id', requireAuth, asyncRoute(async (req, res) => {
+  if (!['ADMIN', 'HEADMASTER', 'TEACHER'].includes(req.session.user.role)) {
+    return res.status(403).json({
+      error: 'You do not have permission to delete student documents.'
+    });
+  }
+
+  const result = await q(
+    `DELETE FROM student_documents
+     WHERE id = $1 AND school_id = $2
+     RETURNING id`,
+    [req.params.id, schoolId(req)]
+  );
+
+  if (!result.rows.length) {
+    return res.status(404).json({ error: 'Document not found.' });
+  }
+
+  await audit(req, 'student_document_deleted', 'student_document',
+    String(result.rows[0].id));
+
+  res.json({ ok: true, message: 'Student document deleted successfully.' });
+}));
+
 app.post('/api/students', requireAuth, asyncRoute(async (req,res)=>{
   if (!['ADMIN','TEACHER'].includes(req.session.user.role)) return res.status(403).json({error:'Only administrators and teachers can manage students.'});
   const b=req.body||{}; if(!validText(b.fullName,120)||!validText(b.className,60)) return res.status(400).json({error:'Student name and class are required.'});
