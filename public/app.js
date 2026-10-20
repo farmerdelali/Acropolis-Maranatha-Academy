@@ -813,8 +813,8 @@ const classTotal = classCounts.reduce((sum, item) => sum + item[1], 0);
 
 
 }else if(state.view==='Reports'){
- html=pageHead('Reports & data','Review school totals, recent activity and export a backup.',`<button class="btn primary" data-action="export">Export backup</button><button class="btn soft" data-action="csv">Export student CSV</button>`)+`<div class="cards">${stat('Active students',students.length,'Enrolment')}${stat('Total fees',money(expected),'Expected')}${stat('Payments',money(paid),'Collected')}${stat('Balance',money(Math.max(0,expected-paid)),'Expected less collected')}</div>`;
- const classCounts=students.reduce((counts,s)=>{const name=String(s.class_name||'Unassigned').trim()||'Unassigned';counts[name]=(counts[name]||0)+1;return counts;},{});
+ html=pageHead('Reports & data','Review school totals, recent activity and export a backup.',`<button class="btn danger" data-action="clear-activity">Clear Recent Activity</button><button class="btn primary" data-action="export">Export backup</button><button class="btn soft" data-action="csv">Export student CSV</button>`)+`<div class="cards">${stat('Active students',students.length,'Enrolment')}${stat('Total fees',money(expected),'Expected')}${stat('Payments',money(paid),'Collected')}${stat('Balance',money(Math.max(0,expected-paid)),'Expected less collected')}</div>`;
+  const classCounts=students.reduce((counts,s)=>{const name=String(s.class_name||'Unassigned').trim()||'Unassigned';counts[name]=(counts[name]||0)+1;return counts;},{});
 const maxClassCount=Math.max(0,...Object.values(classCounts));
 html+=panel('Student enrolment by class',students.length?`<div style="display:grid;gap:16px;padding:8px 0">${Object.entries(classCounts).sort((a,b)=>b[1]-a[1]).map(([name,count])=>`<div><div style="display:flex;justify-content:space-between;gap:12px;margin-bottom:7px"><span>${esc(name)}</span><b>${count}</b></div><div style="height:10px;background:var(--bg);border-radius:8px;overflow:hidden"><div style="height:100%;width:${count/maxClassCount*100}%;background:var(--gold);border-radius:8px;transition:width .5s ease"></div></div></div>`).join('')}</div>`:'<div class="empty">No student records available to chart yet.</div>');
 
@@ -4029,7 +4029,28 @@ break;
         state.search = '';
         render();
         break;
+      case 'clear-activity':
+        if (state.user.role !== 'ADMIN') {
+          toast('Only administrators can clear recent activity.', true);
+          break;
+        }
 
+        if (!confirm(
+          'Clear all recent activity for this school? This cannot be undone. Student records, fees, marks and payments will remain unchanged.'
+        )) {
+          break;
+        }
+
+        try {
+          const result = await api('/api/reports/activity', {
+            method: 'DELETE'
+          });
+          toast(`Cleared ${result.deleted} activity entries.`);
+          render();
+        } catch (error) {
+          toast(error.message || 'Could not clear recent activity.', true);
+        }
+        break;
       case 'export':
         await download('/api/export', 'acropolis-school-backup.json');
         toast('Backup exported successfully.');
