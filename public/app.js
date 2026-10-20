@@ -509,8 +509,8 @@ const classTotal = classCounts.reduce((sum, item) => sum + item[1], 0);
 
  const markRows=d.marks.length?`<div class="table-wrap"><table><thead><tr><th>Student</th><th>Student ID</th><th>Class</th><th>Subject</th><th>Term</th><th>Class Score / 30</th><th>Exams Score / 70</th><th>Total / 100</th><th>Grade</th><th>Actions</th></tr></thead><tbody>${d.marks.map(m=>{const total=Number(m.score)||0;return `<tr><td>${esc(m.student_name||'')}</td><td>${esc(m.student_code||'')}</td><td>${esc(m.class_name||'')}</td><td>${esc(m.subject)}</td><td>${esc(m.term)}</td><td>${m.class_score==null?'—':Number(m.class_score).toFixed(1)}</td><td>${m.exam_score==null?'—':Number(m.exam_score).toFixed(1)}</td><td><strong>${total.toFixed(1)}</strong></td><td><span class="badge">${grade(total)}</span></td><td>${state.user.role==='ADMIN'?`<button class="btn danger" data-action="delete-mark" data-id="${esc(m.id)}">Delete</button>`:'—'}</td></tr>`}).join('')}</tbody></table></div>`:'<div class="empty">No marks recorded yet. Use Enter mark to add results.</div>';
 
-  html=pageHead('Examinations & marks','Record subject scores and review students’ results.',`${['ADMIN','TEACHER'].includes(state.user.role)?'<button class="btn primary" data-action="add-mark">+ Enter mark</button>':''}`)+panel('Recorded results',markRows);
-}else if(state.view==='Fees & Payments'){
+ html=pageHead('Examinations & marks','Record subject scores and review students’ results.',`${['ADMIN','TEACHER'].includes(state.user.role)?'<button class="btn primary" data-action="add-mark">+ Enter mark</button><button class="btn soft" data-action="bulk-class-marks">Bulk Class Marks</button>':''}`)+panel('Recorded results',markRows);
+else if(state.view==='Fees & Payments'){
  html=pageHead('Fees & payments','Record receipts and track outstanding school fees.',`${['ADMIN','BURSAR'].includes(state.user.role)?'<button class="btn primary" data-action="add-payment">+ Record payment</button>':''}`)+`<div class="cards">${stat('Total fees expected',money(expected),'Active student records')}${stat('Total received',money(paid),'All payment records')}${stat('Outstanding balance',money(Math.max(0,expected-paid)),'Expected minus received')}${stat('Receipts issued',d.payments.length,'Payment transactions')}</div>`;
 
 const rows = d.payments.length
@@ -2417,6 +2417,50 @@ function markForm() {
   `);
 }
 
+function bulkClassMarksForm() {
+  const classes = Object.keys(MARK_SUBJECTS_BY_CLASS);
+  const classOptions = classes.map(className =>
+    `<option value="${esc(className)}">${esc(className)}</option>`
+  ).join('');
+
+  openModal('Bulk Class Marks', `
+    <form id="bulkClassMarksForm">
+      <p>Download the class workbook, enter each student's class and exam scores, then upload it to save the marks directly.</p>
+
+      <label class="field">Class
+        <select name="className" required>
+          ${classOptions}
+        </select>
+      </label>
+
+      <label class="field">Term
+        <select name="term" required>
+          <option value="Term 1">Term 1</option>
+          <option value="Term 2">Term 2</option>
+          <option value="Term 3">Term 3</option>
+        </select>
+      </label>
+
+      <div class="form-actions">
+        <button type="button" class="btn soft" data-action="download-class-marks-template">
+          Download Excel Template
+        </button>
+      </div>
+
+      <label class="field">Completed Excel workbook (.xlsx)
+        <input type="file" name="file" accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" required>
+      </label>
+
+      <p class="muted">Class scores must be 0–30 and exam scores 0–70. Existing marks will not be overwritten. The upload saves directly without a preview.</p>
+
+      <div class="form-actions">
+        <button type="button" class="btn soft" data-action="close-modal">Cancel</button>
+        <button type="submit" class="btn primary">Upload and Save Marks</button>
+      </div>
+    </form>
+  `);
+}
+
 function userForm(){openModal('Create staff account',`<form id="userForm"><label class="field">Username<input name="username" required minlength="3" maxlength="60" autocomplete="off"></label><label class="field">Role<select name="role"><option value="HEADMASTER">Headmaster — school oversight and academic management</option>
 <option value="TEACHER">Teacher — students and marks</option>
 <option value="BURSAR">Bursar — fees and payments</option></select></label><label class="field">Temporary password <small>At least 10 characters</small><input name="password" type="password" required minlength="10" autocomplete="new-password"></label><div class="form-actions"><button type="button" class="btn soft" data-action="close-modal">Cancel</button><button class="btn primary" type="submit">Create account</button></div></form>`);}
@@ -2694,7 +2738,8 @@ document.addEventListener('submit', async e => {
     'paymentForm','dropOffDenialForm',
 'pickupPersonForm',
 'markForm',
-      'employeeForm',
+'bulkClassMarksForm',
+    'employeeForm',
     'userForm',
     'teacherSubjectAssignmentForm',
     'settingsForm',
@@ -2762,7 +2807,66 @@ document.addEventListener('submit', async e => {
 
     return;
   }
+if (form.id === 'bulkClassMarksForm') {
+  const className = form.elements.namedItem('className').value;
+  const term = form.elements.namedItem('term').value;
+  const fileInput = form.querySelector('input[name="file"]');
+  const file = fileInput.files[0];
+  const uploadButton = form.querySelector('button[type="submit"]');
 
+  if (!file) {
+    toast('Please select the completed Excel workbook.', true);
+    return;
+  }
+
+  if (!file.name.toLowerCase().endsWith('.xlsx')) {
+    toast('Please upload an Excel .xlsx workbook.', true);
+    return;
+  }
+
+  if (file.size > 10 * 1024 * 1024) {
+    toast('The workbook must be 10 MB or smaller.', true);
+    return;
+  }
+
+  uploadButton.disabled = true;
+  uploadButton.textContent = 'Uploading and saving…';
+
+  try {
+    const uploadData = new FormData();
+    uploadData.append('className', className);
+    uploadData.append('term', term);
+    uploadData.append('file', file);
+
+    const response = await fetch('/api/marks/class-upload', {
+      method: 'POST',
+      credentials: 'same-origin',
+      body: uploadData
+    });
+
+    let result = {};
+    try {
+      result = await response.json();
+    } catch {}
+
+    if (!response.ok) {
+      throw new Error(result.error || 'Could not upload class marks.');
+    }
+
+    await refresh();
+    state.view = 'Marks';
+    $('#modalHost').innerHTML = '';
+    render();
+    toast(result.message || 'Class marks uploaded successfully.');
+  } catch (error) {
+    toast(error.message || 'Could not upload class marks.', true);
+  } finally {
+    uploadButton.disabled = false;
+    uploadButton.textContent = 'Upload and Save Marks';
+  }
+
+  return;
+}
 if (!allowedForms.includes(form.id)) return;
   const fd = new FormData(form);
   const v = Object.fromEntries(fd.entries());
@@ -3644,9 +3748,34 @@ case 'add-pickup-person':
         paymentForm();
         break;
 
+   
       case 'add-mark':
         markForm();
         break;
+
+      case 'bulk-class-marks':
+        bulkClassMarksForm();
+        break;
+
+      case 'download-class-marks-template': {
+        const form = button.closest('form#bulkClassMarksForm');
+
+        if (!form) {
+          throw new Error('Bulk marks form not found. Please reopen it.');
+        }
+
+        const className = form.elements.className.value;
+        const term = form.elements.term.value;
+
+        await download(
+          `/api/marks/class-template?className=${encodeURIComponent(className)}&term=${encodeURIComponent(term)}`,
+          `${className.replace(/[^a-z0-9_-]/gi, '-')}-${term.replace(/[^a-z0-9_-]/gi, '-')}-marks.xlsx`
+        );
+
+        toast('Excel template downloaded successfully.');
+        break;
+      }
+  
 case 'assign-classroom-teacher': {
   if (!state.user || state.user.role !== 'ADMIN') {
     throw new Error('Only administrators can assign classroom teachers.');
