@@ -1578,6 +1578,279 @@ app.get(
   })
 );
 
+app.post(
+  '/api/marks/class-upload',
+  requireRole('ADMIN', 'TEACHER'),
+  importUpload.single('file'),
+  asyncRoute(async (req, res) => {
+    const className = String(req.body.className || '').trim();
+    const term = String(req.body.term || '').trim();
+
+    if (!CLASS_MARK_SUBJECTS[className]) {
+      return res.status(400).json({
+        error: 'Choose a supported class.'
+      });
+    }
+
+    if (!validText(term, 40)) {
+      return res.status(400).json({
+        error: 'Choose a valid term.'
+      });
+    }
+
+    if (!req.file ||
+        path.extname(req.file.originalname || '').toLowerCase() !== '.xlsx') {
+      return res.status(400).json({
+        error: 'Upload the completed Excel template in .xlsx format.'
+      });
+    }
+
+    let subjects = [...CLASS_MARK_SUBJECTS[className]];
+
+    if (req.session.user.role === 'TEACHER') {
+      const assigned = await q(
+        `SELECT subject
+         FROM teacher_subject_assignments
+         WHERE school_id = $1
+           AND teacher_id = $2
+           AND class_name = $3`,
+        [schoolId(req), req.session.user.id, className]
+      );
+
+      const allowed = new Set(
+        assigned.rows.map(row => String(row.subject).toLowerCase())
+      );
+
+      subjects = subjects.filter(subject =>
+        allowed.has(subject.toLowerCase())
+      );
+
+      if (!subjects.length) {
+        return res.status(403).json({
+          error: 'You have no subject assignments for this class.'
+        });
+      }
+    }
+
+    const roster = await q(
+      `SELECT id, student_code, full_name
+       FROM students
+       WHERE school_id = $1
+         AND archived = false
+         AND class_name = $2
+       ORDER BY full_name`,
+      [schoolId(req), className]
+    );
+
+    if (!roster.rowCount) {
+      return res.status(400).json({
+        error: 'No active students are registered in this class.'
+      });
+    }
+
+    const workbook = new ExcelJS.Workbook();
+
+    try {
+      await workbook.xlsx.load(req.file.buffer);
+    } catch {
+      return res.status(400).json({
+        error: 'The Excel file could not be read. Download a fresh template and try again.'
+      });
+    }
+
+    const sheet = workbook.getWorksheet('Class Marks');
+
+    if (!sheet || sheet.rowCount !== roster.rowCount + 1) {
+      return res.status(400).json({
+        error: 'The workbook sheet or student row count has changed. Download a fresh template.'
+      });
+    }
+
+    const expectedHeaders = [
+      'Student Code',
+      'Student Name',
+      ...subjects.flatMap(subject => [
+        `${subject} - Class Score`,
+        `${subject} - Exam Score`
+      ])
+    ];
+
+    if (sheet.columnCount !== expectedHeaders.length) {
+      return res.status(400).json({
+        error: 'The workbook columns do not match your class and subject assignments. Download a fresh template.'
+      });
+    }
+
+    for (let col = 1; col <= expectedHeaders.length; col++) {
+      const actual = String(
+        sheet.getRow(1).getCell(col).value ?? ''
+      ).trim();
+
+      if (actual !== expectedHeaders[col - 1]) {
+        return res.status(400).json({
+          error: `Column ${col} must be "${expectedHeaders[col - 1]}". Do not rename or rearrange template columns.`
+        });
+      }
+    }
+
+    const pendingMarks = [];
+    const seenStudents = new Set();
+
+    for (let rowNumber = 2; rowNumber <= sheet.rowCount; rowNumber++) {
+      const row = sheet.getRow(rowNumber);
+      const studentCode = String(row.getCell(1).value ?? '').trim();
+      const studentName = String(row.getCell(2).value ?? '').trim();
+      const student = roster.rows[rowNumber - 2];
+
+      if (
+        !studentCode ||
+        studentCode !== String(student.student_code) ||
+        studentName !== String(student.full_name).trim()
+      ) {
+        return res.status(400).json({
+          error: `Student details in Excel row ${rowNumber} do not match the official class register. Download a fresh template.`
+        });
+      }
+
+      if (seenStudents.has(studentCode)) {
+        return res.status(400).json({
+          error: `Duplicate student in Excel row ${rowNumber}.`
+        });
+      }
+
+      seenStudents.add(studentCode);
+
+      for (let index = 0; index < subjects.length; index++) {
+        const classCell = row.getCell(3 + index * 2).value;
+        const examCell = row.getCell(4 + index * 2).value;
+
+        const validScoreCell = value =>
+          (typeof value === 'number' ||
+            (typeof value === 'string' && value.trim() !== '')) &&
+          Number.isFinite(Number(value));
+
+        if (!validScoreCell(classCell) || !validScoreCell(examCell)) {
+          return res.status(400).json({
+            error: `Enter numeric class and exam scores for ${student.full_name}, ${subjects[index]} (Excel row ${rowNumber}).`
+          });
+        }
+
+        const classScore = Number(classCell);
+        const examScore = Number(examCell);
+
+        if (
+          classScore < 0 || classScore > 30 ||
+          examScore < 0 || examScore > 70
+        ) {
+          return res.status(400).json({
+            error: `Invalid scores for ${student.full_name}, ${subjects[index]} (Excel row ${rowNumber}). Class score must be 0–30 and exam score 0–70.`
+          });
+        }
+
+        pendingMarks.push({
+          studentId: student.id,
+          studentName: student.full_name,
+          subject: subjects[index],
+          classScore,
+          examScore,
+          score: classScore + examScore,
+          rowNumber
+        });
+      }
+    }
+
+    const client = await pool.connect();
+    let committed = false;
+
+    try {
+      await client.query('BEGIN');
+
+      for (const mark of pendingMarks) {
+        const existing = await client.query(
+          `SELECT id
+           FROM marks
+           WHERE school_id = $1
+             AND student_id = $2
+             AND lower(subject) = lower($3)
+             AND term = $4
+           LIMIT 1`,
+          [
+            schoolId(req),
+            mark.studentId,
+            mark.subject,
+            term
+          ]
+        );
+
+        if (existing.rowCount) {
+          await client.query('ROLLBACK');
+
+          return res.status(409).json({
+            error: `Marks already exist for ${mark.studentName} — ${mark.subject}, ${term}. Nothing was saved. Existing marks must be handled separately before importing this workbook.`
+          });
+        }
+      }
+
+      for (const mark of pendingMarks) {
+        const saved = await client.query(
+          `INSERT INTO marks
+            (school_id, student_id, subject, term,
+             score, class_score, exam_score)
+           VALUES ($1, $2, $3, $4, $5, $6, $7)
+           RETURNING id`,
+          [
+            schoolId(req),
+            mark.studentId,
+            mark.subject,
+            term,
+            mark.score,
+            mark.classScore,
+            mark.examScore
+          ]
+        );
+
+        await client.query(
+          `INSERT INTO audit_logs
+            (school_id, user_id, action, entity_type, entity_id)
+           VALUES ($1, $2, $3, $4, $5)`,
+          [
+            schoolId(req),
+            req.session.user.id,
+            'mark_saved',
+            'mark',
+            String(saved.rows[0].id)
+          ]
+        );
+      }
+
+      await client.query('COMMIT');
+      committed = true;
+
+      res.status(201).json({
+        ok: true,
+        message: `Successfully saved ${pendingMarks.length} marks for ${roster.rowCount} students in ${className}, ${term}.`,
+        students: roster.rowCount,
+        subjects: subjects.length,
+        saved: pendingMarks.length
+      });
+    } catch (error) {
+      if (!committed) {
+        await client.query('ROLLBACK').catch(() => {});
+      }
+
+      if (error.code === '23505') {
+        return res.status(409).json({
+          error: 'A mark already exists for this student, subject and term. Nothing was saved; check existing records before trying again.'
+        });
+      }
+
+      throw error;
+    } finally {
+      client.release();
+    }
+  })
+);
+
 app.post('/api/marks', requireRole('ADMIN', 'TEACHER'), asyncRoute(async (req, res) => {
   const b = req.body || {};
   const classScore = Number(b.classScore);
