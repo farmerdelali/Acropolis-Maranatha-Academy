@@ -571,7 +571,7 @@ const classTotal = classCounts.reduce((sum, item) => sum + item[1], 0);
 
   html += panel('Payment history', rows);
 
-} 
+
 
 }else if(state.view==='Feeding Dashboard' ||
          state.view==='Feeding Settings' ||
