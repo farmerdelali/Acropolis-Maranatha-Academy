@@ -1395,7 +1395,7 @@ html = `
 
 }
 } else if (state.view === 'Parents') {
-
+const parents = d.parents || [];
 const parentRows = parents.length
   ? parents.map(p => `
     <tr>
