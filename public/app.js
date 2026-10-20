@@ -129,6 +129,9 @@ function showApp(user) {
   'Fees & Payments',
   'Feeding Management',
   'Drop-off Denial'
+],
+PARENT: [
+  'Dashboard'
 ]
   };
 
@@ -168,6 +171,29 @@ if (name === 'Feeding Management') {
  
 async function loadData() {
   const d = await api('/api/bootstrap');
+  
+  if (state.user && state.user.role === 'PARENT') {
+    state.data = {
+      ...d,
+      parents: [],
+      denials: [],
+      pickupPersons: [],
+      employees: [],
+      graduations: [],
+      classActivations: [],
+      classActivationClasses: [],
+      classrooms: [],
+      teacherAssignments: [],
+      systemSettings: {},
+      registrationRules: { requireGuardianPhone: false }
+    };
+
+    $('#schoolTitle').textContent = d.school?.name || state.user.schoolName;
+    $('#schoolMotto').textContent = d.school?.motto || state.user.motto || '';
+    render();
+    return;
+  }
+
     let teacherAssignments = { assignments: [] };
 
   if (state.user && ['ADMIN', 'HEADMASTER'].includes(state.user.role)) {
@@ -1382,6 +1408,9 @@ const parentRows = parents.length
         ${state.user?.role === 'ADMIN' ? `
           <button type="button" class="btn soft"
             data-action="edit-parent" data-id="${esc(p.id)}">Edit</button>
+            <button type="button" class="btn primary"
+  data-action="create-parent-account"
+  data-id="${esc(p.id)}">Create Login</button>
           <button type="button" class="btn danger"
             data-action="delete-parent" data-id="${esc(p.id)}"
             data-name="${esc(p.full_name || p.fullName || '')}">Delete</button>
@@ -1960,6 +1989,40 @@ function parentForm(p = null) {
   $('#parentForm').dataset.id = p?.id || '';
 }
 
+
+function parentAccountForm(parent) {
+  if (state.user?.role !== 'ADMIN') {
+    toast('Only administrators can create parent accounts.', true);
+    return;
+  }
+
+  openModal('Create parent login account', `
+    <form id="parentAccountForm">
+      <input type="hidden" name="parentId" value="${esc(parent.id)}">
+
+      <p>Parent: <strong>${esc(parent.full_name || parent.fullName || '')}</strong></p>
+
+      <label class="field">Login username
+        <input name="username" required minlength="3" maxlength="60"
+          autocomplete="off" placeholder="Create a username">
+      </label>
+
+      <label class="field">Login password
+        <input name="password" type="password" required minlength="10"
+          maxlength="200" autocomplete="new-password"
+          placeholder="At least 10 characters">
+      </label>
+
+      <div class="form-actions">
+        <button type="button" class="btn soft"
+          data-action="close-modal">Cancel</button>
+        <button type="submit" class="btn primary">
+          Create parent account
+        </button>
+      </div>
+    </form>
+  `);
+}
 
 const CLASS_LEVELS = [
   'Pre-Nursery',
@@ -3217,6 +3280,22 @@ toast(parentId ? 'Parent updated successfully.' : 'Parent registered successfull
       state.view = 'Marks';
       render();
       toast('Mark saved successfully.');
+  
+    } else if (form.id === 'parentAccountForm') {
+      await api('/api/parent-accounts', {
+        method: 'POST',
+        body: JSON.stringify({
+          parentId: Number(v.parentId),
+          username: v.username,
+          password: v.password
+        })
+      });
+
+      await refresh();
+      state.view = 'Parents';
+      render();
+      toast('Parent login account created successfully.');
+
     } else if (form.id === 'userForm') {
       await api('/api/users', {
         method: 'POST',
@@ -3746,7 +3825,22 @@ case 'add-pickup-person':
         parentForm();
         break;
 
-      case 'edit-parent': {
+ case 'create-parent-account': {
+  if (state.user?.role !== 'ADMIN') {
+    throw new Error('Only administrators can create parent accounts.');
+  }
+
+  const parent = (state.data.parents || []).find(
+    p => String(p.id) === String(button.dataset.id)
+  );
+
+  if (parent) {
+    parentAccountForm(parent);
+  } else {
+    toast('Parent record not found. Please refresh.', true);
+  }
+  break;
+}     case 'edit-parent': {
         if (state.user?.role !== 'ADMIN') {
           throw new Error('Only administrators can edit parents.');
         }
