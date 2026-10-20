@@ -1448,6 +1448,136 @@ app.put('/api/students/:id', requireRole('ADMIN', 'TEACHER'), asyncRoute(async (
 
 app.delete('/api/students/:id', requireRole('ADMIN'), asyncRoute(async(req,res)=>{const r=await q('UPDATE students SET archived=true WHERE id=$1 AND school_id=$2 AND archived=false RETURNING id',[req.params.id,schoolId(req)]);if(!r.rowCount)return res.status(404).json({error:'Student not found.'});await audit(req,'student_archived','student',req.params.id);res.json({ok:true})}));
 
+const CLASS_MARK_SUBJECTS = {
+  'Nursery 1': ['Numeracy', 'Phoenics', 'Creativity', 'Nature and Science'],
+  'Nursery 2': ['Numeracy', 'Writing', 'Creativity', 'Nature and Science'],
+  'KG 1': ['Language and Literacy', 'Writing Skills', 'Jolly Phoenics', 'Numeracy', 'OWOP', 'Creative Arts'],
+  'KG 2': ['Language and Literacy', 'Writing Skills', 'Jolly Phoenics', 'Numeracy', 'OWOP', 'Creative Arts'],
+  'Basic 1': ['History', 'English', 'Maths', 'Creative Arts', 'Science', 'French', 'R.M.E', 'Twi', 'Computing'],
+  'Basic 2': ['History', 'English', 'Maths', 'Creative Arts', 'Science', 'French', 'R.M.E', 'Twi', 'Computing'],
+  'Basic 3': ['History', 'English', 'Maths', 'Creative Arts', 'Science', 'French', 'R.M.E', 'Twi', 'Computing'],
+  'Basic 4': ['History', 'English', 'Maths', 'Creative Arts', 'Science', 'French', 'R.M.E', 'Twi', 'Computing'],
+  'Basic 5': ['History', 'English', 'Maths', 'Creative Arts', 'Science', 'French', 'R.M.E', 'Twi', 'Computing'],
+  'Basic 6': ['History', 'English', 'Maths', 'Creative Arts', 'Science', 'French', 'R.M.E', 'Twi', 'Computing'],
+  'Basic 7': ['Social Studies', 'English', 'Maths', 'Creative Arts & Design', 'Integrated Science', 'French', 'R.M.E', 'Twi', 'Computing', 'Career Technology'],
+  'Basic 8': ['Social Studies', 'English', 'Maths', 'Creative Arts & Design', 'Integrated Science', 'French', 'R.M.E', 'Twi', 'Computing', 'Career Technology'],
+  'Basic 9': ['Social Studies', 'English', 'Maths', 'Creative Arts & Design', 'Integrated Science', 'French', 'R.M.E', 'Twi', 'Computing', 'Career Technology'],
+  'JHS 1': ['Social Studies', 'English', 'Maths', 'Creative Arts & Design', 'Integrated Science', 'French', 'R.M.E', 'Twi', 'Computing', 'Career Technology'],
+  'JHS 2': ['Social Studies', 'English', 'Maths', 'Creative Arts & Design', 'Integrated Science', 'French', 'R.M.E', 'Twi', 'Computing', 'Career Technology'],
+  'JHS 3': ['Social Studies', 'English', 'Maths', 'Creative Arts & Design', 'Integrated Science', 'French', 'R.M.E', 'Twi', 'Computing', 'Career Technology']
+};
+
+app.get(
+  '/api/marks/class-template',
+  requireRole('ADMIN', 'TEACHER'),
+  asyncRoute(async (req, res) => {
+    const className = String(req.query.className || '').trim();
+    const term = String(req.query.term || '').trim();
+
+    if (!CLASS_MARK_SUBJECTS[className]) {
+      return res.status(400).json({
+        error: 'Choose a supported class.'
+      });
+    }
+
+    if (!validText(term, 40)) {
+      return res.status(400).json({
+        error: 'Choose a valid term.'
+      });
+    }
+
+    let subjects = [...CLASS_MARK_SUBJECTS[className]];
+
+    if (req.session.user.role === 'TEACHER') {
+      const assigned = await q(
+        `SELECT subject
+         FROM teacher_subject_assignments
+         WHERE school_id = $1
+           AND teacher_id = $2
+           AND class_name = $3`,
+        [schoolId(req), req.session.user.id, className]
+      );
+
+      const allowed = new Set(
+        assigned.rows.map(row => row.subject.toLowerCase())
+      );
+
+      subjects = subjects.filter(subject =>
+        allowed.has(subject.toLowerCase())
+      );
+
+      if (!subjects.length) {
+        return res.status(403).json({
+          error: 'You have no subject assignments for this class.'
+        });
+      }
+    }
+
+    const result = await q(
+      `SELECT student_code, full_name
+       FROM students
+       WHERE school_id = $1
+         AND archived = false
+         AND class_name = $2
+       ORDER BY full_name`,
+      [schoolId(req), className]
+    );
+
+    if (!result.rowCount) {
+      return res.status(400).json({
+        error: 'No active students are registered in this class.'
+      });
+    }
+
+    const workbook = new ExcelJS.Workbook();
+    const sheet = workbook.addWorksheet('Class Marks');
+
+    sheet.addRow([
+      'Student Code',
+      'Student Name',
+      ...subjects.flatMap(subject => [
+        `${subject} - Class Score`,
+        `${subject} - Exam Score`
+      ])
+    ]);
+
+    for (const student of result.rows) {
+      sheet.addRow([
+        student.student_code,
+        student.full_name,
+        ...subjects.flatMap(() => ['', ''])
+      ]);
+    }
+
+    sheet.views = [{ state: 'frozen', ySplit: 1, xSplit: 2 }];
+    sheet.autoFilter = {
+      from: { row: 1, column: 1 },
+      to: { row: 1, column: 2 + subjects.length * 2 }
+    };
+
+    sheet.columns.forEach((column, index) => {
+      column.width = index === 1 ? 28 : index === 0 ? 18 : 22;
+    });
+
+    sheet.getRow(1).font = { bold: true };
+    sheet.getRow(1).alignment = { wrapText: true, vertical: 'middle' };
+    sheet.getRow(1).height = 36;
+
+    res.setHeader(
+      'Content-Type',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    );
+
+    res.setHeader(
+      'Content-Disposition',
+      `attachment; filename="${className.replace(/[^a-z0-9_-]/gi, '-')}-${term.replace(/[^a-z0-9_-]/gi, '-')}-marks.xlsx"`
+    );
+
+    await workbook.xlsx.write(res);
+    res.end();
+  })
+);
+
 app.post('/api/marks', requireRole('ADMIN', 'TEACHER'), asyncRoute(async (req, res) => {
   const b = req.body || {};
   const classScore = Number(b.classScore);
