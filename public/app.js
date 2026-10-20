@@ -2457,9 +2457,42 @@ function bulkClassMarksForm() {
         </button>
       </div>
 
-      <label class="field">Completed Excel workbook (.xlsx)
-        <input type="file" name="file" accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" required>
-      </label>
+      
+<style>
+  #bulkClassMarksForm .marks-file-input {
+    display: block;
+    width: 100%;
+    box-sizing: border-box;
+    margin-top: 10px;
+    padding: 12px;
+    border: 1px dashed #aab5c8;
+    border-radius: 12px;
+    background: #f5f7fb;
+    color: #34415b;
+    font-size: 14px;
+  }
+
+  #bulkClassMarksForm .marks-file-input::file-selector-button {
+    margin-right: 12px;
+    padding: 10px 16px;
+    border: 0;
+    border-radius: 8px;
+    background: #101c3a;
+    color: #ffffff;
+    font-weight: 600;
+    cursor: pointer;
+  }
+</style>
+
+<label class="field">Completed Excel workbook (.xlsx)
+  <input
+    class="marks-file-input"
+    type="file"
+    name="file"
+    accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    required
+  >
+</label>
 
       <p class="muted">Class scores must be 0–30 and exam scores 0–70. Existing marks will not be overwritten. The upload saves directly without a preview.</p>
 
