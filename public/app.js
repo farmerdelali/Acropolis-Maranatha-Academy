@@ -522,36 +522,56 @@ const classTotal = classCounts.reduce((sum, item) => sum + item[1], 0);
 
  html=pageHead('Examinations & marks','Record subject scores and review students’ results.',`${['ADMIN','TEACHER'].includes(state.user.role)?'<button class="btn primary" data-action="add-mark">+ Enter mark</button><button class="btn soft" data-action="bulk-class-marks">Bulk Class Marks</button>':''}`)+panel('Recorded results',markRows);
 
-} else if(state.view==='Fees & Payments'){
-const rows = d.payments.length
-  ? `<div class="table-wrap"><table>
-      <thead><tr>
-        <th>Receipt</th>
-        <th>Student</th>
-        <th>Student ID</th>
-        <th>Amount</th>
-        <th>Date</th>
-        <th>Note</th>
-        <th>Actions</th>
-      </tr></thead>
-      <tbody>${d.payments.map(p => `<tr>
-        <td><b>${esc(p.receipt_no)}</b></td>
-        <td>${esc(p.student_name)}</td>
-        <td>${esc(p.student_code)}</td>
-        <td>${money(p.amount)}</td>
-        <td>${new Date(p.paid_at).toLocaleDateString()}</td>
-        <td>${esc(p.note || '—')}</td>
-        <td>${state.user.role === 'ADMIN'
-          ? `<button class="btn danger"
-              data-action="delete-payment"
-              data-id="${esc(p.id)}"
-              data-receipt="${esc(p.receipt_no)}">Delete</button>`
-          : '—'}</td>
-      </tr>`).join('')}</tbody>
-    </table></div>`
-  : '<div class="empty">No payments recorded yet.</div>';
- 
- html+=panel('Payment history',rows);
+
+} else if(state.view==='Fees & Payments') {
+  const outstanding = Math.max(0, expected - paid);
+
+  html = pageHead(
+    'Fees & Payments',
+    'Record receipts, monitor outstanding balances and manage school fees.',
+    `${['ADMIN','BURSAR'].includes(state.user.role)
+      ? '<button class="btn primary" data-action="add-payment">+ Record Payment</button>'
+      : ''}`
+  );
+
+  html += `<div class="cards">
+    ${stat('Total fees expected', money(expected), 'Registered student fees')}
+    ${stat('Total received', money(paid), 'Recorded payments')}
+    ${stat('Outstanding balance', money(outstanding), 'Fees still unpaid')}
+    ${stat('Receipts issued', d.payments.length, 'Payment transactions')}
+  </div>`;
+
+  const rows = d.payments.length
+    ? `<div class="table-wrap"><table>
+        <thead><tr>
+          <th>Receipt</th>
+          <th>Student</th>
+          <th>Student ID</th>
+          <th>Amount</th>
+          <th>Date</th>
+          <th>Note</th>
+          <th>Actions</th>
+        </tr></thead>
+        <tbody>${d.payments.map(p => `<tr>
+          <td><b>${esc(p.receipt_no)}</b></td>
+          <td>${esc(p.student_name)}</td>
+          <td>${esc(p.student_code)}</td>
+          <td>${money(p.amount)}</td>
+          <td>${p.paid_at ? new Date(p.paid_at).toLocaleDateString() : '—'}</td>
+          <td>${esc(p.note || '—')}</td>
+          <td>${state.user.role === 'ADMIN'
+            ? `<button class="btn danger"
+                data-action="delete-payment"
+                data-id="${esc(p.id)}"
+                data-receipt="${esc(p.receipt_no)}">Delete</button>`
+            : '—'}</td>
+        </tr>`).join('')}</tbody>
+      </table></div>`
+    : '<div class="empty">No payments recorded yet. Use Record Payment to add a receipt.</div>';
+
+  html += panel('Payment history', rows);
+
+} 
 
 }else if(state.view==='Feeding Dashboard' ||
          state.view==='Feeding Settings' ||
