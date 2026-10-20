@@ -522,7 +522,6 @@ const classTotal = classCounts.reduce((sum, item) => sum + item[1], 0);
 
  html=pageHead('Examinations & marks','Record subject scores and review students’ results.',`${['ADMIN','TEACHER'].includes(state.user.role)?'<button class="btn primary" data-action="add-mark">+ Enter mark</button><button class="btn soft" data-action="bulk-class-marks">Bulk Class Marks</button>':''}`)+panel('Recorded results',markRows);
 
- html=pageHead('Fees & payments','Record receipts and track outstanding school fees.',`${['ADMIN','BURSAR'].includes(state.user.role)?'<button class="btn primary" data-action="add-payment">+ Record payment</button>':''}`)+`<div class="cards">${stat('Total fees expected',money(expected),'Active student records')}${stat('Total received',money(paid),'All payment records')}${stat('Outstanding balance',money(Math.max(0,expected-paid)),'Expected minus received')}${stat('Receipts issued',d.payments.length,'Payment transactions')}</div>`;
 } else if(state.view==='Fees & Payments'){
 const rows = d.payments.length
   ? `<div class="table-wrap"><table>
