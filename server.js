@@ -264,6 +264,19 @@ async function readImportRows(file) {
 async function initDb() {
   const sql = fs.readFileSync(path.join(__dirname, 'db', 'schema.sql'), 'utf8');
   await q(sql);
+  
+  await q(`
+    ALTER TABLE users
+    ADD COLUMN IF NOT EXISTS parent_id BIGINT
+      REFERENCES parents(id) ON DELETE CASCADE
+  `);
+
+  await q(`
+    CREATE UNIQUE INDEX IF NOT EXISTS users_parent_account_unique
+    ON users(school_id, parent_id)
+    WHERE role = 'PARENT' AND parent_id IS NOT NULL
+  `);
+
     await q(`
     ALTER TABLE students
     ADD COLUMN IF NOT EXISTS guardian2_name TEXT NOT NULL DEFAULT '',
@@ -385,8 +398,116 @@ app.post('/api/login', authLimit, asyncRoute(async (req, res) => {
 }));
 app.post('/api/logout', (req, res) => req.session.destroy(() => { res.clearCookie('ama.sid'); res.json({ ok: true }); }));
 
+app.use('/api', (req, res, next) => {
+  if (req.session.user?.role !== 'PARENT') {
+    return next();
+  }
+
+  const allowed =
+    (req.method === 'GET' && (
+      req.path === '/bootstrap' ||
+      req.path === '/parent-portal'
+    )) ||
+    (req.method === 'POST' && req.path === '/logout');
+
+  if (allowed) {
+    return next();
+  }
+
+  return res.status(403).json({
+    error: 'Access denied. Parent accounts cannot access this section.'
+  });
+});
+
 app.get('/api/bootstrap', requireAuth, asyncRoute(async (req, res) => {
   const sid = schoolId(req);
+
+  if (req.session.user.role === 'PARENT') {
+    const account = await q(
+      `SELECT parent_id FROM users
+       WHERE id = $1 AND school_id = $2 AND role = 'PARENT'`,
+      [req.session.user.id, sid]
+    );
+
+    const parentId = account.rows[0]?.parent_id;
+
+    if (!parentId) {
+      return res.json({
+        students: [],
+        payments: [],
+        marks: [],
+        users: [],
+        school: {},
+        session: req.session.user
+      });
+    }
+
+    const [students, payments, marks, school] = await Promise.all([
+      q(
+        `SELECT s.*,
+          COALESCE((
+            SELECT SUM(p.amount) FROM payments p
+            WHERE p.student_id = s.id AND p.school_id = s.school_id
+          ), 0) AS paid
+         FROM students s
+         WHERE s.school_id = $1
+           AND EXISTS (
+             SELECT 1 FROM parent_students ps
+             WHERE ps.student_id = s.id
+               AND ps.parent_id = $2
+               AND ps.school_id = $1
+           )
+         ORDER BY s.created_at DESC`,
+        [sid, parentId]
+      ),
+      q(
+        `SELECT p.*, s.full_name AS student_name,
+                s.student_code, NULL AS recorded_by_name
+         FROM payments p
+         JOIN students s ON s.id = p.student_id
+         WHERE p.school_id = $1
+           AND EXISTS (
+             SELECT 1 FROM parent_students ps
+             WHERE ps.student_id = s.id
+               AND ps.parent_id = $2
+               AND ps.school_id = $1
+           )
+         ORDER BY p.paid_at DESC LIMIT 1000`,
+        [sid, parentId]
+      ),
+      q(
+        `SELECT m.*, s.full_name AS student_name,
+                s.student_code, s.class_name
+         FROM marks m
+         JOIN students s ON s.id = m.student_id
+         WHERE m.school_id = $1
+           AND EXISTS (
+             SELECT 1 FROM parent_students ps
+             WHERE ps.student_id = s.id
+               AND ps.parent_id = $2
+               AND ps.school_id = $1
+           )
+         ORDER BY m.created_at DESC`,
+        [sid, parentId]
+      ),
+      q(
+        `SELECT name, motto,
+                academic_year AS "academicYear",
+                current_term AS "currentTerm"
+         FROM schools WHERE id = $1`,
+        [sid]
+      )
+    ]);
+
+    return res.json({
+      students: students.rows,
+      payments: payments.rows,
+      marks: marks.rows,
+      users: [],
+      school: school.rows[0] || {},
+      session: req.session.user
+    });
+  }
 
   const [students, payments, marks, users, school] = await Promise.all([
     q('SELECT s.*, COALESCE((SELECT SUM(p.amount) FROM payments p WHERE p.student_id=s.id AND p.school_id=s.school_id),0) AS paid FROM students s WHERE s.school_id=$1 ORDER BY s.created_at DESC', [sid]),
@@ -2046,6 +2167,56 @@ app.delete('/api/payments/:id', requireRole('ADMIN'), asyncRoute(async (req, res
   } catch (err) {
     if (err.code === '23505') {
       return res.status(409).json({ error: 'That username already exists in this school.' });
+    }
+    throw err;
+  }
+}));
+
+app.post('/api/parent-accounts', requireRole('ADMIN'), asyncRoute(async (req, res) => {
+  const { parentId, username, password } = req.body || {};
+  const sid = schoolId(req);
+
+  if (!Number.isSafeInteger(Number(parentId)) ||
+      Number(parentId) < 1 ||
+      !validText(username, 60) ||
+      username.trim().length < 3 ||
+      typeof password !== 'string' ||
+      password.length < 10 ||
+      password.length > 200) {
+    return res.status(400).json({
+      error: 'Choose a parent and enter a username and a password of at least 10 characters.'
+    });
+  }
+
+  const parent = await q(
+    'SELECT id FROM parents WHERE id = $1 AND school_id = $2',
+    [Number(parentId), sid]
+  );
+
+  if (!parent.rowCount) {
+    return res.status(404).json({
+      error: 'Parent record not found in this school.'
+    });
+  }
+
+  const passwordHash = await bcrypt.hash(password, 12);
+
+  try {
+    const result = await q(
+      `INSERT INTO users
+       (school_id, username, password_hash, role, parent_id)
+       VALUES ($1, $2, $3, 'PARENT', $4)
+       RETURNING id, username, role, parent_id, created_at`,
+      [sid, username.trim(), passwordHash, Number(parentId)]
+    );
+
+    await audit(req, 'parent_account_created', 'user', result.rows[0].id);
+    res.status(201).json({ user: result.rows[0] });
+  } catch (err) {
+    if (err.code === '23505') {
+      return res.status(409).json({
+        error: 'That username already exists, or this parent already has a login account.'
+      });
     }
     throw err;
   }
