@@ -208,26 +208,57 @@ async function readImportRows(file) {
     );
   }
 
-  const headers = rawRows[0].map(normalizeImportHeader);
 
-  if (headers.some(header => !header)) {
-    throw new Error('Every column must have a header.');
+  const knownHeaders = new Set([
+    'studentname', 'fullname', 'name', 'learnername',
+    'studentcode', 'admissionnumber', 'admissionno', 'studentid',
+    'subject', 'course', 'term', 'semester',
+    'classscore', 'cascore', 'continuousassessment',
+    'examscore', 'exam', 'examination', 'finalexam',
+    'classname', 'class', 'total', 'totalscore',
+    'totalfees', 'gender', 'guardianname', 'guardianphone'
+  ]);
+
+  const firstRow = rawRows[0].map(normalizeImportHeader);
+  const hasHeaders = firstRow.some(header => knownHeaders.has(header));
+
+  let headers;
+
+  if (hasHeaders) {
+    headers = firstRow.map((header, index) =>
+      header || `column${index + 1}`
+    );
+
+    const seenHeaders = new Set();
+
+    headers = headers.map(header => {
+      let uniqueHeader = header;
+      let suffix = 2;
+
+      while (seenHeaders.has(uniqueHeader)) {
+        uniqueHeader = `${header}${suffix++}`;
+      }
+
+      seenHeaders.add(uniqueHeader);
+      return uniqueHeader;
+    });
+  } else {
+    headers = rawRows[0].map((_, index) => `column${index + 1}`);
   }
 
-  if (new Set(headers).size !== headers.length) {
-    throw new Error('Duplicate column headings were found.');
-  }
+  const dataRows = hasHeaders ? rawRows.slice(1) : rawRows;
 
-  return rawRows.slice(1).map((row, index) => {
+  return dataRows.map((row, index) => {
     const record = {};
 
     headers.forEach((header, column) => {
       record[header] = String(row[column] ?? '').trim();
     });
 
-    record._rowNumber = index + 2;
+    record._rowNumber = index + (hasHeaders ? 2 : 1);
     return record;
   });
+
 }
 
 async function initDb() {
