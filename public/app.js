@@ -2876,12 +2876,11 @@ return;
     render();
     return;
   }  
-  if (e.target.id === 'appearanceSelect') {
-    applyTheme(e.target.value);
-    toast('Appearance updated successfully.');
-    return;
-  }
-
+  if (e.target.id === 'appearanceToggle') {
+  applyTheme(e.target.checked ? 'dark' : 'light');
+  toast('Appearance updated successfully.');
+  return;
+}
   if (e.target.id !== 'grad-class') return;
 
 
