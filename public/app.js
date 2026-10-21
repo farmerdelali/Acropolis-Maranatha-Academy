@@ -617,52 +617,6 @@ const classTotal = classCounts.reduce((sum, item) => sum + item[1], 0);
       );
     });
   }
-</escape>
-
-  const reportStudents = d.students || [];
-  const reportMarks = d.marks || [];
-
-  html = pageHead(
-    'Terminal Reports',
-    'View each student’s academic performance for the selected term.'
-  );
-
-  html += panel(
-    'Student terminal reports',
-    reportStudents.length
-      ? `<div class="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>Student</th>
-                <th>Student ID</th>
-                <th>Class</th>
-                <th>Subjects Recorded</th>
-                <th>Average Score</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${reportStudents.map(s => {
-                const marks = reportMarks.filter(m =>
-                  String(m.student_id) === String(s.id)
-                );
-                const average = marks.length
-                  ? marks.reduce((sum, m) => sum + Number(m.score || 0), 0) / marks.length
-                  : null;
-
-                return `<tr>
-                  <td><strong>${esc(s.full_name || '')}</strong></td>
-                  <td>${esc(s.student_code || '—')}</td>
-                  <td>${esc(s.class_name || '—')}</td>
-                  <td>${marks.length}</td>
-                  <td>${average === null ? 'No marks yet' : average.toFixed(1) + '%'}</td>
-                </tr>`;
-              }).join('')}
-            </tbody>
-          </table>
-        </div>`
-      : '<div class="empty">No students have been registered yet.</div>'
-  );
 } else if(state.view==='Fees & Payments') {
   const outstanding = Math.max(0, expected - paid);
 
