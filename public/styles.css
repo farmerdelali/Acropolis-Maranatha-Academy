@@ -1555,3 +1555,64 @@ body.dark-mode .dashboard-calendar select {
     padding: 5px;
   }
 }
+/* AMA — MATCH STYLING TO THE ACTUAL DASHBOARD CALENDAR */
+
+section.panel:has(#calendarMonth) {
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.66);
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  box-shadow: 0 12px 32px rgba(16, 28, 58, 0.09);
+  -webkit-backdrop-filter: blur(22px) saturate(150%);
+  backdrop-filter: blur(22px) saturate(150%);
+}
+
+section.panel:has(#calendarMonth) .panel-head {
+  padding: 20px;
+  border-bottom: 1px solid rgba(16, 28, 58, 0.1);
+}
+
+section.panel:has(#calendarMonth) h3 {
+  color: var(--navy);
+  font-size: 18px;
+  font-weight: 850;
+}
+
+#calendarMonth,
+#calendarYear {
+  width: auto;
+  min-width: 125px;
+  min-height: 44px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.88);
+  border: 1px solid rgba(133, 149, 178, 0.4);
+  font-weight: 700;
+}
+
+body.dark-mode section.panel:has(#calendarMonth) {
+  background: rgba(25, 38, 62, 0.82);
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+body.dark-mode section.panel:has(#calendarMonth) h3 {
+  color: #f3f6fb;
+}
+
+body.dark-mode #calendarMonth,
+body.dark-mode #calendarYear {
+  background: #151b27;
+  color: #edf1f7;
+  border-color: #354156;
+}
+
+@media (max-width: 600px) {
+  section.panel:has(#calendarMonth) .panel-head {
+    padding: 15px;
+  }
+
+  #calendarMonth,
+  #calendarYear {
+    min-width: 0;
+    max-width: 100%;
+  }
+}
