@@ -958,6 +958,153 @@ body.dark-mode .nav-submenu {
   background: #1c2e57;
 }
 
+/* =========================================
+   ACROPOLIS MARANATHA ACADEMY
+   GLASSMORPHISM UI ENHANCEMENT
+   ========================================= */
+
+:root {
+  --glass-bg: rgba(255, 255, 255, 0.72);
+  --glass-border: rgba(255, 255, 255, 0.65);
+  --glass-shadow: 0 8px 32px rgba(16, 28, 58, 0.09);
+  --glass-blur: 16px;
+}
+
+/* Smooth interface transitions */
+.panel,
+.stat,
+.modal,
+.modal-content,
+#sideNav,
+.nav-item,
+.nav-subitem,
+.btn,
+input,
+select,
+textarea {
+  transition:
+    background-color 0.25s ease,
+    border-color 0.25s ease,
+    box-shadow 0.25s ease,
+    transform 0.25s ease;
+}
+
+/* Glass dashboard cards and panels */
+.panel,
+.stat {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  backdrop-filter: blur(var(--glass-blur));
+  border-radius: 16px;
+}
+
+/* Gentle hover lift */
+.stat:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 14px 36px rgba(16, 28, 58, 0.13);
+}
+
+/* Refined panel headings */
+.panel-head {
+  border-bottom-color: rgba(16, 28, 58, 0.08);
+}
+
+/* Frosted navigation items */
+.nav-item,
+.nav-subitem {
+  border: 1px solid transparent;
+  border-radius: 12px;
+}
+
+.nav-item:hover,
+.nav-subitem:hover {
+  background: rgba(255, 255, 255, 0.13);
+  border-color: rgba(255, 255, 255, 0.18);
+}
+
+/* Premium buttons */
+.btn {
+  border-radius: 10px;
+}
+
+.btn:hover {
+  transform: translateY(-1px);
+}
+
+.btn:focus-visible,
+.nav-item:focus-visible,
+.nav-subitem:focus-visible {
+  outline: 2px solid var(--gold, #ffb900);
+  outline-offset: 3px;
+}
+
+/* Glass-style form fields */
+input,
+select,
+textarea {
+  border-radius: 10px;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  box-shadow: 0 0 0 3px rgba(255, 185, 0, 0.16);
+}
+
+/* Refined modal surfaces */
+.modal,
+.modal-content {
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  backdrop-filter: blur(var(--glass-blur));
+}
+
+/* Keep tables readable */
+.table-wrap {
+  border-radius: 12px;
+  overflow-x: auto;
+}
+
+table {
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+/* Respect users who prefer reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .panel,
+  .stat,
+  .modal,
+  .modal-content,
+  #sideNav,
+  .nav-item,
+  .nav-subitem,
+  .btn,
+  input,
+  select,
+  textarea {
+    transition: none !important;
+  }
+
+  .stat:hover,
+  .btn:hover {
+    transform: none;
+  }
+}
+
+/* Dark mode glass surfaces */
+.dark-mode .panel,
+.dark-mode .stat {
+  background: rgba(22, 32, 54, 0.78);
+  border-color: rgba(255, 255, 255, 0.10);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.20);
+}
+
+.dark-mode .panel-head {
+  border-bottom-color: rgba(255, 255, 255, 0.10);
+}
+
 .import-file-field input[type="file"]:focus-visible {
   outline: 3px solid #ffb900;
   outline-offset: 3px;
