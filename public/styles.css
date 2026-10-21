@@ -1243,7 +1243,147 @@ body.dark-mode .sidebar {
 body.dark-mode .sidebar-bottom {
   background: rgba(25, 38, 62, 0.94) !important;
 }
+/* AMA — UNIFIED PROFESSIONAL UI POLISH */
 
+/* Consistent page spacing and typography */
+.main-content {
+  color: var(--ink);
+}
+
+.page-head {
+  margin-bottom: 26px;
+}
+
+.page-head h1 {
+  font-weight: 850;
+  letter-spacing: -0.035em;
+}
+
+.page-head p {
+  line-height: 1.7;
+}
+
+/* Consistent glass surfaces */
+.panel,
+.stat {
+  border-radius: 18px;
+  -webkit-backdrop-filter: blur(22px) saturate(150%);
+  backdrop-filter: blur(22px) saturate(150%);
+}
+
+.panel-head {
+  padding: 19px 20px;
+}
+
+.panel-body {
+  padding: 20px;
+}
+
+/* Consistent buttons without changing their actions */
+.btn {
+  min-height: 46px;
+  border-radius: 12px;
+  font-weight: 750;
+}
+
+.btn:focus-visible {
+  outline: 3px solid rgba(255, 185, 0, 0.7);
+  outline-offset: 3px;
+}
+
+/* Cleaner, consistent form fields */
+input,
+select,
+textarea {
+  border-radius: 12px;
+  min-height: 47px;
+}
+
+textarea {
+  min-height: 100px;
+  resize: vertical;
+}
+
+/* Improve table readability */
+th {
+  padding: 14px 13px;
+  font-weight: 800;
+}
+
+td {
+  padding: 14px 13px;
+  line-height: 1.55;
+}
+
+tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+/* Consistent pop-up design */
+.modal {
+  border-radius: 20px;
+}
+
+.modal-head {
+  padding: 20px;
+}
+
+.modal-body {
+  padding: 20px;
+}
+
+/* Mobile spacing */
+@media (max-width: 600px) {
+  .page-head {
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+
+  .panel-head {
+    padding: 15px;
+  }
+
+  .panel-body {
+    padding: 14px;
+  }
+
+  .modal-head,
+  .modal-body {
+    padding: 16px;
+  }
+
+  th,
+  td {
+    padding: 12px 10px;
+  }
+}
+
+/* Preserve readability in dark mode */
+body.dark-mode .panel-head {
+  border-bottom-color: var(--line);
+}
+
+body.dark-mode th {
+  background: #1d2636;
+  color: #e8edf7;
+}
+
+body.dark-mode input,
+body.dark-mode select,
+body.dark-mode textarea {
+  background: rgba(12, 16, 24, 0.88);
+  color: var(--ink);
+  border-color: #354156;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .panel,
+  .stat,
+  .btn {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+}
 .import-file-field input[type="file"]:focus-visible {
   outline: 3px solid #ffb900;
   outline-offset: 3px;
