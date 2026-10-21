@@ -551,7 +551,73 @@ const classTotal = classCounts.reduce((sum, item) => sum + item[1], 0);
 
  html=pageHead('Examinations & marks','Record subject scores and review students’ results.',`${['ADMIN','TEACHER'].includes(state.user.role)?'<button class="btn primary" data-action="add-mark">+ Enter mark</button><button class="btn soft" data-action="bulk-class-marks">Bulk Class Marks</button>':''}`)+panel('Recorded results',markRows);
 
+
 } else if (state.view === 'Terminal Reports') {
+
+  const reportStudents = d.students || [];
+  const reportMarks = d.marks || [];
+
+  const groupedByClass = {};
+  reportStudents.forEach(student => {
+    const className = student.class_name || 'Class not assigned';
+    if (!groupedByClass[className]) {
+      groupedByClass[className] = [];
+    }
+    groupedByClass[className].push(student);
+  });
+
+  const classNames = Object.keys(groupedByClass).sort();
+
+  html = pageHead(
+    'Terminal Reports',
+    'Academic performance grouped by class.'
+  );
+
+  if (!classNames.length) {
+    html += panel(
+      'Terminal Reports',
+      '<div class="empty">No linked student records are available.</div>'
+    );
+  } else {
+    classNames.forEach(className => {
+      const rows = groupedByClass[className].map(student => {
+        const marks = reportMarks.filter(mark =>
+          String(mark.student_id) === String(student.id)
+        );
+
+        const total = marks.reduce(
+          (sum, mark) => sum + Number(mark.score || 0), 0
+        );
+
+        const average = marks.length ? total / marks.length : null;
+
+        return `<tr>
+          <td><strong>${esc(student.full_name || '')}</strong></td>
+          <td>${esc(student.student_code || '—')}</td>
+          <td>${marks.length}</td>
+          <td>${average === null ? 'No marks yet' : average.toFixed(1) + '%'}</td>
+        </tr>`;
+      }).join('');
+
+      html += panel(
+        className,
+        `<div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Student</th>
+                <th>Student ID</th>
+                <th>Subjects Recorded</th>
+                <th>Average Score</th>
+              </tr>
+            </thead>
+            <tbody>${rows}</tbody>
+          </table>
+        </div>`
+      );
+    });
+  }
+</escape>
 
   const reportStudents = d.students || [];
   const reportMarks = d.marks || [];
