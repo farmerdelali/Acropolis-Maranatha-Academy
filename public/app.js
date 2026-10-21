@@ -3721,11 +3721,12 @@ TEACHER: [
   'Fees & Payments',
   'Feeding Management',
   'Drop-off Denial'
-] PARENT: [
+],
+PARENT: [
   'Dashboard',
   'Terminal Reports'
-]   };
-
+]
+};
     const allowedMenus = menuByRole[state.user?.role] || ['Dashboard'];
 
    const feedingViews = [
