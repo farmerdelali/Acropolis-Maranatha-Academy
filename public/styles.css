@@ -2212,3 +2212,10 @@ body:not(.dark-mode) .stat::after {
   background-position: -200% 0;
   animation: amaLightModeLiquidShine 5s linear infinite;
 }
+
+/* MATCH LIGHT-MODE REFLECTION SPEED TO DARK MODE */
+body:not(.dark-mode) .panel::after,
+body:not(.dark-mode) .stat::after {
+  animation-duration: 9s;
+  animation-timing-function: ease-in-out;
+}
