@@ -2199,15 +2199,15 @@ body:not(.dark-mode) .stat::after {
     112deg,
     transparent 0%,
     transparent 25%,
-    rgba(83, 116, 180, 0.08) 36%,
-    rgba(255, 255, 255, 0.96) 44%,
-    rgba(164, 199, 255, 0.65) 49%,
-    rgba(255, 185, 0, 0.20) 53%,
-    rgba(255, 255, 255, 0.72) 58%,
-    rgba(83, 116, 180, 0.06) 66%,
+    rgba(255, 255, 255, 0.04) 36%,
+    rgba(255, 255, 255, 0.88) 44%,
+    rgba(255, 255, 255, 0.38) 49%,
+    rgba(255, 255, 255, 0.12) 53%,
+    rgba(255, 255, 255, 0.68) 58%,
+    rgba(255, 255, 255, 0.03) 66%,
     transparent 76%
   );
-
+  
   background-size: 300% 100%;
   background-position: -200% 0;
   animation: amaLightModeLiquidShine 5s linear infinite;
