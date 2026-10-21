@@ -2644,3 +2644,51 @@ body.dark-mode .panel-head p {
     margin-bottom: 16px;
   }
 }
+
+/* AMA — REFINED BUTTON INTERACTIONS */
+
+.btn {
+  min-height: 36px;
+  padding: 9px 14px;
+  border-radius: 9px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.005em;
+  transition:
+    background-color 180ms ease,
+    border-color 180ms ease,
+    box-shadow 180ms ease,
+    transform 180ms ease;
+}
+
+.btn:focus-visible,
+button:focus-visible,
+a:focus-visible {
+  outline: 2px solid #c9a45c;
+  outline-offset: 3px;
+}
+
+.btn:active {
+  transform: translateY(1px);
+  box-shadow: none;
+}
+
+.btn:disabled,
+button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+body.dark-mode .btn:focus-visible,
+body.dark-mode button:focus-visible,
+body.dark-mode a:focus-visible {
+  outline-color: #d5b477;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .btn {
+    transition: none !important;
+  }
+}
