@@ -1,4 +1,14 @@
 'use strict';
+
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js')
+      .catch(error => {
+        console.warn('App service worker registration failed:', error);
+      });
+  });
+}
+
 const $ = s => document.querySelector(s);
 
 function applyTheme(theme) {
