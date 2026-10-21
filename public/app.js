@@ -135,7 +135,6 @@ PARENT: [
   'Dashboard',
   'Terminal Reports'
 ]
-]
   };
 
   const allowedMenus = menuByRole[user.role] || ['Dashboard'];
