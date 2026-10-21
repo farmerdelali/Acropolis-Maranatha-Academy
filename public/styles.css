@@ -2181,3 +2181,34 @@ body::before {
     animation: none !important;
   }
 }
+
+/* AMA — PREMIUM LIGHT-MODE GLASS REFLECTION */
+
+@keyframes amaLightModeLiquidShine {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+body:not(.dark-mode) .panel::after,
+body:not(.dark-mode) .stat::after {
+  background: linear-gradient(
+    112deg,
+    transparent 0%,
+    transparent 25%,
+    rgba(83, 116, 180, 0.08) 36%,
+    rgba(255, 255, 255, 0.96) 44%,
+    rgba(164, 199, 255, 0.65) 49%,
+    rgba(255, 185, 0, 0.20) 53%,
+    rgba(255, 255, 255, 0.72) 58%,
+    rgba(83, 116, 180, 0.06) 66%,
+    transparent 76%
+  );
+
+  background-size: 300% 100%;
+  background-position: -200% 0;
+  animation: amaLightModeLiquidShine 5s linear infinite;
+}
