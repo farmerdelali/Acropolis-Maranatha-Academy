@@ -1105,6 +1105,145 @@ table {
   border-bottom-color: rgba(255, 255, 255, 0.10);
 }
 
+/* ==========================================
+   AMA — ENHANCED PREMIUM GLASSMORPHISM
+   Navy, gold and frosted glass
+   ========================================== */
+
+/* Richer background so the glass effect is visible */
+body {
+  background:
+    radial-gradient(ellipse at 8% 8%, rgba(255, 185, 0, 0.13), transparent 32%),
+    radial-gradient(ellipse at 90% 18%, rgba(70, 118, 200, 0.16), transparent 35%),
+    linear-gradient(135deg, #e9edf6 0%, #f7f8fc 48%, #e4eaf5 100%);
+  background-attachment: fixed;
+}
+
+/* Make dashboard surfaces visibly translucent */
+.panel,
+.stat {
+  background: rgba(255, 255, 255, 0.58) !important;
+  border: 1px solid rgba(255, 255, 255, 0.88) !important;
+  box-shadow:
+    0 8px 24px rgba(16, 28, 58, 0.07),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8) !important;
+  -webkit-backdrop-filter: blur(22px) saturate(150%);
+  backdrop-filter: blur(22px) saturate(150%);
+}
+
+/* Make dashboard cards stand out */
+.stat {
+  position: relative;
+  overflow: hidden;
+}
+
+.stat::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #101c3a, #ffb900);
+  opacity: 0.85;
+}
+
+.stat:hover,
+.panel:hover {
+  border-color: rgba(255, 185, 0, 0.4) !important;
+  box-shadow: 0 14px 34px rgba(16, 28, 58, 0.12) !important;
+}
+
+/* Frosted login and registration card */
+.auth-shell {
+  background:
+    radial-gradient(ellipse at 15% 15%, rgba(255, 185, 0, 0.19), transparent 35%),
+    radial-gradient(ellipse at 85% 80%, rgba(70, 118, 200, 0.22), transparent 40%),
+    linear-gradient(135deg, #e5eaf5, #f8f9fd 55%, #e6ebf5) !important;
+}
+
+.auth-card {
+  background: rgba(255, 255, 255, 0.68) !important;
+  border: 1px solid rgba(255, 255, 255, 0.92) !important;
+  box-shadow:
+    0 24px 65px rgba(16, 28, 58, 0.14),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9) !important;
+  -webkit-backdrop-filter: blur(24px) saturate(155%);
+  backdrop-filter: blur(24px) saturate(155%);
+}
+
+/* Glass drawer while keeping the menu readable */
+.sidebar {
+  background: rgba(248, 250, 255, 0.91) !important;
+  border-right: 1px solid rgba(255, 255, 255, 0.9) !important;
+  box-shadow: 18px 0 65px rgba(16, 28, 58, 0.22) !important;
+  -webkit-backdrop-filter: blur(24px) saturate(145%);
+  backdrop-filter: blur(24px) saturate(145%);
+}
+
+.sidebar-bottom {
+  background: rgba(248, 250, 255, 0.88) !important;
+  -webkit-backdrop-filter: blur(18px);
+  backdrop-filter: blur(18px);
+}
+
+/* More refined inputs */
+input,
+select,
+textarea {
+  background: rgba(255, 255, 255, 0.76);
+  border-color: rgba(133, 149, 178, 0.35);
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  background: rgba(255, 255, 255, 0.96);
+  border-color: #53699b;
+}
+
+/* Glass modal */
+.modal {
+  background: rgba(250, 252, 255, 0.94) !important;
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  box-shadow: 0 25px 80px rgba(7, 17, 40, 0.3) !important;
+  -webkit-backdrop-filter: blur(24px);
+  backdrop-filter: blur(24px);
+}
+
+/* Tables stay clear and easy to read */
+th {
+  background: rgba(235, 240, 249, 0.82);
+}
+
+tbody tr:hover {
+  background: rgba(255, 185, 0, 0.07);
+}
+
+/* Dark mode remains legible */
+body.dark-mode {
+  background:
+    radial-gradient(ellipse at 8% 8%, rgba(255, 185, 0, 0.07), transparent 35%),
+    linear-gradient(135deg, #101727, #18243a 55%, #111b30);
+}
+
+body.dark-mode .panel,
+body.dark-mode .stat {
+  background: rgba(25, 38, 62, 0.72) !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.18) !important;
+}
+
+body.dark-mode .auth-card,
+body.dark-mode .sidebar {
+  background: rgba(25, 38, 62, 0.94) !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+}
+
+body.dark-mode .sidebar-bottom {
+  background: rgba(25, 38, 62, 0.94) !important;
+}
+
 .import-file-field input[type="file"]:focus-visible {
   outline: 3px solid #ffb900;
   outline-offset: 3px;
