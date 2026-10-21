@@ -2945,3 +2945,24 @@ body.dark-mode .sidebar .nav-subitem.active {
     transition: none;
   }
 }
+
+/* AMA — REFINED DRAWER TRANSITIONS */
+
+.sidebar {
+  transition:
+    transform 0.36s cubic-bezier(.22, 1, .36, 1),
+    visibility 0.36s;
+}
+
+.drawer-backdrop {
+  transition:
+    opacity 0.36s cubic-bezier(.22, 1, .36, 1),
+    visibility 0.36s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sidebar,
+  .drawer-backdrop {
+    transition: none !important;
+  }
+}
