@@ -1616,3 +1616,73 @@ body.dark-mode #calendarYear {
     max-width: 100%;
   }
 }
+
+/* AMA — PREMIUM DASHBOARD CHARTS */
+
+section.panel:has([style*="conic-gradient"]) {
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  box-shadow: 0 14px 34px rgba(16, 28, 58, 0.09);
+}
+
+section.panel:has([style*="conic-gradient"]) .panel-body {
+  padding: 24px;
+}
+
+section.panel:has([style*="conic-gradient"]) .panel-body > div {
+  gap: 26px !important;
+}
+
+section.panel:has([style*="conic-gradient"]) [role="img"] {
+  box-shadow:
+    0 8px 22px rgba(16, 28, 58, 0.12),
+    0 0 0 6px rgba(255, 255, 255, 0.65);
+}
+
+section.panel:has([style*="conic-gradient"]) .panel-body strong {
+  color: var(--navy);
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+
+/* School fees overview bars */
+section.panel:has([style*="height:18px;background:var(--bg)"]) {
+  border-radius: 20px;
+}
+
+section.panel:has([style*="height:18px;background:var(--bg)"]) .panel-body {
+  padding: 24px;
+}
+
+section.panel:has([style*="height:18px;background:var(--bg)"]) .panel-body > div {
+  gap: 22px !important;
+}
+
+section.panel:has([style*="height:18px;background:var(--bg)"]) .panel-body strong {
+  color: var(--navy);
+  font-size: 14px;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Keep both chart panels comfortable on phones */
+@media (max-width: 600px) {
+  section.panel:has([style*="conic-gradient"]) .panel-body,
+  section.panel:has([style*="height:18px;background:var(--bg)"]) .panel-body {
+    padding: 16px;
+  }
+
+  section.panel:has([style*="conic-gradient"]) .panel-body > div {
+    gap: 20px !important;
+  }
+
+  section.panel:has([style*="conic-gradient"]) [role="img"] {
+    width: 150px !important;
+    height: 150px !important;
+  }
+}
+
+/* Dark-mode chart readability */
+body.dark-mode section.panel:has([style*="conic-gradient"]) .panel-body strong,
+body.dark-mode section.panel:has([style*="height:18px;background:var(--bg)"]) .panel-body strong {
+  color: #f3f6fb;
+}
