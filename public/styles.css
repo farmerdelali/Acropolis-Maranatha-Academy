@@ -2575,3 +2575,72 @@ body.dark-mode .cards .stat:hover {
     padding: 15px 13px;
   }
 }
+
+/* AMA — PREMIUM TYPOGRAPHY & SPACING */
+
+body {
+  line-height: 1.55;
+}
+
+.page-head {
+  margin-bottom: 24px;
+}
+
+.page-head h1 {
+  margin-bottom: 6px;
+  font-size: clamp(23px, 2.5vw, 30px);
+  font-weight: 750;
+  line-height: 1.2;
+  letter-spacing: -0.035em;
+}
+
+.page-head p {
+  max-width: 680px;
+  margin-top: 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.65;
+}
+
+.panel {
+  margin-bottom: 20px;
+}
+
+.panel-head h2 {
+  font-size: 15px;
+  line-height: 1.4;
+}
+
+.panel-head p {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+label {
+  font-weight: 650;
+}
+
+small,
+.muted {
+  line-height: 1.6;
+}
+
+body.dark-mode .page-head p,
+body.dark-mode .panel-head p {
+  color: var(--muted);
+}
+
+@media (max-width: 600px) {
+  .page-head {
+    margin-bottom: 18px;
+  }
+
+  .page-head h1 {
+    font-size: 23px;
+  }
+
+  .panel {
+    margin-bottom: 16px;
+  }
+}
