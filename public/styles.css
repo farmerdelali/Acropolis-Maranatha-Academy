@@ -2838,3 +2838,63 @@ body.dark-mode .panel-head {
     padding: 14px;
   }
 }
+
+/* AMA — PREMIUM MOBILE EXPERIENCE */
+
+@media (max-width: 600px) {
+  .page-head {
+    gap: 8px;
+  }
+
+  .page-head h1 {
+    overflow-wrap: anywhere;
+  }
+
+  .page-head .btn {
+    max-width: 100%;
+    white-space: normal;
+  }
+
+  .panel-head {
+    gap: 10px;
+  }
+
+  .panel-head h2 {
+    overflow-wrap: anywhere;
+  }
+
+  .table-wrap {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .table-wrap table {
+    min-width: 620px;
+  }
+
+  input,
+  select,
+  textarea {
+    max-width: 100%;
+  }
+
+  .btn {
+    min-height: 38px;
+  }
+}
+
+@media (max-width: 380px) {
+  .page-head h1 {
+    font-size: 21px;
+  }
+
+  .panel-head {
+    padding: 15px;
+  }
+
+  .panel-body {
+    padding: 12px;
+  }
+}
