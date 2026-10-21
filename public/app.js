@@ -1031,14 +1031,21 @@ html+=panel('Student enrolment by class',students.length?`<div style="display:gr
     </form>
   `)+
   panel('System appearance',`
-    <label class="field" for="appearanceSelect">
-      Choose your preferred appearance
-      <select id="appearanceSelect">
-        <option value="light">Light — White appearance</option>
-        <option value="dark">Dark — Black / Navy appearance</option>
-      </select>
-    </label>
-    <p class="muted">Your choice is remembered on this device.</p>
+    <div class="theme-toggle-row">
+  <div class="theme-toggle-copy">
+    <strong>Appearance</strong>
+    <span>Switch between light and dark mode</span>
+  </div>
+
+  <label class="theme-switch" for="appearanceToggle">
+    <input type="checkbox" id="appearanceToggle" role="switch"
+      aria-label="Enable dark mode">
+    <span class="theme-switch-track">
+      <span class="theme-switch-thumb"></span>
+    </span>
+  </label>
+</div>
+        <p class="muted">Your choice is remembered on this device.</p>
   
   `)+ panel('School contact details',`
 
