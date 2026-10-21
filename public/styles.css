@@ -2327,3 +2327,46 @@ body.dark-mode .sidebar .nav-item.active .nav-icon {
   border-color: rgba(255, 185, 0, 0.28);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12);
 }
+
+/* AMA — PROMINENT SCHOOL BRANDING */
+
+.sidebar .sidebar-school {
+  gap: 15px;
+  padding: 18px 10px 24px;
+  margin-bottom: 20px;
+  border-bottom: 1px solid rgba(255, 185, 0, 0.3);
+}
+
+.sidebar .sidebar-school img {
+  width: 68px;
+  height: 68px;
+  flex: 0 0 68px;
+  object-fit: contain;
+  padding: 4px;
+  border-radius: 16px;
+  background: rgba(255, 185, 0, 0.07);
+  filter: drop-shadow(0 4px 8px rgba(16, 28, 58, 0.12));
+}
+
+.sidebar .sidebar-school b {
+  font-size: 17px;
+  font-weight: 850;
+  line-height: 1.35;
+  letter-spacing: -0.025em;
+  color: #101c3a;
+}
+
+.sidebar .sidebar-school small {
+  margin-top: 5px;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+body.dark-mode .sidebar .sidebar-school b {
+  color: #ffffff;
+}
+
+body.dark-mode .sidebar .sidebar-school img {
+  background: rgba(255, 185, 0, 0.1);
+  filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.25));
+}
