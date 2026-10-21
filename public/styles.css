@@ -2083,3 +2083,101 @@ body::before {
     animation: none !important;
   }
 }
+
+/* =========================================
+   AMA LIQUID GLASS — MOVING LIGHT REFLECTIONS
+   ========================================= */
+
+@keyframes amaGlassLightDrift {
+  0% {
+    background-position: -180% 0;
+  }
+  100% {
+    background-position: 180% 0;
+  }
+}
+
+@keyframes amaGlassAmbientGlow {
+  0%, 100% {
+    opacity: 0.35;
+    transform: translate3d(-2%, 0, 0);
+  }
+  50% {
+    opacity: 0.8;
+    transform: translate3d(2%, 0, 0);
+  }
+}
+
+/* Add a moving reflective highlight to glass surfaces */
+.panel,
+.card,
+.stat-card,
+.modal,
+.modal-content {
+  isolation: isolate;
+}
+
+.panel::after,
+.card::after,
+.stat-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  z-index: 1;
+  background: linear-gradient(
+    115deg,
+    transparent 0%,
+    transparent 35%,
+    rgba(255, 255, 255, 0.035) 42%,
+    rgba(255, 255, 255, 0.20) 50%,
+    rgba(255, 255, 255, 0.045) 58%,
+    transparent 66%,
+    transparent 100%
+  );
+  background-size: 240% 100%;
+  background-position: -180% 0;
+  animation: amaGlassLightDrift 9s ease-in-out infinite;
+  opacity: 0.8;
+}
+
+/* Gentle ambient glow for the overall interface */
+body::before {
+  content: "";
+  position: fixed;
+  inset: -30%;
+  pointer-events: none;
+  z-index: -1;
+  background:
+    radial-gradient(
+      ellipse at 20% 25%,
+      rgba(77, 135, 255, 0.09),
+      transparent 42%
+    ),
+    radial-gradient(
+      ellipse at 80% 70%,
+      rgba(255, 185, 0, 0.065),
+      transparent 38%
+    );
+  animation: amaGlassAmbientGlow 12s ease-in-out infinite;
+}
+
+/* Keep animations gentle on mobile and respect reduced motion */
+@media (max-width: 600px) {
+  .panel::after,
+  .card::after,
+  .stat-card::after {
+    animation-duration: 13s;
+    opacity: 0.55;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .panel::after,
+  .card::after,
+  .stat-card::after,
+  body::before {
+    animation: none !important;
+  }
+}
