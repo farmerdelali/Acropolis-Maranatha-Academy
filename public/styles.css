@@ -2221,3 +2221,14 @@ body:not(.dark-mode) .stat::after {
   animation-timing-function: ease-in-out;
   animation-iteration-count: infinite;
 }
+
+/* EXACT DARK-MODE MOVEMENT, BRIGHT LIGHT-MODE REFLECTION */
+body:not(.dark-mode) .panel::after,
+body:not(.dark-mode) .stat::after {
+  animation-name: amaGlassLightDrift;
+  animation-duration: 9s;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
+  background-size: 240% 100%;
+  background-position: -180% 0;
+}
