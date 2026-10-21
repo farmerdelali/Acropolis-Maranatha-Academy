@@ -1686,3 +1686,191 @@ body.dark-mode section.panel:has([style*="conic-gradient"]) .panel-body strong,
 body.dark-mode section.panel:has([style*="height:18px;background:var(--bg)"]) .panel-body strong {
   color: #f3f6fb;
 }
+
+/* AMA — INTENSE LIQUID GLASS */
+
+:root {
+  --liquid-glass: rgba(255, 255, 255, 0.28);
+  --liquid-edge: rgba(255, 255, 255, 0.88);
+  --liquid-shine: rgba(255, 255, 255, 0.72);
+  --liquid-shadow: 0 18px 55px rgba(16, 28, 58, 0.18);
+  --liquid-blur: 32px;
+}
+
+/* Stronger, richer background behind the glass */
+body:not(.dark-mode) {
+  background:
+    radial-gradient(ellipse at 10% 10%, rgba(255, 185, 0, 0.28), transparent 38%),
+    radial-gradient(ellipse at 90% 12%, rgba(87, 137, 235, 0.30), transparent 42%),
+    radial-gradient(ellipse at 50% 90%, rgba(153, 177, 225, 0.35), transparent 45%),
+    linear-gradient(135deg, #dce5f5, #f7f9ff 48%, #dce6f7) !important;
+  background-attachment: fixed !important;
+}
+
+/* Main panels and dashboard cards */
+.panel,
+.stat {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  background: var(--liquid-glass) !important;
+  border: 1px solid var(--liquid-edge) !important;
+  border-radius: 24px !important;
+  box-shadow:
+    var(--liquid-shadow),
+    inset 0 2px 2px rgba(255, 255, 255, 0.95),
+    inset 0 -1px 1px rgba(255, 255, 255, 0.25) !important;
+  -webkit-backdrop-filter: blur(var(--liquid-blur)) saturate(190%);
+  backdrop-filter: blur(var(--liquid-blur)) saturate(190%);
+}
+
+/* Glossy reflection across the top of each glass surface */
+.panel::before,
+.stat::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  border-radius: inherit;
+  background:
+    linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.72) 0%,
+      rgba(255, 255, 255, 0.20) 24%,
+      transparent 48%,
+      rgba(255, 255, 255, 0.16) 76%,
+      rgba(255, 255, 255, 0.35) 100%
+    );
+}
+
+/* Glass highlights and lift */
+.stat:hover,
+.panel:hover {
+  transform: translateY(-4px);
+  border-color: #ffffff !important;
+  box-shadow:
+    0 24px 65px rgba(16, 28, 58, 0.22),
+    inset 0 2px 2px rgba(255, 255, 255, 0.95) !important;
+}
+
+/* Frosted panel headers */
+.panel-head {
+  background: rgba(255, 255, 255, 0.22);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.62) !important;
+  -webkit-backdrop-filter: blur(18px);
+  backdrop-filter: blur(18px);
+}
+
+/* Liquid glass login and sign-up card */
+.auth-card {
+  background: rgba(255, 255, 255, 0.30) !important;
+  border: 1px solid rgba(255, 255, 255, 0.95) !important;
+  border-radius: 30px !important;
+  box-shadow:
+    0 30px 90px rgba(16, 28, 58, 0.22),
+    inset 0 2px 2px rgba(255, 255, 255, 0.95) !important;
+  -webkit-backdrop-filter: blur(36px) saturate(190%);
+  backdrop-filter: blur(36px) saturate(190%);
+}
+
+/* Floating glass side drawer */
+.sidebar {
+  background: rgba(239, 245, 255, 0.72) !important;
+  border-right: 1px solid rgba(255, 255, 255, 0.95) !important;
+  box-shadow:
+    24px 0 80px rgba(16, 28, 58, 0.25),
+    inset -1px 0 rgba(255, 255, 255, 0.8) !important;
+  -webkit-backdrop-filter: blur(36px) saturate(185%);
+  backdrop-filter: blur(36px) saturate(185%);
+}
+
+/* Glass input fields */
+input,
+select,
+textarea {
+  background: rgba(255, 255, 255, 0.42) !important;
+  border: 1px solid rgba(255, 255, 255, 0.90) !important;
+  box-shadow:
+    inset 0 2px 5px rgba(16, 28, 58, 0.05),
+    0 3px 12px rgba(16, 28, 58, 0.04);
+  -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(16px);
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  background: rgba(255, 255, 255, 0.78) !important;
+  border-color: rgba(255, 185, 0, 0.95) !important;
+  box-shadow:
+    0 0 0 4px rgba(255, 185, 0, 0.20),
+    inset 0 1px 3px rgba(16, 28, 58, 0.05) !important;
+}
+
+/* Glass effect for the calendar */
+section.panel:has(#calendarMonth) {
+  background: rgba(255, 255, 255, 0.30) !important;
+  border: 1px solid rgba(255, 255, 255, 0.95) !important;
+  box-shadow: var(--liquid-shadow) !important;
+  -webkit-backdrop-filter: blur(32px) saturate(190%);
+  backdrop-filter: blur(32px) saturate(190%);
+}
+
+/* Glass modal */
+.modal {
+  background: rgba(245, 249, 255, 0.78) !important;
+  border: 1px solid rgba(255, 255, 255, 0.95) !important;
+  box-shadow: 0 30px 100px rgba(7, 17, 40, 0.35) !important;
+  -webkit-backdrop-filter: blur(36px) saturate(180%);
+  backdrop-filter: blur(36px) saturate(180%);
+}
+
+/* Dark-mode liquid glass */
+body.dark-mode {
+  background:
+    radial-gradient(ellipse at 10% 10%, rgba(62, 105, 190, 0.25), transparent 42%),
+    radial-gradient(ellipse at 90% 80%, rgba(255, 185, 0, 0.08), transparent 38%),
+    linear-gradient(135deg, #080d19, #17243d 55%, #0b1324) !important;
+}
+
+body.dark-mode .panel,
+body.dark-mode .stat {
+  background: rgba(23, 37, 62, 0.48) !important;
+  border-color: rgba(255, 255, 255, 0.24) !important;
+  box-shadow:
+    0 18px 55px rgba(0, 0, 0, 0.30),
+    inset 0 1px 1px rgba(255, 255, 255, 0.25) !important;
+}
+
+body.dark-mode .panel-head {
+  background: rgba(255, 255, 255, 0.06);
+  border-bottom-color: rgba(255, 255, 255, 0.18) !important;
+}
+
+body.dark-mode .auth-card,
+body.dark-mode .sidebar,
+body.dark-mode .modal {
+  background: rgba(17, 29, 49, 0.78) !important;
+  border-color: rgba(255, 255, 255, 0.22) !important;
+}
+
+body.dark-mode input,
+body.dark-mode select,
+body.dark-mode textarea {
+  background: rgba(7, 13, 25, 0.55) !important;
+  border-color: rgba(255, 255, 255, 0.22) !important;
+  color: #f3f6fb !important;
+}
+
+/* Keep glass styling usable on small screens */
+@media (max-width: 600px) {
+  .panel,
+  .stat {
+    border-radius: 19px !important;
+  }
+
+  .auth-card {
+    border-radius: 24px !important;
+  }
+}
