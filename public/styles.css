@@ -2759,3 +2759,37 @@ body.dark-mode textarea:focus {
     transition: none !important;
   }
 }
+
+/* AMA — ELEGANT STATUS BADGES */
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  min-height: 24px;
+  padding: 4px 9px;
+  border: 1px solid rgba(201, 164, 92, 0.22);
+  border-radius: 7px;
+  background: rgba(201, 164, 92, 0.09);
+  color: #76602f;
+  font-size: 10px;
+  font-weight: 750;
+  line-height: 1.35;
+  letter-spacing: 0.025em;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+body.dark-mode .badge {
+  border-color: rgba(213, 180, 119, 0.25);
+  background: rgba(213, 180, 119, 0.11);
+  color: #e5ca91;
+}
+
+@media (max-width: 600px) {
+  .badge {
+    padding: 4px 7px;
+    font-size: 10px;
+  }
+}
