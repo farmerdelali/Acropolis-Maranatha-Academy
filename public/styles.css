@@ -2692,3 +2692,70 @@ body.dark-mode a:focus-visible {
     transition: none !important;
   }
 }
+
+/* AMA — PREMIUM FORM CONTROLS */
+
+input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),
+select,
+textarea {
+  min-height: 40px;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background: var(--white);
+  color: var(--ink);
+  font-size: 13px;
+  line-height: 1.5;
+  transition:
+    border-color 180ms ease,
+    box-shadow 180ms ease;
+}
+
+textarea {
+  min-height: 100px;
+  resize: vertical;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--muted);
+  opacity: 0.8;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  border-color: #b99a60;
+  box-shadow: 0 0 0 3px rgba(201, 164, 92, 0.12);
+  outline: none;
+}
+
+input:disabled,
+select:disabled,
+textarea:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+body.dark-mode input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),
+body.dark-mode select,
+body.dark-mode textarea {
+  background: #171c26;
+  color: var(--ink);
+  border-color: var(--line);
+}
+
+body.dark-mode input:focus,
+body.dark-mode select:focus,
+body.dark-mode textarea:focus {
+  border-color: #d5b477;
+  box-shadow: 0 0 0 3px rgba(213, 180, 119, 0.13);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  input,
+  select,
+  textarea {
+    transition: none !important;
+  }
+}
