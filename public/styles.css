@@ -2330,43 +2330,63 @@ body.dark-mode .sidebar .nav-item.active .nav-icon {
 
 /* AMA — PROMINENT SCHOOL BRANDING */
 
+/* AMA — EXTRA-PROMINENT SCHOOL BRANDING */
+
 .sidebar .sidebar-school {
-  gap: 15px;
-  padding: 18px 10px 24px;
-  margin-bottom: 20px;
-  border-bottom: 1px solid rgba(255, 185, 0, 0.3);
+gap: 17px;
+padding: 24px 10px 28px;
+margin-bottom: 22px;
+border-bottom: 2px solid rgba(255, 185, 0, 0.38);
 }
 
 .sidebar .sidebar-school img {
-  width: 68px;
-  height: 68px;
-  flex: 0 0 68px;
-  object-fit: contain;
-  padding: 4px;
-  border-radius: 16px;
-  background: rgba(255, 185, 0, 0.07);
-  filter: drop-shadow(0 4px 8px rgba(16, 28, 58, 0.12));
+width: 88px;
+height: 88px;
+flex: 0 0 88px;
+object-fit: contain;
+padding: 5px;
+border-radius: 20px;
+background: rgba(255, 185, 0, 0.09);
+filter: drop-shadow(0 6px 12px rgba(16, 28, 58, 0.16));
 }
 
 .sidebar .sidebar-school b {
-  font-size: 17px;
-  font-weight: 850;
-  line-height: 1.35;
-  letter-spacing: -0.025em;
-  color: #101c3a;
+font-size: 19px;
+font-weight: 900;
+line-height: 1.35;
+letter-spacing: -0.025em;
+color: #101c3a;
 }
 
 .sidebar .sidebar-school small {
-  margin-top: 5px;
-  font-size: 12px;
-  line-height: 1.5;
+margin-top: 7px;
+font-size: 12px;
+line-height: 1.6;
 }
 
 body.dark-mode .sidebar .sidebar-school b {
-  color: #ffffff;
+color: #ffffff;
 }
 
 body.dark-mode .sidebar .sidebar-school img {
-  background: rgba(255, 185, 0, 0.1);
-  filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.25));
+background: rgba(255, 185, 0, 0.12);
+filter: drop-shadow(0 6px 14px rgba(0, 0, 0, 0.3));
+}
+
+@media (max-width: 380px) {
+.sidebar .sidebar-school {
+gap: 12px;
+padding-left: 5px;
+padding-right: 5px;
+}
+
+.sidebar .sidebar-school img {
+width: 74px;
+height: 74px;
+flex-basis: 74px;
+}
+
+.sidebar .sidebar-school b {
+font-size: 17px;
+}
 }
