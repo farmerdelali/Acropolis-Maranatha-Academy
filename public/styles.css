@@ -2898,3 +2898,50 @@ body.dark-mode .panel-head {
     padding: 12px;
   }
 }
+
+/* AMA — QUIET LUXURY SUBMENU REFINEMENT */
+
+.sidebar .nav-submenu {
+  margin: 3px 0 10px 18px;
+  padding: 5px 0 5px 12px;
+  border-left: 1px solid rgba(201, 164, 92, 0.28);
+}
+
+.sidebar .nav-subitem {
+  min-height: 42px;
+  padding: 10px 13px;
+  margin: 3px 0;
+  border-radius: 9px;
+  font-size: 13px;
+  font-weight: 600;
+  transition:
+    background 0.25s ease,
+    color 0.25s ease,
+    transform 0.25s ease;
+}
+
+.sidebar .nav-subitem:hover {
+  transform: translateX(2px);
+  background: rgba(201, 164, 92, 0.08);
+}
+
+.sidebar .nav-subitem.active {
+  background: rgba(201, 164, 92, 0.13);
+  color: #101c3a;
+  font-weight: 750;
+}
+
+body.dark-mode .sidebar .nav-submenu {
+  border-left-color: rgba(213, 180, 119, 0.3);
+}
+
+body.dark-mode .sidebar .nav-subitem.active {
+  background: rgba(213, 180, 119, 0.13);
+  color: #f0d8a5;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sidebar .nav-subitem {
+    transition: none;
+  }
+}
