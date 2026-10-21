@@ -33,6 +33,7 @@ const nav = [
     ['Classrooms','▤','Classroom management'],
   ['Attendance Register','◷','Class attendance and register history'],
   ['Marks','✓','Examinations'],
+    ['Terminal Reports','▤','Student terminal reports'],
   ['Import Data','⇧','Import student and marks files'],
   ['Fees & Payments','₵','Fees and receipts'],
     ['Feeding Management','🍽','Feeding fees and payment plans'],
