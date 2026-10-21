@@ -2501,3 +2501,77 @@ body.dark-mode .stat:hover {
     transition: none !important;
   }
 }
+
+/* AMA — QUIET LUXURY DASHBOARD */
+
+.cards {
+  gap: 14px;
+  margin-bottom: 24px;
+}
+
+.cards .stat {
+  padding: 21px;
+  border: 1px solid var(--line) !important;
+  border-radius: 13px !important;
+  background: var(--white) !important;
+  box-shadow: 0 2px 8px rgba(16, 28, 58, 0.025) !important;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  transform: none;
+  animation: none !important;
+}
+
+.cards .stat::before,
+.cards .stat::after {
+  display: none !important;
+  content: none !important;
+}
+
+.cards .stat:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 5px 14px rgba(16, 28, 58, 0.05) !important;
+}
+
+.cards .stat-label {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 650;
+  letter-spacing: 0.035em;
+  text-transform: uppercase;
+}
+
+.cards .stat-value {
+  margin-top: 10px;
+  color: var(--ink);
+  font-size: clamp(23px, 2.4vw, 29px);
+  font-weight: 750;
+  line-height: 1.25;
+  letter-spacing: -0.035em;
+}
+
+.cards .stat-note {
+  margin-top: 6px;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+body.dark-mode .cards .stat {
+  background: #171c26 !important;
+  border-color: #2b303b !important;
+  box-shadow: none !important;
+}
+
+body.dark-mode .cards .stat:hover {
+  box-shadow: 0 5px 14px rgba(0, 0, 0, 0.16) !important;
+}
+
+@media (max-width: 600px) {
+  .cards {
+    gap: 10px;
+  }
+
+  .cards .stat {
+    padding: 15px 13px;
+  }
+}
