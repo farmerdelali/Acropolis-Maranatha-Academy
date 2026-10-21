@@ -1,0 +1,13 @@
+
+{
+  "appId": "com.acropolis.maranathaacademy",
+  "appName": "Acropolis Maranatha Academy",
+  "webDir": "public",
+  "server": {
+    "url": "https://acropolis-maranatha-academy-2.onrender.com",
+    "cleartext": false
+  },
+  "ios": {
+    "contentInset": "automatic"
+  }
+}
