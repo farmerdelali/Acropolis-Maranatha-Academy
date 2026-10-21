@@ -1,0 +1,18 @@
+{
+  "id": "/",
+  "name": "Acropolis Maranatha Academy",
+  "short_name": "Acropolis Academy",
+  "description": "School management for Acropolis Maranatha Academy.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#101c3a",
+  "theme_color": "#101c3a",
+  "icons": [
+    {
+      "src": "/school-logo.png",
+      "type": "image/png"
+    }
+  ]
+}
