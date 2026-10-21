@@ -132,7 +132,9 @@ function showApp(user) {
   'Drop-off Denial'
 ],
 PARENT: [
-  'Dashboard'
+  'Dashboard',
+  'Terminal Reports'
+]
 ]
   };
 
@@ -3719,7 +3721,10 @@ TEACHER: [
   'Fees & Payments',
   'Feeding Management',
   'Drop-off Denial'
-]    };
+] PARENT: [
+  'Dashboard',
+  'Terminal Reports'
+]   };
 
     const allowedMenus = menuByRole[state.user?.role] || ['Dashboard'];
 
