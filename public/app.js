@@ -1984,11 +1984,11 @@ mainContent.innerHTML = html;
 mainContent.classList.remove('motion-enter');
 void mainContent.offsetWidth;
 mainContent.classList.add('motion-enter');
-     const appearanceSelect = $('#appearanceSelect');
-if (appearanceSelect) {
-  appearanceSelect.value =
-    document.body.classList.contains('dark-mode') ? 'dark' : 'light';
-}             
+    const appearanceToggle = $('#appearanceToggle');
+if (appearanceToggle) {
+  appearanceToggle.checked =
+    document.body.classList.contains('dark-mode');
+}          
 }
 function grade(v){v=Number(v);return v>=80?'A':v>=70?'B':v>=60?'C':v>=50?'D':'F';}
 function openModal(title,body){$('#modalHost').innerHTML=`<div class="modal-back" id="modalBack"><section class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle"><div class="modal-head"><h2 id="modalTitle">${esc(title)}</h2><button class="btn soft" type="button" data-action="close-modal">Close</button></div><div class="modal-body">${body}</div></section></div>`;const first=$('#modalHost input,#modalHost select');if(first)first.focus();} 
