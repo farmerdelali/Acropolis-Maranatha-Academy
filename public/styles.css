@@ -1874,3 +1874,114 @@ body.dark-mode textarea {
     border-radius: 24px !important;
   }
 }
+
+/* =========================================
+   AMA PREMIUM LIQUID GLASS MOTION — LAYER 1
+   ========================================= */
+
+:root {
+  --ama-motion-fast: 180ms;
+  --ama-motion-smooth: 380ms;
+  --ama-motion-slow: 650ms;
+  --ama-glass-edge: rgba(255, 255, 255, 0.32);
+  --ama-glass-shine: rgba(255, 255, 255, 0.12);
+  --ama-glass-shadow: 0 18px 55px rgba(4, 12, 35, 0.22);
+  --ama-glass-ease: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Smooth transitions throughout the application */
+button,
+.btn,
+input,
+select,
+textarea,
+.panel,
+.card,
+.modal,
+.drawer,
+.nav-item,
+.sidebar a,
+.sidebar button,
+.stat-card,
+table tr {
+  transition:
+    background-color var(--ama-motion-smooth) var(--ama-glass-ease),
+    border-color var(--ama-motion-smooth) var(--ama-glass-ease),
+    box-shadow var(--ama-motion-smooth) var(--ama-glass-ease),
+    transform var(--ama-motion-smooth) var(--ama-glass-ease),
+    color var(--ama-motion-fast) ease,
+    opacity var(--ama-motion-smooth) ease,
+    backdrop-filter var(--ama-motion-smooth) ease;
+}
+
+/* Richer glass surfaces */
+.panel,
+.card,
+.stat-card,
+.modal,
+.modal-content,
+.drawer {
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  backdrop-filter: blur(24px) saturate(180%);
+  border-color: var(--ama-glass-edge);
+  box-shadow: var(--ama-glass-shadow);
+}
+
+/* Premium button interaction */
+button:not(:disabled),
+.btn:not(:disabled) {
+  transform: translateZ(0);
+  -webkit-tap-highlight-color: transparent;
+}
+
+button:not(:disabled):hover,
+.btn:not(:disabled):hover {
+  filter: brightness(1.08);
+  box-shadow:
+    0 8px 24px rgba(16, 28, 58, 0.2),
+    inset 0 1px 0 var(--ama-glass-shine);
+}
+
+button:not(:disabled):active,
+.btn:not(:disabled):active {
+  transform: scale(0.975);
+  filter: brightness(0.98);
+}
+
+/* Soft illuminated focus */
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+button:focus-visible,
+.btn:focus-visible {
+  outline: 2px solid rgba(255, 185, 0, 0.85);
+  outline-offset: 3px;
+}
+
+/* Glass panels lift gently on hover */
+.panel,
+.card,
+.stat-card {
+  position: relative;
+  overflow: hidden;
+}
+
+.panel:hover,
+.card:hover,
+.stat-card:hover {
+  box-shadow:
+    0 24px 65px rgba(4, 12, 35, 0.25),
+    inset 0 1px 0 rgba(255, 255, 255, 0.24);
+}
+
+/* Respect reduced-motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
