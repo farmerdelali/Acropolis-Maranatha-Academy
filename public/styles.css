@@ -3397,3 +3397,250 @@ body.dark-mode textarea {
     animation-duration: 0.01ms !important;
   }
 }
+
+/* AMA — SMARTSAPP-INSPIRED INTERFACE */
+:root {
+  --ama-app-bg: #f4f7fb;
+  --ama-border: #e5eaf2;
+  --ama-text: #1b2b45;
+  --ama-muted: #78869a;
+  --ama-primary: #244f88;
+}
+
+body {
+  background: var(--ama-app-bg);
+  color: var(--ama-text);
+}
+
+.topbar {
+  min-height: 74px;
+  padding: 12px 26px;
+  gap: 18px;
+  background: #ffffff;
+  border-bottom: 1px solid var(--ama-border);
+  box-shadow: 0 2px 12px rgba(20, 42, 76, 0.04);
+}
+
+.topbrand {
+  gap: 12px;
+}
+
+.topbrand img {
+  width: 44px;
+  height: 44px;
+  object-fit: contain;
+  border-radius: 10px;
+}
+
+.topbrand strong {
+  color: #18365f;
+  font-size: 15px;
+  font-weight: 750;
+}
+
+.sidebar {
+  background: #ffffff;
+  border-right: 1px solid var(--ama-border);
+  padding: 18px 13px;
+  box-shadow: 3px 0 18px rgba(24, 47, 79, 0.025);
+}
+
+.sidebar-school {
+  margin: 0 4px 18px;
+  padding: 13px 10px;
+  background: #f7f9fc;
+  border: 1px solid #edf1f6;
+  border-radius: 14px;
+}
+
+#navItems {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.nav-item {
+  min-height: 43px;
+  margin: 0;
+  padding: 10px 12px;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  color: #63728a;
+  font-size: 13px;
+  font-weight: 560;
+  transition: background 0.18s ease, color 0.18s ease;
+}
+
+.nav-item:hover {
+  background: #f2f6fc;
+  color: #244f88;
+}
+
+.nav-item.active {
+  background: #eaf1fb;
+  border-color: #dce8f8;
+  color: #244f88;
+  box-shadow: none;
+  font-weight: 720;
+}
+
+.main-content {
+  padding: 30px clamp(16px, 3vw, 40px) 44px;
+}
+
+.page-head h1 {
+  color: #1c2f4b;
+  font-size: clamp(24px, 2vw, 30px);
+  font-weight: 760;
+  letter-spacing: -0.7px;
+}
+
+.cards {
+  gap: 16px;
+  margin-bottom: 22px;
+}
+
+.stat,
+.stat-card {
+  padding: 20px;
+  background: #ffffff;
+  border: 1px solid var(--ama-border);
+  border-radius: 15px;
+  box-shadow: 0 4px 18px rgba(29, 53, 87, 0.035);
+}
+
+.stat-value {
+  color: #1d3557;
+  font-weight: 780;
+}
+
+.panel {
+  margin-bottom: 20px;
+  overflow: hidden;
+  background: #ffffff;
+  border: 1px solid var(--ama-border);
+  border-radius: 15px;
+  box-shadow: 0 4px 18px rgba(29, 53, 87, 0.035);
+}
+
+.panel-head {
+  padding: 19px 22px;
+  background: #ffffff;
+  border-bottom: 1px solid #edf1f6;
+}
+
+.panel-body {
+  padding: 21px 22px;
+}
+
+.table-wrap {
+  overflow-x: auto;
+  background: #ffffff;
+  border: 1px solid var(--ama-border);
+  border-radius: 12px;
+}
+
+thead th {
+  background: #f6f8fc;
+  color: #78869a;
+  font-size: 11px;
+  font-weight: 750;
+  text-transform: uppercase;
+  letter-spacing: 0.45px;
+}
+
+tbody tr:hover td {
+  background: #f8faff;
+}
+
+.btn {
+  min-height: 40px;
+  padding: 9px 15px;
+  border-radius: 9px;
+  font-weight: 650;
+  box-shadow: none;
+}
+
+input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),
+select,
+textarea {
+  border-radius: 9px;
+  border-color: #dce4ee;
+  box-shadow: none;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  outline: none;
+  border-color: #7fa5d8;
+  box-shadow: 0 0 0 3px rgba(55, 112, 184, 0.12);
+}
+
+@media (max-width: 900px) {
+  .topbar {
+    min-height: 66px;
+    padding: 10px 15px;
+  }
+
+  .main-content {
+    padding: 22px 16px 32px;
+  }
+
+  .cards {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+  }
+
+  .panel-head,
+  .panel-body {
+    padding: 16px;
+  }
+}
+
+@media (max-width: 520px) {
+  .topbrand img {
+    width: 38px;
+    height: 38px;
+  }
+
+  .topbrand strong {
+    font-size: 12px;
+  }
+
+  .user-badge {
+    display: none;
+  }
+
+  .main-content {
+    padding: 18px 12px 28px;
+  }
+
+  .page-head h1 {
+    font-size: 23px;
+  }
+
+  .cards {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  .stat,
+  .stat-card {
+    padding: 14px;
+    border-radius: 12px;
+  }
+
+  .panel {
+    border-radius: 12px;
+  }
+
+  .panel-head,
+  .panel-body {
+    padding: 14px;
+  }
+
+  .btn {
+    min-height: 42px;
+  }
+}
