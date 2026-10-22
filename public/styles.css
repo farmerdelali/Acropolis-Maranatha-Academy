@@ -4083,3 +4083,46 @@ body.dark-mode .app-shell {
     color: var(--ink);
   }
 }
+
+/* AMA — SMARTSAPP-INSPIRED DESKTOP SIDEBAR */
+
+@media (min-width: 901px) {
+  .sidebar {
+    border-right: 1px solid rgba(130, 150, 180, 0.16);
+  }
+
+  .sidebar .nav-item {
+    min-height: 46px;
+    margin: 3px 10px;
+    padding: 10px 14px;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 550;
+    transition:
+      background-color 180ms ease,
+      color 180ms ease,
+      border-color 180ms ease;
+  }
+
+  .sidebar .nav-item:hover {
+    transform: none;
+    background: rgba(90, 130, 190, 0.08);
+  }
+
+  .sidebar .nav-item.active {
+    color: #2878e5;
+    background: #eaf2ff;
+    border-left: 3px solid #4388f5;
+    border-radius: 0 10px 10px 0;
+  }
+
+  body.dark-mode .sidebar .nav-item:hover {
+    background: rgba(130, 165, 220, 0.10);
+  }
+
+  body.dark-mode .sidebar .nav-item.active {
+    color: #9cc4ff;
+    background: #253149;
+    border-left-color: #6da4ff;
+  }
+}
