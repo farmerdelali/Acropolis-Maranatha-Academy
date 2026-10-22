@@ -3896,3 +3896,74 @@ body.dark-mode .app-shell {
     background: #253149;
   }
 }
+
+
+
+/* AMA — SMARTSAPP-INSPIRED TOP BAR */
+
+@media (max-width: 900px) {
+  .topbar {
+    min-height: 66px;
+    height: auto;
+    padding: 10px 14px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: rgba(255, 255, 255, 0.94);
+    border-bottom: 1px solid #e8edf5;
+    box-shadow: 0 2px 12px rgba(26, 45, 75, 0.045);
+  }
+
+  .topbrand {
+    min-width: 0;
+    flex: 1;
+    gap: 9px;
+  }
+
+  .topbrand img {
+    width: 39px;
+    height: 39px;
+    object-fit: contain;
+    flex-shrink: 0;
+  }
+
+  .topbrand strong {
+    font-size: 13px;
+    line-height: 1.25;
+    font-weight: 750;
+  }
+
+  .topbrand small {
+    font-size: 10px;
+    line-height: 1.3;
+  }
+
+  .menu-toggle {
+    width: 40px;
+    height: 40px;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    border-radius: 11px;
+    border: 1px solid #e7edf6;
+    background: #f7f9fc;
+    color: #334663;
+    box-shadow: none;
+  }
+
+  .menu-toggle:hover {
+    transform: none;
+    background: #edf3fc;
+  }
+
+  body.dark-mode .topbar {
+    background: rgba(21, 27, 39, 0.96);
+    border-bottom-color: var(--line);
+  }
+
+  body.dark-mode .menu-toggle {
+    background: #202a3a;
+    border-color: #354158;
+    color: var(--ink);
+  }
+}
