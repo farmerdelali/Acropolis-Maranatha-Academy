@@ -2994,3 +2994,84 @@ body.dark-mode .sidebar .nav-subitem.active {
     transition: none !important;
   }
 }
+
+/* AMA — PREMIUM MOBILE UI REFINEMENT */
+
+@media (max-width: 600px) {
+  body {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  button,
+  .btn,
+  .menu-toggle,
+  .sidebar .nav-item,
+  .sidebar .nav-subitem {
+    touch-action: manipulation;
+  }
+
+  .page-head {
+    margin-bottom: 18px;
+  }
+
+  .page-head h1 {
+    line-height: 1.25;
+    letter-spacing: -0.035em;
+  }
+
+  .panel {
+    border-radius: 14px;
+    transition:
+      border-color 220ms ease,
+      box-shadow 220ms ease;
+  }
+
+  .panel-head {
+    padding: 15px 16px;
+  }
+
+  .panel-body {
+    padding: 15px;
+  }
+
+  .btn {
+    min-height: 42px;
+    border-radius: 10px;
+  }
+
+  input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),
+  select,
+  textarea {
+    min-height: 44px;
+    border-radius: 10px;
+  }
+
+  .table-wrap {
+    border-radius: 10px;
+    scrollbar-width: thin;
+  }
+
+  .sidebar .nav-subitem {
+    min-height: 44px;
+  }
+}
+
+@media (max-width: 380px) {
+  .page-head {
+    gap: 10px;
+  }
+
+  .panel-head {
+    padding: 13px;
+  }
+
+  .panel-body {
+    padding: 12px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .panel {
+    transition: none !important;
+  }
+}
