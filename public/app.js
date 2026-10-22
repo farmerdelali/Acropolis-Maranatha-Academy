@@ -240,6 +240,34 @@ if (state.user && state.user.role === 'ADMIN') {
 const employeeResult = await api('/api/employees');
 employees = employeeResult.employees || [];
 }
+  
+let attendanceRegisters = [];
+let attendanceRecorded = false;
+
+if (state.user && ['ADMIN', 'HEADMASTER', 'TEACHER'].includes(state.user.role)) {
+  try {
+    const todayParts = new Intl.DateTimeFormat('en-CA', {
+      timeZone: 'Africa/Accra',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit'
+    }).formatToParts(new Date());
+
+    const today = `${todayParts.find(p => p.type === 'year').value}-${todayParts.find(p => p.type === 'month').value}-${todayParts.find(p => p.type === 'day').value}`;
+
+    const attendanceResult = await api(
+      `/api/attendance/registers?from=${today}&to=${today}`
+    );
+
+    attendanceRegisters = (attendanceResult.registers || [])
+      .filter(register => register.status === 'SUBMITTED');
+
+    attendanceRecorded = attendanceRegisters.length > 0;
+  } catch (error) {
+    console.warn('Today’s attendance could not be loaded:', error);
+  }
+}
+
 let systemSettings = {};
 
 let registrationRules = { requireGuardianPhone: false };
@@ -269,6 +297,8 @@ state.data = {
     classActivations,
   classActivationClasses,
     classrooms,
+  attendanceRegisters,
+attendanceRecorded,
   teacherAssignments: teacherAssignments.assignments || []
 };
 
@@ -427,6 +457,44 @@ if(state.view==='Dashboard'){
     }, {})
   ).sort((a, b) => b[1] - a[1]);
 
+  const studentAttendance = new Map();
+
+  (d.attendanceRegisters || []).forEach(register => {
+    (register.entries || []).forEach(entry => {
+      const id = String(entry.studentId);
+      const status = String(entry.status || '').toUpperCase();
+
+      if (!id || id === 'undefined') return;
+
+      const previous = studentAttendance.get(id);
+
+      if (
+        status === 'PRESENT' ||
+        status === 'LATE' ||
+        (!previous && status === 'ABSENT') ||
+        (!previous && status === 'EXCUSED')
+      ) {
+        studentAttendance.set(id, status);
+      }
+    });
+  });
+
+  const studentsPresent = [...studentAttendance.values()]
+    .filter(status => status === 'PRESENT' || status === 'LATE').length;
+
+  const studentsAbsent = [...studentAttendance.values()]
+    .filter(status => status === 'ABSENT').length;
+
+  const activeStaff = state.user.role === 'ADMIN'
+    ? (d.employees || []).filter(employee =>
+        String(employee.status || '').toUpperCase() === 'ACTIVE'
+      ).length
+    : '—';
+
+  const attendanceNote = d.attendanceRecorded
+    ? "Today's submitted registers"
+    : "Today's attendance not recorded";
+
   html = pageHead(
     'Dashboard',
     `Welcome back, ${state.user.username}.`,
@@ -441,13 +509,20 @@ if(state.view==='Dashboard'){
         <p>Review student records and the current fees position.</p>
       </div>
     </section>
-    <div class="cards dashboard-stats">
-      ${stat('Active Students', students.length, 'Currently enrolled')}
-      ${stat('Fees Expected', money(expected), 'Total registered fees')}
-      ${stat('Payments Received', money(paid), 'Recorded receipts')}
-      ${stat('Students with Balance', owing, 'Outstanding student accounts')}
-    </div>
-    <div class="dashboard-content-grid">
+    
+<div class="cards dashboard-stats">
+  ${stat('Active Students', students.length, 'Currently enrolled')}
+  ${stat('Students Present', d.attendanceRecorded ? studentsPresent : '—', attendanceNote)}
+  ${stat('Students Absent', d.attendanceRecorded ? studentsAbsent : '—', attendanceNote)}
+  ${stat('Active Staff', activeStaff, state.user.role === 'ADMIN' ? 'Active employee records' : 'Administrator view')}
+  ${stat('Staff Present', 'Not recorded', 'Staff attendance is not set up yet')}
+  ${stat('Staff Absent', 'Not recorded', 'Staff attendance is not set up yet')}
+  ${stat('Fees Expected', money(expected), 'Total registered fees')}
+  ${stat('Payments Received', money(paid), 'Recorded receipts')}
+  ${stat('Students with Balance', owing, 'Outstanding student accounts')}
+</div>
+
+        <div class="dashboard-content-grid">
       ${panel(
         'Students by Class',
         classCounts.length
