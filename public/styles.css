@@ -4026,3 +4026,60 @@ body.dark-mode .app-shell {
     color: var(--ink);
   }
 }
+
+/* AMA — SMARTSAPP-INSPIRED DESKTOP WORKSPACE */
+
+@media (min-width: 901px) {
+  .main-content {
+    min-width: 0;
+    box-sizing: border-box;
+    padding: 28px 30px 36px;
+  }
+
+  .main-content h1 {
+    font-size: clamp(24px, 2vw, 30px);
+    line-height: 1.25;
+    letter-spacing: -0.7px;
+    font-weight: 750;
+    margin-top: 0;
+    margin-bottom: 10px;
+  }
+
+  .main-content h2 {
+    font-size: 19px;
+    line-height: 1.35;
+    letter-spacing: -0.3px;
+  }
+
+  .main-content input,
+  .main-content select,
+  .main-content textarea {
+    min-width: 0;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+
+  .main-content button {
+    touch-action: manipulation;
+  }
+
+  .main-content table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+  }
+
+  .main-content th {
+    font-size: 12px;
+    font-weight: 650;
+    letter-spacing: 0.015em;
+  }
+
+  .main-content td {
+    vertical-align: middle;
+  }
+
+  body.dark-mode .main-content {
+    color: var(--ink);
+  }
+}
