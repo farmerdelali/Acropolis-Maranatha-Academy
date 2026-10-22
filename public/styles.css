@@ -3967,3 +3967,62 @@ body.dark-mode .app-shell {
     color: var(--ink);
   }
 }
+
+/* AMA — SMARTSAPP-INSPIRED CONTENT SPACING */
+
+@media (max-width: 900px) {
+  .main-content {
+    width: 100%;
+    min-width: 0;
+    padding: 22px 15px 32px;
+    box-sizing: border-box;
+  }
+
+  .main-content h1,
+  .main-content h2 {
+    letter-spacing: -0.025em;
+    line-height: 1.25;
+  }
+
+  .main-content h1 {
+    font-size: clamp(21px, 5.5vw, 27px);
+    margin-top: 0;
+    margin-bottom: 8px;
+  }
+
+  .main-content h2 {
+    font-size: 18px;
+  }
+
+  .main-content .card,
+  .main-content .panel,
+  .main-content .stat-card,
+  .main-content .widget {
+    min-width: 0;
+    box-sizing: border-box;
+  }
+
+  .main-content input,
+  .main-content select,
+  .main-content textarea {
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+
+  .main-content table {
+    font-size: 12px;
+  }
+
+  .main-content th,
+  .main-content td {
+    padding: 10px 9px;
+  }
+
+  .main-content button {
+    touch-action: manipulation;
+  }
+
+  body.dark-mode .main-content {
+    color: var(--ink);
+  }
+}
