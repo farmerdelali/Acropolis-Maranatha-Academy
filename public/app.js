@@ -418,8 +418,20 @@ function dashboardCalendar(){
 
 function render(){const d=state.data,students=d.students.filter(s=>!s.archived),paid=d.payments.reduce((n,p)=>n+Number(p.amount||0),0),expected=students.reduce((n,s)=>n+Number(s.total_fees||0),0),owing=students.filter(s=>Number(s.total_fees||0)>Number(s.paid||0)).length;let html='';
 if(state.view==='Dashboard'){
- html=pageHead('School overview',`Welcome back, ${state.user.username}. Here is your school's current position.`,`<button class="btn primary" data-action="add-student">+ Register student</button>`)+`<div class="cards">${stat('Active students',students.length,'Currently enrolled')}${stat('Fees expected',money(expected),'Total registered fees')}${stat('Payments received',money(paid),'All recorded receipts')}${stat('Students with balance',owing,'Students with outstanding fees')}</div>`;
-html+=dashboardCalendar();
+
+ html=pageHead(
+   'Dashboard',
+   `Welcome back, ${state.user.username}. Here is your school's current position.`,
+   `<button class="btn primary" data-action="add-student">+ Register student</button>`
+ )+
+ `<div class="cards dashboard-stats">
+   ${stat('Active Students',students.length,'Currently enrolled')}
+   ${stat('Fees Expected',money(expected),'Total registered fees')}
+   ${stat('Payments Received',money(paid),'All recorded receipts')}
+   ${stat('Students with Balance',owing,'Students with outstanding fees')}
+ </div>`;
+
+  html+=dashboardCalendar();
   const classCounts = Object.entries(
     students.reduce((counts, student) => {
       const className = String(student.class_name || 'Unassigned');
