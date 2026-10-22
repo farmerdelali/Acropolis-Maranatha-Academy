@@ -3644,3 +3644,170 @@ textarea:focus {
     min-height: 42px;
   }
 }
+
+
+/* AMA — SMARTSAPP-INSPIRED STRUCTURAL LAYOUT */
+
+@media (min-width: 901px) {
+  .app-shell {
+    display: grid;
+    grid-template-columns: 258px minmax(0, 1fr);
+    grid-template-rows: 76px minmax(calc(100vh - 76px), auto);
+    min-height: 100vh;
+    background: #f5f7fb;
+  }
+
+  .topbar {
+    grid-column: 1 / -1;
+    grid-row: 1;
+    height: 76px;
+    padding: 10px 28px;
+    background: #fff;
+    color: #172b4d;
+    border-bottom: 1px solid #e7ebf2;
+    box-shadow: 0 2px 10px rgba(25, 48, 82, .035);
+  }
+
+  .topbrand strong {
+    color: #172b4d;
+    font-size: 14px;
+  }
+
+  .topbrand small {
+    color: #78869a;
+  }
+
+  .topbrand img {
+    border-radius: 10px;
+    border: 1px solid #edf0f5;
+  }
+
+  .menu-toggle {
+    display: none;
+  }
+
+  .sidebar {
+    grid-column: 1;
+    grid-row: 2;
+    position: sticky;
+    inset: auto;
+    top: 76px;
+    width: 258px;
+    height: calc(100vh - 76px);
+    border-radius: 0;
+    padding: 18px 12px 20px;
+    box-shadow: none;
+    border-right: 1px solid #e7ebf2;
+    transform: none;
+    visibility: visible;
+    transition: none;
+    background: #fff;
+  }
+
+  .sidebar-school {
+    padding: 12px 9px 18px;
+    margin: 0 2px 15px;
+    border-bottom: 1px solid #edf0f5;
+  }
+
+  .sidebar-bottom {
+    bottom: -20px;
+  }
+
+  .drawer-backdrop {
+    display: none !important;
+  }
+
+  .main-content {
+    grid-column: 2;
+    grid-row: 2;
+    width: 100%;
+    max-width: none;
+    min-width: 0;
+    padding: 30px clamp(22px, 3vw, 42px) 42px;
+    animation: none;
+  }
+
+  .nav-item {
+    min-height: 43px;
+    margin: 3px 0;
+    padding: 10px 12px;
+    border: 1px solid transparent;
+    border-radius: 9px;
+    font-size: 13px;
+    font-weight: 600;
+  }
+
+  .nav-item:hover {
+    transform: none;
+    background: #f5f7fb;
+  }
+
+  .nav-item.active {
+    border: 1px solid #dbe7f8;
+    background: #eaf1fc;
+    color: #24558e;
+  }
+
+  .nav-icon {
+    font-size: 17px;
+    width: 22px;
+  }
+}
+
+/* Keep the slide-out menu on phones and tablets */
+@media (max-width: 900px) {
+  .app-shell {
+    display: block;
+  }
+
+  .sidebar {
+    position: fixed;
+    inset: 0 auto 0 0;
+    width: min(320px, 86vw);
+    height: 100dvh;
+    transform: translateX(-110%);
+    visibility: hidden;
+    z-index: 32;
+  }
+
+  .sidebar.open {
+    transform: translateX(0);
+    visibility: visible;
+  }
+
+  .menu-toggle {
+    display: flex;
+  }
+
+  .main-content {
+    max-width: 100%;
+  }
+}
+
+/* Preserve dark mode */
+body.dark-mode .app-shell {
+  background: var(--bg);
+}
+
+@media (min-width: 901px) {
+  body.dark-mode .topbar,
+  body.dark-mode .sidebar {
+    background: #151b27;
+    border-color: var(--line);
+  }
+
+  body.dark-mode .topbrand strong {
+    color: var(--ink);
+  }
+
+  body.dark-mode .topbrand small {
+    color: var(--muted);
+  }
+
+  body.dark-mode .nav-item.active {
+    background: #253149;
+    border-color: #35435b;
+    color: #fff;
+  }
+}
