@@ -4126,3 +4126,145 @@ body.dark-mode .app-shell {
     border-left-color: #6da4ff;
   }
 }
+
+/* AMA — SMARTSAPP DASHBOARD LAYOUT */
+.app-shell {
+  background: #f5f7fb;
+}
+
+.main-content {
+  min-width: 0;
+  padding: 28px;
+}
+
+.page-head {
+  margin-bottom: 24px;
+}
+
+.page-head h1 {
+  color: #172b4d;
+  font-size: 28px;
+  font-weight: 750;
+  letter-spacing: -0.7px;
+}
+
+.cards {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+  margin-bottom: 28px;
+}
+
+.cards .stat {
+  position: relative;
+  min-width: 0;
+  padding: 24px;
+  overflow: hidden;
+  border: 1px solid #e7edf5 !important;
+  border-radius: 16px !important;
+  background: #fff !important;
+  box-shadow: 0 4px 18px rgba(28, 52, 90, 0.045) !important;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  animation: none !important;
+  transition: border-color 180ms ease, box-shadow 180ms ease, transform 180ms ease;
+}
+
+.cards .stat::before,
+.cards .stat::after {
+  display: none !important;
+  content: none !important;
+}
+
+.cards .stat:hover {
+  transform: translateY(-2px);
+  border-color: #d6e4f7 !important;
+  box-shadow: 0 8px 24px rgba(28, 52, 90, 0.08) !important;
+}
+
+.cards .stat-label {
+  color: #68788f;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.cards .stat-value {
+  margin-top: 12px;
+  color: #172b4d;
+  font-size: 30px;
+  font-weight: 750;
+  letter-spacing: -0.8px;
+}
+
+.cards .stat-note {
+  margin-top: 8px;
+  color: #8491a5;
+  font-size: 12px;
+}
+
+body.dark-mode .app-shell {
+  background: var(--bg);
+}
+
+body.dark-mode .page-head h1 {
+  color: var(--ink);
+}
+
+body.dark-mode .cards .stat {
+  background: #171f2d !important;
+  border-color: #2b3749 !important;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.12) !important;
+}
+
+body.dark-mode .cards .stat-label,
+body.dark-mode .cards .stat-note {
+  color: var(--muted);
+}
+
+body.dark-mode .cards .stat-value {
+  color: var(--ink);
+}
+
+@media (max-width: 900px) {
+  .main-content {
+    padding: 20px 16px;
+  }
+
+  .page-head h1 {
+    font-size: 24px;
+  }
+
+  .cards {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+  }
+
+  .cards .stat {
+    padding: 17px 14px;
+    border-radius: 14px !important;
+  }
+
+  .cards .stat-value {
+    font-size: 24px;
+  }
+}
+
+@media (max-width: 420px) {
+  .main-content {
+    padding: 16px 12px;
+  }
+
+  .cards {
+    gap: 10px;
+  }
+
+  .cards .stat {
+    padding: 14px 11px;
+  }
+
+  .cards .stat-value {
+    font-size: 21px;
+  }
+}
