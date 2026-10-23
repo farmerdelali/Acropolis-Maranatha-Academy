@@ -479,6 +479,15 @@ if(state.view==='Dashboard'){
     });
   });
 
+  const studentsLate = [...studentAttendance.values()]
+    .filter(status => status === 'LATE').length;
+
+  const studentsExcused = [...studentAttendance.values()]
+    .filter(status => status === 'EXCUSED').length;
+
+  const studentsOnTime = [...studentAttendance.values()]
+    .filter(status => status === 'PRESENT').length;
+
   const studentsPresent = [...studentAttendance.values()]
     .filter(status => status === 'PRESENT' || status === 'LATE').length;
 
