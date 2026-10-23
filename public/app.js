@@ -3034,6 +3034,27 @@ if (saveButton) saveButton.disabled = students.length === 0;
 return;
 
 }
+  
+if (e.target.closest('[data-action="calendar-prev"]')) {
+  state.calendarMonth--;
+  if (state.calendarMonth < 0) {
+    state.calendarMonth = 11;
+    state.calendarYear--;
+  }
+  render();
+  return;
+}
+
+if (e.target.closest('[data-action="calendar-next"]')) {
+  state.calendarMonth++;
+  if (state.calendarMonth > 11) {
+    state.calendarMonth = 0;
+    state.calendarYear++;
+  }
+  render();
+  return;
+}
+
   if (e.target.id === 'calendarMonth') {
     state.calendarMonth = Number(e.target.value);
     render();
