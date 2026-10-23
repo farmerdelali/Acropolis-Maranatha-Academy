@@ -586,7 +586,32 @@ app.get('/api/events', requireAuth, asyncRoute(async (req, res) => {
 
   res.json({ events: result.rows });
 }));
+app.post('/api/notices', requireRole('ADMIN', 'HEADMASTER'), asyncRoute(async (req, res) => {
+  const sid = schoolId(req);
+  const { title, message, audience = 'ALL', status = 'PUBLISHED' } = req.body;
 
+  if (!validText(title, 150) || !validText(message, 2000)) {
+    return res.status(400).json({ error: 'Enter a notice title and message.' });
+  }
+
+  if (!['ALL', 'STAFF', 'PARENTS'].includes(audience)) {
+    return res.status(400).json({ error: 'Invalid notice audience.' });
+  }
+
+  if (!['DRAFT', 'PUBLISHED'].includes(status)) {
+    return res.status(400).json({ error: 'Invalid notice status.' });
+  }
+
+  const result = await q(
+    `INSERT INTO school_notices
+       (school_id, title, message, audience, status, created_by)
+     VALUES ($1, $2, $3, $4, $5, $6)
+     RETURNING id, title, message, audience, created_at AS "createdAt"`,
+    [sid, title.trim(), message.trim(), audience, status, req.session.user.id]
+  );
+
+  res.status(201).json({ notice: result.rows[0] });
+}));
 app.put('/api/settings', requireRole('ADMIN'), asyncRoute(async (req, res) => {
   const b = req.body || {};
 
