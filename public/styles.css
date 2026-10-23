@@ -5519,3 +5519,67 @@ body.dark-mode .ama-mini-stat.rose { background: linear-gradient(145deg, rgba(15
 body.dark-mode .ama-reference-dashboard .ama-donut > div {
   background: var(--panel, #20243b);
 }
+
+/* Premium dashboard refinement */
+.ama-reference-dashboard .panel {
+  border: 1px solid var(--border, rgba(120, 130, 150, 0.14));
+  border-radius: 20px;
+  box-shadow:
+    0 4px 16px rgba(20, 35, 65, 0.035),
+    0 14px 36px rgba(20, 35, 65, 0.045);
+  transition:
+    box-shadow 260ms ease,
+    border-color 260ms ease,
+    transform 260ms ease;
+}
+
+.ama-reference-dashboard .panel-head {
+  padding: 20px 22px 14px;
+}
+
+.ama-reference-dashboard .panel-head h3 {
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: -0.025em;
+}
+
+.ama-reference-dashboard .panel-body {
+  padding-left: 22px;
+  padding-right: 22px;
+}
+
+.ama-reference-dashboard button {
+  transition:
+    transform 200ms ease,
+    box-shadow 200ms ease,
+    opacity 200ms ease;
+}
+
+.ama-reference-dashboard button:active {
+  transform: scale(0.98);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .ama-reference-dashboard .panel:hover {
+    border-color: rgba(100, 120, 165, 0.22);
+    box-shadow:
+      0 8px 24px rgba(20, 35, 65, 0.055),
+      0 18px 46px rgba(20, 35, 65, 0.065);
+  }
+
+  .ama-reference-dashboard button:hover {
+    transform: translateY(-1px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ama-reference-dashboard .panel,
+  .ama-reference-dashboard button {
+    transition: none;
+  }
+
+  .ama-reference-dashboard button:active,
+  .ama-reference-dashboard button:hover {
+    transform: none;
+  }
+}
