@@ -571,8 +571,14 @@ if(state.view==='Dashboard'){
 
       <div class="ama-dashboard-middle">
         <section class="panel ama-board-panel">
-          <div class="panel-head"><h3>Notice Board</h3><span class="ama-demo-label">SAMPLE</span></div>
-          <div class="panel-body">
+       
+<div class="panel-head">
+  <h3>Notice Board</h3>
+  ${state.user && ['ADMIN', 'HEADMASTER'].includes(state.user.role) ? '<button class="btn btn-secondary" data-action="manage-notices">Manage Notices</button>' : ''}
+  <span class="ama-demo-label">SAMPLE</span>
+</div>
+
+                 <div class="panel-body">
            ${(d.notices && d.notices.length ? d.notices : demoNotices.map(n => ({ title: n.name, message: n.text, createdAt: n.date, isDemo: true }))).map(n=>`
               <article class="ama-notice-item">
                 <span class="ama-notice-avatar">${esc((n.title || 'N').slice(0,1))}</span>
