@@ -556,17 +556,15 @@ if(state.view==='Dashboard'){
                 <div><strong>${Math.round(studentsPresent/attendanceTotal*100)}%</strong><span>Present</span></div>
               </div>
             </div>` : `
-            <div class="ama-attendance-content">
-              <div class="ama-attendance-legend">
-                <p><i class="ama-dot present"></i>Present <strong>200</strong></p>
-                <p><i class="ama-dot late"></i>Late <strong>172</strong></p>
-                <p><i class="ama-dot absent"></i>Absent <strong>500</strong></p>
-                <p><i class="ama-dot excused"></i>Excused <strong>30</strong></p>
-              </div>
-              <div class="ama-donut demo-donut"><div><strong>DEMO</strong><span>Preview</span></div></div>
-            </div>
-            <p class="ama-demo-note">Illustrative figures only — no attendance records have been created.</p>`}
-        </section>
+              : `
+  <div class="ama-attendance-content">
+    <div class="empty">
+      No attendance records available yet.
+    </div>
+  </div>
+  <p class="ama-demo-note">
+    Record attendance to see your school's attendance summary.
+  </p>`      </section>
       </div>
 
       <div class="ama-dashboard-middle">
