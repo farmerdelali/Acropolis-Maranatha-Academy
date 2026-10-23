@@ -448,61 +448,75 @@ function dashboardCalendar(){
 
 function render(){const d=state.data,students=d.students.filter(s=>!s.archived),paid=d.payments.reduce((n,p)=>n+Number(p.amount||0),0),expected=students.reduce((n,s)=>n+Number(s.total_fees||0),0),owing=students.filter(s=>Number(s.total_fees||0)>Number(s.paid||0)).length;let html='';
 
+
 if(state.view==='Dashboard'){
+  const demoMode = true;
+
+  const demoNotices = [
+    { name:'School Administration', text:'Parents are reminded to contact the school office for important announcements.', date:'DEMO NOTICE' },
+    { name:'Academic Office', text:'Teachers should ensure class records and assessment marks are up to date.', date:'DEMO NOTICE' },
+    { name:'School Management', text:'Please check the school calendar for upcoming academic activities.', date:'DEMO NOTICE' }
+  ];
+
+  const demoEvents = [
+    { time:'08:00 AM', title:'Morning Assembly', detail:'School activity' },
+    { time:'10:00 AM', title:'Class Assessment', detail:'Academic activity' },
+    { time:'01:00 PM', title:'Staff Meeting', detail:'School activity' },
+    { time:'02:30 PM', title:'Parents Engagement', detail:'School activity' }
+  ];
+
+  const demoMarks = [
+    { name:'Sample Student One', cls:'Class 3', mark:86, status:'Pass' },
+    { name:'Sample Student Two', cls:'Class 4', mark:74, status:'Pass' },
+    { name:'Sample Student Three', cls:'Class 5', mark:68, status:'Pass' },
+    { name:'Sample Student Four', cls:'Class 2', mark:42, status:'Fail' },
+    { name:'Sample Student Five', cls:'Class 6', mark:91, status:'Pass' }
+  ];
+
+  const demoLeave = [
+    { type:'Emergency Leave', status:'Pending' },
+    { type:'Medical Leave', status:'Approved' },
+    { type:'Personal Leave', status:'Pending' },
+    { type:'Medical Leave', status:'Approved' }
+  ];
+
   const classCounts = Object.entries(
     students.reduce((counts, student) => {
       const name = String(student.class_name || 'Unassigned');
       counts[name] = (counts[name] || 0) + 1;
       return counts;
     }, {})
-  ).sort((a, b) => b[1] - a[1]);
+  ).sort((a,b) => b[1]-a[1]);
 
   const studentAttendance = new Map();
-
   (d.attendanceRegisters || []).forEach(register => {
     (register.entries || []).forEach(entry => {
       const id = String(entry.studentId);
       const status = String(entry.status || '').toUpperCase();
-
       if (!id || id === 'undefined') return;
-
       const previous = studentAttendance.get(id);
-
       if (
-        status === 'PRESENT' ||
-        status === 'LATE' ||
-        (!previous && status === 'ABSENT') ||
-        (!previous && status === 'EXCUSED')
-      ) {
-        studentAttendance.set(id, status);
-      }
+        status === 'PRESENT' || status === 'LATE' ||
+        (!previous && (status === 'ABSENT' || status === 'EXCUSED'))
+      ) studentAttendance.set(id,status);
     });
   });
 
-  const studentsLate = [...studentAttendance.values()]
-    .filter(status => status === 'LATE').length;
-
-  const studentsExcused = [...studentAttendance.values()]
-    .filter(status => status === 'EXCUSED').length;
-
-  const studentsOnTime = [...studentAttendance.values()]
-    .filter(status => status === 'PRESENT').length;
-
-  const studentsPresent = [...studentAttendance.values()]
-    .filter(status => status === 'PRESENT' || status === 'LATE').length;
-
-  const studentsAbsent = [...studentAttendance.values()]
-    .filter(status => status === 'ABSENT').length;
+  const studentsLate = [...studentAttendance.values()].filter(s => s === 'LATE').length;
+  const studentsExcused = [...studentAttendance.values()].filter(s => s === 'EXCUSED').length;
+  const studentsOnTime = [...studentAttendance.values()].filter(s => s === 'PRESENT').length;
+  const studentsPresent = studentsOnTime + studentsLate;
+  const studentsAbsent = [...studentAttendance.values()].filter(s => s === 'ABSENT').length;
+  const attendanceTotal = studentsOnTime + studentsLate + studentsAbsent + studentsExcused;
 
   const activeStaff = state.user.role === 'ADMIN'
-    ? (d.employees || []).filter(employee =>
-        String(employee.status || '').toUpperCase() === 'ACTIVE'
-      ).length
+    ? (d.employees || []).filter(e => String(e.status || '').toUpperCase() === 'ACTIVE').length
     : '—';
 
-  const attendanceNote = d.attendanceRecorded
-    ? "Today's submitted registers"
-    : "Today's attendance not recorded";
+  const monthDate = new Date(state.calendarYear,state.calendarMonth,1);
+  const monthName = monthDate.toLocaleString('en',{month:'long'});
+  const daysInMonth = new Date(state.calendarYear,state.calendarMonth+1,0).getDate();
+  const firstDay = monthDate.getDay();
 
   html = pageHead(
     'Dashboard',
@@ -511,82 +525,132 @@ if(state.view==='Dashboard'){
   );
 
   html += `
-    <section class="dashboard-welcome">
-      <div>
-        <span class="dashboard-eyebrow">SCHOOL OVERVIEW</span>
-        <h2>Your school at a glance</h2>
-        <p>Review student records and the current fees position.</p>
-      </div>
-    </section>
-    
-<div class="cards dashboard-stats">
-  ${stat('Active Students', students.length, 'Currently enrolled')}
-  ${stat('Students Present', d.attendanceRecorded ? studentsPresent : '—', attendanceNote)}
-  ${stat('Students Absent', d.attendanceRecorded ? studentsAbsent : '—', attendanceNote)}
-  ${stat('Active Staff', activeStaff, state.user.role === 'ADMIN' ? 'Active employee records' : 'Administrator view')}
-  ${stat('Staff Present', 'Not recorded', 'Staff attendance is not set up yet')}
-  ${stat('Staff Absent', 'Not recorded', 'Staff attendance is not set up yet')}
-  ${stat('Fees Expected', money(expected), 'Total registered fees')}
-  ${stat('Payments Received', money(paid), 'Recorded receipts')}
-  ${stat('Students with Balance', owing, 'Outstanding student accounts')}
-</div>
+    <div class="ama-reference-dashboard">
+      <div class="ama-dashboard-top">
+        <section class="ama-profile-card">
+          <div class="ama-profile-orb">${esc(String(state.user.username || 'A').slice(0,1).toUpperCase())}</div>
+          <span class="ama-demo-label">YOUR SCHOOL</span>
+          <h2>Acropolis Maranatha Academy</h2>
+          <p>Always praising God, Jehovah.</p>
+          <span class="ama-profile-role">${esc(state.user.role || 'School User')}</span>
+        </section>
 
-    ${panel(
-      'Student Attendance Overview',
-      d.attendanceRecorded
-        ? `<div class="attendance-overview">
-            <div class="attendance-donut" style="--present:${studentsOnTime};--late:${studentsLate};--absent:${studentsAbsent};--excused:${studentsExcused};">
-              <div class="attendance-donut-center">
-                <strong>${students.length ? Math.round((studentsPresent / students.length) * 100) : 0}%</strong>
-                <span>Present</span>
+        <section class="ama-stat-grid">
+          <div class="ama-mini-stat purple"><span>Active Students</span><strong>${students.length}</strong><small>Registered records</small></div>
+          <div class="ama-mini-stat green"><span>Payments Received</span><strong>${money(paid)}</strong><small>Recorded receipts</small></div>
+          <div class="ama-mini-stat blue"><span>Active Staff</span><strong>${activeStaff}</strong><small>Active employee records</small></div>
+          <div class="ama-mini-stat rose"><span>Outstanding Fees</span><strong>${money(owing)}</strong><small>Student balances</small></div>
+        </section>
+
+        <section class="panel ama-attendance-panel">
+          <div class="panel-head"><h3>Attendance</h3><span class="ama-live-label">${d.attendanceRecorded ? 'Recorded data' : 'DEMO PREVIEW'}</span></div>
+          ${d.attendanceRecorded && attendanceTotal > 0 ? `
+            <div class="ama-attendance-content">
+              <div class="ama-attendance-legend">
+                <p><i class="ama-dot present"></i>Present <strong>${studentsOnTime}</strong></p>
+                <p><i class="ama-dot late"></i>Late <strong>${studentsLate}</strong></p>
+                <p><i class="ama-dot absent"></i>Absent <strong>${studentsAbsent}</strong></p>
+                <p><i class="ama-dot excused"></i>Excused <strong>${studentsExcused}</strong></p>
               </div>
+              <div class="ama-donut" style="--p:${studentsOnTime/attendanceTotal*100}%;--l:${studentsLate/attendanceTotal*100}%;--a:${studentsAbsent/attendanceTotal*100}%;--e:${studentsExcused/attendanceTotal*100}%">
+                <div><strong>${Math.round(studentsPresent/attendanceTotal*100)}%</strong><span>Present</span></div>
+              </div>
+            </div>` : `
+            <div class="ama-attendance-content">
+              <div class="ama-attendance-legend">
+                <p><i class="ama-dot present"></i>Present <strong>200</strong></p>
+                <p><i class="ama-dot late"></i>Late <strong>172</strong></p>
+                <p><i class="ama-dot absent"></i>Absent <strong>500</strong></p>
+                <p><i class="ama-dot excused"></i>Excused <strong>30</strong></p>
+              </div>
+              <div class="ama-donut demo-donut"><div><strong>DEMO</strong><span>Preview</span></div></div>
             </div>
-            <div class="attendance-legend">
-              <div><span class="attendance-dot on-time"></span><span>Present</span><strong>${studentsOnTime}</strong></div>
-              <div><span class="attendance-dot late"></span><span>Late</span><strong>${studentsLate}</strong></div>
-              <div><span class="attendance-dot absent"></span><span>Absent</span><strong>${studentsAbsent}</strong></div>
-              <div><span class="attendance-dot excused"></span><span>Excused</span><strong>${studentsExcused}</strong></div>
-            </div>
-          </div>`
-        : '<div class="empty">Attendance has not been recorded today. The chart will appear when a register is submitted.</div>'
-    )}
+            <p class="ama-demo-note">Illustrative figures only — no attendance records have been created.</p>`}
+        </section>
+      </div>
 
-        <div class="dashboard-content-grid">
-      ${panel(
-        'Students by Class',
-        classCounts.length
-          ? `<div class="dashboard-class-list">
-              ${classCounts.map(([name, count]) => `
-                <div class="dashboard-class-row">
-                  <span>${esc(name)}</span>
-                  <strong>${count}</strong>
-                </div>
-              `).join('')}
-            </div>`
-          : '<div class="empty">No student records available yet.</div>',
-        '<button class="btn soft" data-view="Students">View students</button>'
-      )}
-      ${panel(
-        'Recent Students',
-        studentRows(students.slice(0, 5), false),
-        '<button class="btn soft" data-view="Students">View all</button>'
-      )}
-    </div>
-    ${panel(
-      'Quick Actions',
-      `<div class="dashboard-quick-actions">
-        <button class="btn primary" data-action="add-student">Register student</button>
-        ${['ADMIN','TEACHER'].includes(state.user.role)
-          ? '<button class="btn soft" data-action="add-mark">Enter examination mark</button>'
-          : ''}
-        ${['ADMIN','BURSAR'].includes(state.user.role)
-          ? '<button class="btn soft" data-action="add-payment">Record payment</button>'
-          : ''}
-        <button class="btn soft" data-view="Terminal Reports">Terminal Reports</button>
-        <button class="btn soft" data-view="Reports">Open reports</button>
-      </div>`
-    )}`;
+      <div class="ama-dashboard-middle">
+        <section class="panel ama-board-panel">
+          <div class="panel-head"><h3>Notice Board</h3><span class="ama-demo-label">SAMPLE</span></div>
+          <div class="panel-body">
+            ${demoNotices.map(n=>`
+              <article class="ama-notice-item">
+                <span class="ama-notice-avatar">${esc(n.name.slice(0,1))}</span>
+                <div><strong>${esc(n.name)}</strong><p>${esc(n.text)}</p><small>${esc(n.date)}</small></div>
+              </article>`).join('')}
+          </div>
+        </section>
+
+        <section class="panel ama-events-panel">
+          <div class="panel-head"><h3>Upcoming Events</h3><span class="ama-demo-label">SAMPLE</span></div>
+          <div class="panel-body">
+            ${demoEvents.map((e,i)=>`
+              <article class="ama-event-item event-${i%4}">
+                <div><strong>${esc(e.time)}</strong><p>${esc(e.title)}</p><small>${esc(e.detail)} · Demo</small></div>
+              </article>`).join('')}
+          </div>
+        </section>
+
+        <section class="panel ama-calendar-panel">
+          <div class="panel-head"><h3>Calendar</h3></div>
+          <div class="panel-body">
+            <div class="ama-calendar-title">
+              <button class="btn soft" data-action="calendar-prev" aria-label="Previous month">‹</button>
+              <strong>${monthName} ${state.calendarYear}</strong>
+              <button class="btn soft" data-action="calendar-next" aria-label="Next month">›</button>
+            </div>
+            <div class="ama-calendar-grid">
+              ${['Su','Mo','Tu','We','Th','Fr','Sa'].map(day=>`<span class="ama-calendar-weekday">${day}</span>`).join('')}
+              ${Array.from({length:firstDay},()=>'<span></span>').join('')}
+              ${Array.from({length:daysInMonth},(_,i)=>`<span class="${i+1===new Date().getDate() && state.calendarMonth===new Date().getMonth() && state.calendarYear===new Date().getFullYear()?'today':''}">${i+1}</span>`).join('')}
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <div class="ama-dashboard-bottom">
+        <section class="panel ama-marks-panel">
+          <div class="panel-head"><h3>Student Marks</h3><span class="ama-demo-label">SAMPLE DATA</span></div>
+          <div class="panel-body">
+            <p class="ama-demo-note">Fictional preview records only. These are not saved examination results.</p>
+            <div class="ama-table-wrap"><table class="ama-marks-table">
+              <thead><tr><th>Student</th><th>Class</th><th>Mark</th><th>Status</th></tr></thead>
+              <tbody>${demoMarks.map(m=>`<tr><td>${esc(m.name)}</td><td>${esc(m.cls)}</td><td>${m.mark}%</td><td><span class="ama-mark-status ${m.status==='Pass'?'pass':'fail'}">${m.status}</span></td></tr>`).join('')}</tbody>
+            </table></div>
+          </div>
+          <div class="panel-body"><button class="btn soft" data-view="Marks">Open Marks</button></div>
+        </section>
+
+        <section class="panel ama-leave-panel">
+          <div class="panel-head"><h3>Leave Status</h3><span class="ama-demo-label">SAMPLE</span></div>
+          <div class="panel-body">
+            ${demoLeave.map(l=>`<article class="ama-leave-item"><div><strong>${esc(l.type)}</strong><small>Illustrative entry · Demo only</small></div><span class="ama-leave-status ${l.status==='Approved'?'approved':'pending'}">${l.status}</span></article>`).join('')}
+            <p class="ama-demo-note">These entries are examples, not actual leave requests.</p>
+          </div>
+        </section>
+      </div>
+
+      <section class="panel ama-classes-panel">
+        <div class="panel-head"><h3>Students by Class</h3><button class="btn soft" data-view="Students">View students</button></div>
+        <div class="panel-body">
+          ${classCounts.length ? `<div class="dashboard-class-list">${classCounts.map(([name,count])=>`<div class="dashboard-class-row"><span>${esc(name)}</span><strong>${count}</strong></div>`).join('')}</div>` : '<div class="empty">No student records available yet.</div>'}
+        </div>
+      </section>
+
+      <section class="panel ama-quick-panel">
+        <div class="panel-head"><h3>Quick Actions</h3></div>
+        <div class="panel-body dashboard-quick-actions">
+          <button class="btn primary" data-action="add-student">Register student</button>
+          ${['ADMIN','TEACHER'].includes(state.user.role)?'<button class="btn soft" data-action="add-mark">Enter examination mark</button>':''}
+          ${['ADMIN','BURSAR'].includes(state.user.role)?'<button class="btn soft" data-action="add-payment">Record payment</button>':''}
+          <button class="btn soft" data-view="Terminal Reports">Terminal Reports</button>
+          <button class="btn soft" data-view="Reports">Open reports</button>
+        </div>
+      </section>
+    </div>`;
 }else if(state.view==='Students'){
+
+                 }else if(state.view==='Students'){
 
  html=pageHead('Student records','Register, search and maintain student information.',`<button class="btn primary" data-action="add-student">+ Register student</button><button class="btn soft" data-action="student-documents">📁 Student Documents</button>`)+`<section class="panel"><div class="panel-body"><div class="toolbar"><input id="studentSearch" placeholder="Search name, ID, class or guardian…" value="${esc(state.search)}"><button class="btn soft" data-action="clear-search">Clear</button></div>${studentRows(students.filter(s=>[s.full_name,s.student_code,s.class_name,s.guardian_name,s.guardian_phone].join(' ').toLowerCase().includes(state.search.toLowerCase())))}</div></section>`;
 
