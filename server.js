@@ -612,6 +612,45 @@ app.post('/api/notices', requireRole('ADMIN', 'HEADMASTER'), asyncRoute(async (r
 
   res.status(201).json({ notice: result.rows[0] });
 }));
+
+app.post('/api/events', requireRole('ADMIN', 'HEADMASTER'), asyncRoute(async (req, res) => {
+  const sid = schoolId(req);
+  const {
+    title, description = '', eventDate, startTime = null,
+    endTime = null, location = '', audience = 'ALL'
+  } = req.body;
+
+  if (!validText(title, 150) || !validText(eventDate, 10)) {
+    return res.status(400).json({ error: 'Enter an event title and date.' });
+  }
+
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(eventDate) ||
+      Number.isNaN(Date.parse(eventDate))) {
+    return res.status(400).json({ error: 'Enter a valid event date.' });
+  }
+
+  if (!['ALL', 'STAFF', 'PARENTS'].includes(audience)) {
+    return res.status(400).json({ error: 'Invalid event audience.' });
+  }
+
+  const result = await q(
+    `INSERT INTO school_events
+       (school_id, title, description, event_date, start_time,
+        end_time, location, audience, status, created_by)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'SCHEDULED', $9)
+     RETURNING id, title, description,
+       event_date AS "eventDate", start_time AS "startTime",
+       end_time AS "endTime", location, audience`,
+    [
+      sid, title.trim(), description, eventDate,
+      startTime || null, endTime || null, location,
+      audience, req.session.user.id
+    ]
+  );
+
+  res.status(201).json({ event: result.rows[0] });
+}));
+
 app.put('/api/settings', requireRole('ADMIN'), asyncRoute(async (req, res) => {
   const b = req.body || {};
 
