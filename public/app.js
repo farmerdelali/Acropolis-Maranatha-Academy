@@ -573,10 +573,10 @@ if(state.view==='Dashboard'){
         <section class="panel ama-board-panel">
           <div class="panel-head"><h3>Notice Board</h3><span class="ama-demo-label">SAMPLE</span></div>
           <div class="panel-body">
-            ${demoNotices.map(n=>`
+           ${(d.notices && d.notices.length ? d.notices : demoNotices.map(n => ({ title: n.name, message: n.text, createdAt: n.date, isDemo: true }))).map(n=>`
               <article class="ama-notice-item">
-                <span class="ama-notice-avatar">${esc(n.name.slice(0,1))}</span>
-                <div><strong>${esc(n.name)}</strong><p>${esc(n.text)}</p><small>${esc(n.date)}</small></div>
+                <span class="ama-notice-avatar">${esc((n.title || 'N').slice(0,1))}</span>
+                <div><strong>${esc(n.title)}</strong><p>${esc(n.message)}</p><small>${esc(n.isDemo ? n.createdAt : new Date(n.createdAt).toLocaleDateString())}</small></div>
               </article>`).join('')}
           </div>
         </section>
@@ -584,9 +584,9 @@ if(state.view==='Dashboard'){
         <section class="panel ama-events-panel">
           <div class="panel-head"><h3>Upcoming Events</h3><span class="ama-demo-label">SAMPLE</span></div>
           <div class="panel-body">
-            ${demoEvents.map((e,i)=>`
+           ${(d.events && d.events.length ? d.events : demoEvents.map(e => ({ title: e.title, description: e.detail + ' · Demo', eventDate: '', startTime: e.time, isDemo: true }))).map((e,i)=>`
               <article class="ama-event-item event-${i%4}">
-                <div><strong>${esc(e.time)}</strong><p>${esc(e.title)}</p><small>${esc(e.detail)} · Demo</small></div>
+                <div><strong>${esc(e.isDemo ? e.time : (e.startTime || 'All day'))}</strong><p>${esc(e.title)}</p><small>${esc(e.isDemo ? e.detail + ' · Demo' : (e.description || e.location || 'School event'))}</small></div>
               </article>`).join('')}
           </div>
         </section>
