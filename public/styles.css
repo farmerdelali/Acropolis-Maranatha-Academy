@@ -4805,3 +4805,75 @@ body:not(.dark-mode) .cards.dashboard-stats .stat:nth-child(9) {
   --card-border: rgba(179, 76, 64, 0.40);
   --card-glow: rgba(179, 76, 64, 0.17);
 }
+
+/* AMA — REFERENCE-INSPIRED DASHBOARD LAYOUT */
+
+.dashboard-welcome {
+  margin-bottom: 16px;
+  padding: 22px 25px;
+  border-radius: 16px;
+}
+
+.cards.dashboard-stats {
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.cards.dashboard-stats .stat {
+  min-height: 112px;
+  padding: 18px 17px;
+  border-radius: 16px !important;
+}
+
+.dashboard-content-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 16px;
+  align-items: start;
+}
+
+.dashboard-content-grid > .panel,
+.main-content > .panel {
+  min-width: 0;
+  border-radius: 16px;
+}
+
+.dashboard-content-grid .panel-head,
+.main-content > .panel .panel-head {
+  padding: 15px 18px;
+}
+
+.dashboard-content-grid .panel-body,
+.main-content > .panel .panel-body {
+  padding: 16px 18px;
+}
+
+.dashboard-class-row {
+  padding: 12px 0;
+}
+
+.dashboard-quick-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+@media (max-width: 760px) {
+  .dashboard-content-grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 14px;
+  }
+
+  .dashboard-welcome {
+    padding: 19px 17px;
+  }
+
+  .cards.dashboard-stats {
+    gap: 10px;
+  }
+
+  .cards.dashboard-stats .stat {
+    min-height: 108px;
+    padding: 15px 12px;
+  }
+}
