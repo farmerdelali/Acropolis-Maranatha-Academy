@@ -4388,7 +4388,29 @@ break;
           toast('Staff account removed.');
         }
         break;
-
+      case 'manage-notices':
+        openModal('Create Notice', `
+          <form id="noticeForm">
+            <label class="field">Notice title
+              <input name="title" required maxlength="150" placeholder="e.g. PTA Meeting">
+            </label>
+            <label class="field">Message
+              <textarea name="message" required maxlength="2000" rows="4" placeholder="Write the notice here"></textarea>
+            </label>
+            <label class="field">Audience
+              <select name="audience">
+                <option value="ALL">Everyone</option>
+                <option value="STAFF">Staff only</option>
+                <option value="PARENTS">Parents only</option>
+              </select>
+            </label>
+            <div class="form-actions">
+              <button type="button" class="btn soft" data-action="close-modal">Cancel</button>
+              <button type="submit" class="btn primary">Publish Notice</button>
+            </div>
+          </form>
+        `);
+        break;
       case 'close-modal':
         $('#modalHost').innerHTML = '';
         break;
