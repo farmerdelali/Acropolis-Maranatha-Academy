@@ -5796,3 +5796,43 @@ body.dark-mode .ama-reference-dashboard .panel {
     padding: 17px;
   }
 }
+/* AMA — TRUE FULL-WIDTH DASHBOARD */
+.main-content:has(.ama-reference-dashboard) {
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding-left: clamp(12px, 2vw, 28px);
+  padding-right: clamp(12px, 2vw, 28px);
+}
+
+.ama-reference-dashboard {
+  width: 100%;
+  max-width: none;
+}
+
+.ama-reference-dashboard .ama-dashboard-top,
+.ama-reference-dashboard .ama-dashboard-middle,
+.ama-reference-dashboard .ama-dashboard-bottom {
+  width: 100%;
+  min-width: 0;
+}
+
+.ama-reference-dashboard .ama-dashboard-top {
+  grid-template-columns:
+    minmax(0, 1fr)
+    minmax(0, 1.25fr)
+    minmax(0, 1fr);
+}
+
+@media (max-width: 700px) {
+  .main-content:has(.ama-reference-dashboard) {
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+
+  .ama-reference-dashboard .ama-dashboard-top,
+  .ama-reference-dashboard .ama-dashboard-middle,
+  .ama-reference-dashboard .ama-dashboard-bottom {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
