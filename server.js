@@ -538,6 +538,55 @@ app.get('/api/bootstrap', requireAuth, asyncRoute(async (req, res) => {
   });
 }));
 
+app.get('/api/notices', requireAuth, asyncRoute(async (req, res) => {
+  const role = req.session.user.role;
+  const sid = schoolId(req);
+
+  const audiences = role === 'PARENT'
+    ? ['ALL', 'PARENTS']
+    : ['ALL', 'STAFF'];
+
+  const result = await q(
+    `SELECT id, title, message, audience, created_at AS "createdAt"
+     FROM school_notices
+     WHERE school_id = $1
+       AND status = 'PUBLISHED'
+       AND audience = ANY($2::text[])
+     ORDER BY created_at DESC
+     LIMIT 50`,
+    [sid, audiences]
+  );
+
+  res.json({ notices: result.rows });
+}));
+
+app.get('/api/events', requireAuth, asyncRoute(async (req, res) => {
+  const role = req.session.user.role;
+  const sid = schoolId(req);
+
+  const audiences = role === 'PARENT'
+    ? ['ALL', 'PARENTS']
+    : ['ALL', 'STAFF'];
+
+  const result = await q(
+    `SELECT id, title, description,
+            event_date AS "eventDate",
+            start_time AS "startTime",
+            end_time AS "endTime",
+            location, audience
+     FROM school_events
+     WHERE school_id = $1
+       AND status = 'SCHEDULED'
+       AND audience = ANY($2::text[])
+       AND event_date >= CURRENT_DATE
+     ORDER BY event_date ASC, start_time ASC NULLS LAST
+     LIMIT 50`,
+    [sid, audiences]
+  );
+
+  res.json({ events: result.rows });
+}));
+
 app.put('/api/settings', requireRole('ADMIN'), asyncRoute(async (req, res) => {
   const b = req.body || {};
 
