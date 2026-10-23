@@ -5608,3 +5608,63 @@ body.dark-mode .ama-reference-dashboard .ama-donut > div {
     display: flex !important;
   }
 }
+
+/* Premium dashboard glass finish */
+.ama-reference-dashboard .panel,
+.ama-reference-dashboard .ama-profile-card,
+.ama-reference-dashboard .ama-mini-stat {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.72);
+  border-radius: 20px;
+  box-shadow:
+    0 8px 24px rgba(16, 28, 58, 0.055),
+    inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  transition:
+    box-shadow 260ms ease,
+    border-color 260ms ease,
+    transform 260ms ease;
+}
+
+.ama-reference-dashboard .panel {
+  background: rgba(255, 255, 255, 0.78);
+  -webkit-backdrop-filter: blur(18px) saturate(145%);
+  backdrop-filter: blur(18px) saturate(145%);
+}
+
+.ama-reference-dashboard .ama-mini-stat {
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
+  backdrop-filter: blur(14px) saturate(140%);
+}
+
+.ama-reference-dashboard .panel:hover,
+.ama-reference-dashboard .ama-mini-stat:hover {
+  border-color: rgba(100, 130, 190, 0.32);
+  box-shadow:
+    0 14px 32px rgba(16, 28, 58, 0.09),
+    inset 0 1px 0 rgba(255, 255, 255, 0.85);
+}
+
+body.dark-mode .ama-reference-dashboard .panel,
+body.dark-mode .ama-reference-dashboard .ama-profile-card,
+body.dark-mode .ama-reference-dashboard .ama-mini-stat {
+  border-color: rgba(255, 255, 255, 0.13);
+  box-shadow:
+    0 10px 30px rgba(0, 0, 0, 0.16),
+    inset 0 1px 0 rgba(255, 255, 255, 0.09);
+}
+
+body.dark-mode .ama-reference-dashboard .panel {
+  background: rgba(18, 27, 48, 0.72);
+  -webkit-backdrop-filter: blur(18px) saturate(135%);
+  backdrop-filter: blur(18px) saturate(135%);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ama-reference-dashboard .panel,
+  .ama-reference-dashboard .ama-profile-card,
+  .ama-reference-dashboard .ama-mini-stat {
+    transition: none;
+  }
+}
