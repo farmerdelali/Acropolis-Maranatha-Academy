@@ -326,3 +326,43 @@ CREATE TABLE IF NOT EXISTS student_documents (
 
 CREATE INDEX IF NOT EXISTS student_documents_lookup_idx
 ON student_documents (school_id, student_id, created_at DESC);
+
+-- SCHOOL NOTICE BOARD
+CREATE TABLE IF NOT EXISTS school_notices (
+  id BIGSERIAL PRIMARY KEY,
+  school_id BIGINT NOT NULL REFERENCES schools(id) ON DELETE CASCADE,
+  title TEXT NOT NULL,
+  message TEXT NOT NULL,
+  audience TEXT NOT NULL DEFAULT 'ALL'
+    CHECK (audience IN ('ALL', 'STAFF', 'PARENTS')),
+  status TEXT NOT NULL DEFAULT 'PUBLISHED'
+    CHECK (status IN ('DRAFT', 'PUBLISHED', 'ARCHIVED')),
+  created_by BIGINT REFERENCES users(id) ON DELETE SET NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS school_notices_school_status_idx
+ON school_notices(school_id, status, created_at DESC);
+
+-- SCHOOL EVENTS CALENDAR
+CREATE TABLE IF NOT EXISTS school_events (
+  id BIGSERIAL PRIMARY KEY,
+  school_id BIGINT NOT NULL REFERENCES schools(id) ON DELETE CASCADE,
+  title TEXT NOT NULL,
+  description TEXT NOT NULL DEFAULT '',
+  event_date DATE NOT NULL,
+  start_time TIME,
+  end_time TIME,
+  location TEXT NOT NULL DEFAULT '',
+  audience TEXT NOT NULL DEFAULT 'ALL'
+    CHECK (audience IN ('ALL', 'STAFF', 'PARENTS')),
+  status TEXT NOT NULL DEFAULT 'SCHEDULED'
+    CHECK (status IN ('SCHEDULED', 'CANCELLED')),
+  created_by BIGINT REFERENCES users(id) ON DELETE SET NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS school_events_school_date_idx
+ON school_events(school_id, status, event_date, start_time);
