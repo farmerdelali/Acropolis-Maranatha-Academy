@@ -4738,3 +4738,70 @@ body.dark-mode .cards.dashboard-stats .stat:hover {
     transition: none;
   }
 }
+
+/* AMA — ENHANCED LIGHT-MODE GLASS COLOURS */
+
+body:not(.dark-mode) .cards.dashboard-stats .stat {
+  background: var(--card-tint) !important;
+  border-color: var(--card-border) !important;
+  box-shadow:
+    0 12px 28px rgba(31, 52, 85, 0.075),
+    0 4px 14px var(--card-glow),
+    inset 0 1px 0 rgba(255, 255, 255, 0.95) !important;
+  -webkit-backdrop-filter: blur(24px) saturate(175%);
+  backdrop-filter: blur(24px) saturate(175%);
+}
+
+body:not(.dark-mode) .cards.dashboard-stats .stat:nth-child(1) {
+  --card-tint: rgba(210, 228, 255, 0.92);
+  --card-border: rgba(50, 104, 181, 0.42);
+  --card-glow: rgba(50, 104, 181, 0.18);
+}
+
+body:not(.dark-mode) .cards.dashboard-stats .stat:nth-child(2) {
+  --card-tint: rgba(199, 242, 226, 0.92);
+  --card-border: rgba(22, 133, 104, 0.40);
+  --card-glow: rgba(22, 133, 104, 0.17);
+}
+
+body:not(.dark-mode) .cards.dashboard-stats .stat:nth-child(3) {
+  --card-tint: rgba(255, 222, 204, 0.93);
+  --card-border: rgba(193, 92, 54, 0.40);
+  --card-glow: rgba(193, 92, 54, 0.16);
+}
+
+body:not(.dark-mode) .cards.dashboard-stats .stat:nth-child(4) {
+  --card-tint: rgba(229, 216, 255, 0.93);
+  --card-border: rgba(118, 83, 181, 0.40);
+  --card-glow: rgba(118, 83, 181, 0.17);
+}
+
+body:not(.dark-mode) .cards.dashboard-stats .stat:nth-child(5) {
+  --card-tint: rgba(205, 239, 255, 0.93);
+  --card-border: rgba(24, 124, 166, 0.40);
+  --card-glow: rgba(24, 124, 166, 0.16);
+}
+
+body:not(.dark-mode) .cards.dashboard-stats .stat:nth-child(6) {
+  --card-tint: rgba(250, 216, 230, 0.93);
+  --card-border: rgba(179, 72, 112, 0.40);
+  --card-glow: rgba(179, 72, 112, 0.16);
+}
+
+body:not(.dark-mode) .cards.dashboard-stats .stat:nth-child(7) {
+  --card-tint: rgba(255, 237, 177, 0.94);
+  --card-border: rgba(152, 112, 21, 0.42);
+  --card-glow: rgba(152, 112, 21, 0.18);
+}
+
+body:not(.dark-mode) .cards.dashboard-stats .stat:nth-child(8) {
+  --card-tint: rgba(211, 240, 215, 0.93);
+  --card-border: rgba(40, 123, 72, 0.40);
+  --card-glow: rgba(40, 123, 72, 0.16);
+}
+
+body:not(.dark-mode) .cards.dashboard-stats .stat:nth-child(9) {
+  --card-tint: rgba(255, 218, 208, 0.93);
+  --card-border: rgba(179, 76, 64, 0.40);
+  --card-glow: rgba(179, 76, 64, 0.17);
+}
