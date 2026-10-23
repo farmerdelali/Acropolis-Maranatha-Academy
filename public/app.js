@@ -3264,6 +3264,34 @@ if (form.id === 'bulkClassMarksForm') {
 
   return;
 }
+  
+if (form.id === 'noticeForm') {
+  const submit = form.querySelector('button[type="submit"]');
+  const data = Object.fromEntries(new FormData(form).entries());
+
+  submit.disabled = true;
+  submit.textContent = 'Publishing…';
+
+  try {
+    await api('/api/notices', {
+      method: 'POST',
+      body: JSON.stringify(data)
+    });
+
+    await refresh();
+    $('#modalHost').innerHTML = '';
+    render();
+    toast('Notice published successfully.');
+  } catch (error) {
+    toast(error.message || 'Could not publish notice.', true);
+  } finally {
+    submit.disabled = false;
+    submit.textContent = 'Publish Notice';
+  }
+
+  return;
+}
+
 if (!allowedForms.includes(form.id)) return;
   const fd = new FormData(form);
   const v = Object.fromEntries(fd.entries());
