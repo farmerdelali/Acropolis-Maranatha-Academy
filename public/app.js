@@ -3139,6 +3139,7 @@ document.addEventListener('submit', async e => {
     'userForm',
     'teacherSubjectAssignmentForm',
     'settingsForm',
+   'noticeForm', 
         'systemContactForm',
             'studentRulesForm',
 'graduation-form',
