@@ -531,6 +531,26 @@ if(state.view==='Dashboard'){
   ${stat('Students with Balance', owing, 'Outstanding student accounts')}
 </div>
 
+    ${panel(
+      'Student Attendance Overview',
+      d.attendanceRecorded
+        ? `<div class="attendance-overview">
+            <div class="attendance-donut" style="--present:${studentsOnTime};--late:${studentsLate};--absent:${studentsAbsent};--excused:${studentsExcused};">
+              <div class="attendance-donut-center">
+                <strong>${students.length ? Math.round((studentsPresent / students.length) * 100) : 0}%</strong>
+                <span>Present</span>
+              </div>
+            </div>
+            <div class="attendance-legend">
+              <div><span class="attendance-dot on-time"></span><span>Present</span><strong>${studentsOnTime}</strong></div>
+              <div><span class="attendance-dot late"></span><span>Late</span><strong>${studentsLate}</strong></div>
+              <div><span class="attendance-dot absent"></span><span>Absent</span><strong>${studentsAbsent}</strong></div>
+              <div><span class="attendance-dot excused"></span><span>Excused</span><strong>${studentsExcused}</strong></div>
+            </div>
+          </div>`
+        : '<div class="empty">Attendance has not been recorded today. The chart will appear when a register is submitted.</div>'
+    )}
+
         <div class="dashboard-content-grid">
       ${panel(
         'Students by Class',
