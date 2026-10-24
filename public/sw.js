@@ -1,13 +1,13 @@
 
 'use strict';
 
-const CACHE_NAME = 'ama-app-shell-v1';
+const CACHE_NAME = 'ama-app-shell-v2';
 
 const APP_FILES = [
   '/',
   '/manifest.webmanifest',
   '/styles.css',
-  '/app.js?v=20261020',
+ '/app.js?v=20261024a',
   '/school-logo.png'
 ];
 
