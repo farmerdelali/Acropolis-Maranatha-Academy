@@ -641,6 +641,41 @@ if(state.view==='Dashboard'){
         </div>
       </section>
 
+      <section class="panel ama-enrollment-panel">
+        <div class="panel-head">
+          <div>
+            <h3>Enrollment Overview</h3>
+            <p class="muted">A class-by-class view of registered students.</p>
+          </div>
+          <button class="btn soft" data-view="Students">View all students</button>
+        </div>
+        <div class="panel-body">
+          ${classCounts.length ? `
+            <div class="ama-enrollment-summary">
+              <span>Total registered students</span>
+              <strong>${students.length}</strong>
+            </div>
+            <div class="ama-enrollment-list">
+              ${classCounts.map(([name, count]) => `
+                <div class="ama-enrollment-row">
+                  <div class="ama-enrollment-label">
+                    <span>${esc(name)}</span>
+                    <strong>${count} ${count === 1 ? 'student' : 'students'}</strong>
+                  </div>
+                  <div class="ama-enrollment-track">
+                    <div class="ama-enrollment-fill" style="width:${Math.max(5, count / Math.max(1, ...classCounts.map(([, total]) => total)) * 100)}%"></div>
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+          ` : `
+            <div class="empty">
+              No student records available yet. Register students to see enrollment by class.
+            </div>
+          `}
+        </div>
+      </section>
+
       <section class="panel ama-quick-panel">
         <div class="panel-head"><h3>Quick Actions</h3></div>
         <div class="panel-body dashboard-quick-actions">
