@@ -5836,3 +5836,90 @@ body.dark-mode .ama-reference-dashboard .panel {
     grid-template-columns: minmax(0, 1fr);
   }
 }
+
+/* Premium Enrollment Overview */
+.ama-enrollment-panel .ama-enrollment-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 22px;
+  padding: 18px 20px;
+  border: 1px solid var(--glass-border, rgba(148, 163, 184, 0.22));
+  border-radius: 18px;
+  background: var(--glass-bg, rgba(148, 163, 184, 0.08));
+}
+
+.ama-enrollment-summary span {
+  color: var(--muted, #64748b);
+  font-size: 0.9rem;
+}
+
+.ama-enrollment-summary strong {
+  font-size: clamp(1.5rem, 3vw, 2rem);
+  font-weight: 750;
+  letter-spacing: -0.04em;
+  font-variant-numeric: tabular-nums;
+}
+
+.ama-enrollment-list {
+  display: grid;
+  gap: 18px;
+}
+
+.ama-enrollment-row {
+  min-width: 0;
+}
+
+.ama-enrollment-label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 9px;
+  font-size: 0.9rem;
+}
+
+.ama-enrollment-label span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  font-weight: 600;
+}
+
+.ama-enrollment-label strong {
+  flex-shrink: 0;
+  color: var(--muted, #64748b);
+  font-size: 0.82rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.ama-enrollment-track {
+  height: 8px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(148, 163, 184, 0.18);
+}
+
+.ama-enrollment-fill {
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #647eea, #8b9cf7);
+  transition: width 700ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ama-enrollment-fill {
+    transition: none;
+  }
+}
+
+@media (max-width: 520px) {
+  .ama-enrollment-panel .ama-enrollment-summary {
+    padding: 15px 16px;
+  }
+
+  .ama-enrollment-label {
+    font-size: 0.84rem;
+  }
+}
