@@ -91,12 +91,6 @@ document.querySelectorAll('[data-auth-tab]').forEach(tab => {
     setAuthTab(this.getAttribute('data-auth-tab'));
   });
 });
-document.querySelectorAll('[data-auth-tab]').forEach(tab => {
-  tab.addEventListener('click', function (event) {
-    event.preventDefault();
-    setAuthTab(this.getAttribute('data-auth-tab'));
-  });
-});
 function showAuth(){state.user=null;$('#appScreen').classList.add('hidden');$('#authScreen').classList.remove('hidden');setAuthTab('login');}
 function showApp(user) {
   state.user = user;
