@@ -438,36 +438,20 @@ function render(){const d=state.data,students=d.students.filter(s=>!s.archived),
 
 
 if(state.view==='Dashboard'){
-  const demoMode = true;
+    const dashboardMarks = (d.marks || []).slice(0, 5);
+  const dashboardNotices = d.notices || [];
+  const dashboardEvents = d.events || [];
+  const dashboardLeave = d.leaveRequests || [];
 
-  const demoNotices = [
-    { name:'School Administration', text:'Parents are reminded to contact the school office for important announcements.', date:'DEMO NOTICE' },
-    { name:'Academic Office', text:'Teachers should ensure class records and assessment marks are up to date.', date:'DEMO NOTICE' },
-    { name:'School Management', text:'Please check the school calendar for upcoming academic activities.', date:'DEMO NOTICE' }
-  ];
-
-  const demoEvents = [
-    { time:'08:00 AM', title:'Morning Assembly', detail:'School activity' },
-    { time:'10:00 AM', title:'Class Assessment', detail:'Academic activity' },
-    { time:'01:00 PM', title:'Staff Meeting', detail:'School activity' },
-    { time:'02:30 PM', title:'Parents Engagement', detail:'School activity' }
-  ];
-
-  const demoMarks = [
-    { name:'Sample Student One', cls:'Class 3', mark:86, status:'Pass' },
-    { name:'Sample Student Two', cls:'Class 4', mark:74, status:'Pass' },
-    { name:'Sample Student Three', cls:'Class 5', mark:68, status:'Pass' },
-    { name:'Sample Student Four', cls:'Class 2', mark:42, status:'Fail' },
-    { name:'Sample Student Five', cls:'Class 6', mark:91, status:'Pass' }
-  ];
-
-  const demoLeave = [
-    { type:'Emergency Leave', status:'Pending' },
-    { type:'Medical Leave', status:'Approved' },
-    { type:'Personal Leave', status:'Pending' },
-    { type:'Medical Leave', status:'Approved' }
-  ];
-
+  const outstandingFees = students.reduce(
+    (total, student) =>
+      total + Math.max(
+        0,
+        Number(student.total_fees || 0) -
+        Number(student.paid || 0)
+      ),
+    0
+  );
   const classCounts = Object.entries(
     students.reduce((counts, student) => {
       const name = String(student.class_name || 'Unassigned');
