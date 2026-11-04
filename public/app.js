@@ -85,6 +85,13 @@ function setAuthTab(which) {
   if (registerError) registerError.textContent = '';
   if (loginError) loginError.textContent = '';
 }
+// Attach authentication tab handling before app initialization.
+document.querySelectorAll('[data-auth-tab]').forEach(tab => {
+  tab.addEventListener('click', event => {
+    event.preventDefault();
+    setAuthTab(tab.getAttribute('data-auth-tab'));
+  });
+});
 function showAuth(){state.user=null;$('#appScreen').classList.add('hidden');$('#authScreen').classList.remove('hidden');setAuthTab('login');}
 function showApp(user) {
   state.user = user;
