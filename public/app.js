@@ -557,7 +557,7 @@ if(state.view==='Dashboard'){
 </div>
 
                  <div class="panel-body">
-           ${(d.notices && d.notices.length ? d.notices : demoNotices.map(n => ({ title: n.name, message: n.text, createdAt: n.date, isDemo: true }))).map(n=>`
+           ${(d.notices && d.notices.length ? d.notices : dashboardNotices.map(n => ({ title: n.name, message: n.text, createdAt: n.date, isDemo: true }))).map(n=>`
               <article class="ama-notice-item">
                 <span class="ama-notice-avatar">${esc((n.title || 'N').slice(0,1))}</span>
                 <div><strong>${esc(n.title)}</strong><p>${esc(n.message)}</p><small>${esc(n.isDemo ? n.createdAt : new Date(n.createdAt).toLocaleDateString())}</small></div>
@@ -568,7 +568,7 @@ if(state.view==='Dashboard'){
         <section class="panel ama-events-panel">
           <div class="panel-head"><h3>Upcoming Events</h3><span class="ama-demo-label">SAMPLE</span></div>
           <div class="panel-body">
-           ${(d.events && d.events.length ? d.events : demoEvents.map(e => ({ title: e.title, description: e.detail + ' · Demo', eventDate: '', startTime: e.time, isDemo: true }))).map((e,i)=>`
+           ${(d.events && d.events.length ? d.events : dashboardEvents.map(e => ({ title: e.title, description: e.detail + ' · Demo', eventDate: '', startTime: e.time, isDemo: true }))).map((e,i)=>`
               <article class="ama-event-item event-${i%4}">
                 <div><strong>${esc(e.isDemo ? e.time : (e.startTime || 'All day'))}</strong><p>${esc(e.title)}</p><small>${esc(e.isDemo ? e.detail + ' · Demo' : (e.description || e.location || 'School event'))}</small></div>
               </article>`).join('')}
@@ -599,7 +599,7 @@ if(state.view==='Dashboard'){
             <p class="ama-demo-note">Fictional preview records only. These are not saved examination results.</p>
             <div class="ama-table-wrap"><table class="ama-marks-table">
               <thead><tr><th>Student</th><th>Class</th><th>Mark</th><th>Status</th></tr></thead>
-              <tbody>${demoMarks.map(m=>`<tr><td>${esc(m.name)}</td><td>${esc(m.cls)}</td><td>${m.mark}%</td><td><span class="ama-mark-status ${m.status==='Pass'?'pass':'fail'}">${m.status}</span></td></tr>`).join('')}</tbody>
+              <tbody>${dashboardMarks.map(m=>`<tr><td>${esc(m.name)}</td><td>${esc(m.cls)}</td><td>${m.mark}%</td><td><span class="ama-mark-status ${m.status==='Pass'?'pass':'fail'}">${m.status}</span></td></tr>`).join('')}</tbody>
             </table></div>
           </div>
           <div class="panel-body"><button class="btn soft" data-view="Marks">Open Marks</button></div>
@@ -608,7 +608,7 @@ if(state.view==='Dashboard'){
         <section class="panel ama-leave-panel">
           <div class="panel-head"><h3>Leave Status</h3><span class="ama-demo-label">SAMPLE</span></div>
           <div class="panel-body">
-            ${demoLeave.map(l=>`<article class="ama-leave-item"><div><strong>${esc(l.type)}</strong><small>Illustrative entry · Demo only</small></div><span class="ama-leave-status ${l.status==='Approved'?'approved':'pending'}">${l.status}</span></article>`).join('')}
+            ${dashboardLeave.map(l=>`<article class="ama-leave-item"><div><strong>${esc(l.type)}</strong><small>Illustrative entry · Demo only</small></div><span class="ama-leave-status ${l.status==='Approved'?'approved':'pending'}">${l.status}</span></article>`).join('')}
             <p class="ama-demo-note">These entries are examples, not actual leave requests.</p>
           </div>
         </section>
