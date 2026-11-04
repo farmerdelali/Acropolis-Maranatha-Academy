@@ -535,7 +535,6 @@ if(state.view==='Dashboard'){
                 <div><strong>${Math.round(studentsPresent/attendanceTotal*100)}%</strong><span>Present</span></div>
               </div>
             </div>` : `
-              : `
   <div class="ama-attendance-content">
     <div class="empty">
       No attendance records available yet.
@@ -543,7 +542,9 @@ if(state.view==='Dashboard'){
   </div>
   <p class="ama-demo-note">
     Record attendance to see your school's attendance summary.
-  </p>`      </section>
+  </p>`
+          }
+          </section>
       </div>
 
       <div class="ama-dashboard-middle">
@@ -667,9 +668,6 @@ if(state.view==='Dashboard'){
       </section>
     </div>`;
 }else if(state.view==='Students'){
-
-                 }else if(state.view==='Students'){
-
  html=pageHead('Student records','Register, search and maintain student information.',`<button class="btn primary" data-action="add-student">+ Register student</button><button class="btn soft" data-action="student-documents">📁 Student Documents</button>`)+`<section class="panel"><div class="panel-body"><div class="toolbar"><input id="studentSearch" placeholder="Search name, ID, class or guardian…" value="${esc(state.search)}"><button class="btn soft" data-action="clear-search">Clear</button></div>${studentRows(students.filter(s=>[s.full_name,s.student_code,s.class_name,s.guardian_name,s.guardian_phone].join(' ').toLowerCase().includes(state.search.toLowerCase())))}</div></section>`;
 
 }else if(state.view==='Student Documents'){
