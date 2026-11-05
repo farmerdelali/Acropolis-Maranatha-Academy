@@ -6018,3 +6018,53 @@ body.dark-mode .ama-reference-dashboard .ama-profile-card {
     transform: none;
   }
 }
+/* AMA — PUSH DASHBOARD WHEN SIDEBAR OPENS */
+@media (min-width: 901px) {
+  .app-shell {
+    grid-template-columns: 0 minmax(0, 1fr) !important;
+    transition: grid-template-columns .42s cubic-bezier(.22, 1, .36, 1);
+    overflow-x: clip;
+  }
+
+  .app-shell:has(.sidebar.open) {
+    grid-template-columns: 320px minmax(0, 1fr) !important;
+  }
+
+  .app-shell .sidebar {
+    grid-column: 1 !important;
+    grid-row: 2 !important;
+    position: sticky !important;
+    top: 76px !important;
+    width: 320px !important;
+    height: calc(100vh - 76px) !important;
+    transform: translateX(-100%) !important;
+    visibility: hidden !important;
+    transition:
+      transform .42s cubic-bezier(.22, 1, .36, 1),
+      visibility .42s !important;
+  }
+
+  .app-shell .sidebar.open {
+    transform: translateX(0) !important;
+    visibility: visible !important;
+  }
+
+  .app-shell .main-content {
+    grid-column: 2 !important;
+    grid-row: 2 !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    margin: 0 !important;
+    transition: width .42s ease;
+  }
+
+  .app-shell .topbar {
+    grid-column: 1 / -1 !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .app-shell {
+    transition: none !important;
+  }
+}
