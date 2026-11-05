@@ -5923,3 +5923,31 @@ body.dark-mode .ama-reference-dashboard .panel {
     font-size: 0.84rem;
   }
 }
+/* AMA — DASHBOARD FULL WIDTH */
+.main-content:has(.ama-reference-dashboard) {
+  max-width: none !important;
+  width: 100% !important;
+  margin: 0 !important;
+  padding-left: 20px !important;
+  padding-right: 20px !important;
+}
+
+.ama-reference-dashboard {
+  width: 100% !important;
+  max-width: none !important;
+  box-sizing: border-box;
+}
+
+.ama-reference-dashboard .ama-dashboard-top,
+.ama-reference-dashboard .ama-dashboard-middle,
+.ama-reference-dashboard .ama-dashboard-bottom {
+  width: 100%;
+  min-width: 0;
+}
+
+@media (max-width: 600px) {
+  .main-content:has(.ama-reference-dashboard) {
+    padding-left: 12px !important;
+    padding-right: 12px !important;
+  }
+}
