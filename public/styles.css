@@ -5951,3 +5951,70 @@ body.dark-mode .ama-reference-dashboard .panel {
     padding-right: 12px !important;
   }
 }
+/* AMA — PREMIUM 3D DASHBOARD CARDS */
+.ama-reference-dashboard .panel,
+.ama-reference-dashboard .ama-mini-stat,
+.ama-reference-dashboard .ama-profile-card {
+  position: relative;
+  border: 1px solid rgba(255,255,255,.85);
+  border-radius: 22px;
+  box-shadow:
+    0 3px 5px rgba(16,28,58,.04),
+    0 9px 16px rgba(16,28,58,.07),
+    0 20px 35px rgba(16,28,58,.09),
+    inset 0 2px 2px rgba(255,255,255,.85),
+    inset 0 -2px 3px rgba(16,28,58,.04);
+  transition:
+    transform .35s ease,
+    box-shadow .35s ease;
+}
+
+.ama-reference-dashboard .ama-mini-stat {
+  transform: perspective(900px) translateZ(0);
+  box-shadow:
+    0 5px 8px rgba(16,28,58,.06),
+    0 12px 20px rgba(16,28,58,.10),
+    0 22px 35px rgba(16,28,58,.10),
+    inset 0 2px 3px rgba(255,255,255,.8),
+    inset 0 -3px 5px rgba(16,28,58,.06);
+}
+
+.ama-reference-dashboard .panel {
+  box-shadow:
+    0 5px 10px rgba(16,28,58,.04),
+    0 14px 28px rgba(16,28,58,.08),
+    0 24px 45px rgba(16,28,58,.07),
+    inset 0 2px 2px rgba(255,255,255,.9);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .ama-reference-dashboard .ama-mini-stat:hover,
+  .ama-reference-dashboard .panel:hover {
+    transform: translateY(-5px);
+    box-shadow:
+      0 8px 12px rgba(16,28,58,.07),
+      0 18px 32px rgba(16,28,58,.12),
+      0 30px 50px rgba(16,28,58,.12),
+      inset 0 2px 3px rgba(255,255,255,.9);
+  }
+}
+
+body.dark-mode .ama-reference-dashboard .panel,
+body.dark-mode .ama-reference-dashboard .ama-mini-stat,
+body.dark-mode .ama-reference-dashboard .ama-profile-card {
+  border-color: rgba(210,222,255,.25);
+  box-shadow:
+    0 8px 18px rgba(0,0,0,.25),
+    0 20px 38px rgba(0,0,0,.28),
+    inset 0 2px 3px rgba(255,255,255,.12),
+    inset 0 -2px 4px rgba(0,0,0,.18);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ama-reference-dashboard .panel,
+  .ama-reference-dashboard .ama-mini-stat,
+  .ama-reference-dashboard .ama-profile-card {
+    transition: none;
+    transform: none;
+  }
+}
