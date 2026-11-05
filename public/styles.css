@@ -6871,3 +6871,11 @@ body.dark-mode .ama-reference-dashboard .empty {
   background-color: #151d19 !important;
   background-image: none !important;
 }
+/* PERMANENTLY REMOVE THE MOVING WHITE REFLECTION */
+.ama-reference-dashboard .panel::after {
+  content: none !important;
+  display: none !important;
+  animation: none !important;
+  background: none !important;
+  opacity: 0 !important;
+}
