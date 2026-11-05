@@ -6844,3 +6844,30 @@ body.dark-mode .ama-reference-dashboard .empty {
     padding: 14px !important;
   }
 }
+/* AMA — REMOVE ALL TRANSPARENCY AND WHITE LIGHT */
+.ama-reference-dashboard .ama-profile-card,
+.ama-reference-dashboard .ama-mini-stat,
+.ama-reference-dashboard .panel,
+.ama-reference-dashboard .ama-attendance-panel {
+  opacity: 1 !important;
+  background-color: #151d19 !important;
+  background-image: linear-gradient(145deg, #1b2821, #101713) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+.ama-reference-dashboard .ama-profile-card::before,
+.ama-reference-dashboard .ama-profile-card::after,
+.ama-reference-dashboard .ama-mini-stat::before,
+.ama-reference-dashboard .ama-mini-stat::after,
+.ama-reference-dashboard .panel::before,
+.ama-reference-dashboard .panel::after {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+.ama-reference-dashboard .panel-body,
+.ama-reference-dashboard .panel-head {
+  background-color: #151d19 !important;
+  background-image: none !important;
+}
