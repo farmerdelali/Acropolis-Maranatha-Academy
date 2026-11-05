@@ -522,8 +522,8 @@ if(state.view==='Dashboard'){
         </section>
 
         <section class="panel ama-attendance-panel">
-          <div class="panel-head"><h3>Attendance</h3><span class="ama-live-label">${d.attendanceRecorded ? 'Recorded data' : 'DEMO PREVIEW'}</span></div>
-          ${d.attendanceRecorded && attendanceTotal > 0 ? `
+          <div class="panel-head"><h3>Attendance</h3><span class="ama-live-label">${attendanceTotal > 0 ? 'Recorded attendance' : 'Awaiting records'}</span></div>
+                    ${d.attendanceRecorded && attendanceTotal > 0 ? `
             <div class="ama-attendance-content">
               <div class="ama-attendance-legend">
                 <p><i class="ama-dot present"></i>Present <strong>${studentsOnTime}</strong></p>
