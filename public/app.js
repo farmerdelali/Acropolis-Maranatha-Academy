@@ -601,13 +601,15 @@ if(state.view==='Dashboard'){
 
       <div class="ama-dashboard-bottom">
         <section class="panel ama-marks-panel">
-          <div class="panel-head"><h3>Student Marks</h3><span class="ama-demo-label">SAMPLE DATA</span></div>
+                   <div class="panel-head">
+            <h3>Student Marks</h3>
+            <span class="ama-live-label">LIVE DATA</span>
+          </div>
           <div class="panel-body">
-            <p class="ama-demo-note">Fictional preview records only. These are not saved examination results.</p>
-            <div class="ama-table-wrap"><table class="ama-marks-table">
-              <thead><tr><th>Student</th><th>Class</th><th>Mark</th><th>Status</th></tr></thead>
-              <tbody>${dashboardMarks.map(m=>`<tr><td>${esc(m.name)}</td><td>${esc(m.cls)}</td><td>${m.mark}%</td><td><span class="ama-mark-status ${m.status==='Pass'?'pass':'fail'}">${m.status}</span></td></tr>`).join('')}</tbody>
-            </table></div>
+            <div class="ama-empty-state">
+              <p>No examination results recorded yet.</p>
+              <small>Marks entered into the school system will appear here.</small>
+            </div>
           </div>
           <div class="panel-body"><button class="btn soft" data-view="Marks">Open Marks</button></div>
         </section>
