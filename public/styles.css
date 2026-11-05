@@ -6428,3 +6428,136 @@ body.dark-mode .ama-reference-dashboard .empty {
     border-radius: 19px !important;
   }
 }
+/* AMA — CHARCOAL & EMERALD DASHBOARD THEME */
+
+.ama-reference-dashboard {
+  color: #e8f1ec !important;
+  gap: 24px !important;
+}
+
+.main-content:has(.ama-reference-dashboard) {
+  background:
+    radial-gradient(ellipse at 12% 8%, rgba(16,185,129,.12), transparent 38%),
+    radial-gradient(ellipse at 90% 80%, rgba(212,175,55,.06), transparent 32%),
+    #101815 !important;
+}
+
+/* School identity card */
+.ama-reference-dashboard .ama-profile-card {
+  background: linear-gradient(135deg,#102c23,#14543d 60%,#183d30) !important;
+  border: 1px solid rgba(52,211,153,.38) !important;
+  border-radius: 25px !important;
+  box-shadow: 0 18px 38px rgba(0,0,0,.38),
+              inset 0 1px 0 rgba(255,255,255,.12) !important;
+}
+
+.ama-reference-dashboard .ama-profile-card h2 {
+  color: #ffffff !important;
+}
+
+.ama-reference-dashboard .ama-profile-card p {
+  color: #c4e7d5 !important;
+}
+
+/* Statistics cards */
+.ama-reference-dashboard .ama-mini-stat {
+  background: linear-gradient(145deg,#1b3028,#14231d) !important;
+  color: #eaf7ef !important;
+  border: 1px solid rgba(52,211,153,.24) !important;
+  border-radius: 22px !important;
+  box-shadow: 0 12px 25px rgba(0,0,0,.32),
+              inset 0 1px 0 rgba(255,255,255,.08),
+              inset 0 -3px 8px rgba(0,0,0,.2) !important;
+}
+
+.ama-reference-dashboard .ama-mini-stat span,
+.ama-reference-dashboard .ama-mini-stat small {
+  color: #a9c8b7 !important;
+}
+
+.ama-reference-dashboard .ama-mini-stat strong {
+  color: #5ee0a5 !important;
+}
+
+/* All dashboard panels */
+.ama-reference-dashboard .panel {
+  background: linear-gradient(145deg,#1b2923,#15201b) !important;
+  color: #e8f1ec !important;
+  border: 1px solid rgba(148,190,165,.17) !important;
+  border-radius: 22px !important;
+  box-shadow: 0 15px 32px rgba(0,0,0,.3),
+              inset 0 1px 0 rgba(255,255,255,.055) !important;
+}
+
+.ama-reference-dashboard .panel-head {
+  background: linear-gradient(110deg,rgba(24,75,53,.55),rgba(25,42,33,.4)) !important;
+  border-bottom: 1px solid rgba(52,211,153,.16) !important;
+}
+
+.ama-reference-dashboard .panel-head h3 {
+  color: #e8f7ee !important;
+}
+
+.ama-reference-dashboard .panel-body {
+  color: #d4e4da !important;
+}
+
+/* Notice board and events */
+.ama-reference-dashboard .ama-notice-item,
+.ama-reference-dashboard .ama-event-item {
+  color: #e3eee7 !important;
+  background: rgba(255,255,255,.025) !important;
+  border: 1px solid rgba(255,255,255,.055) !important;
+  border-radius: 14px !important;
+}
+
+.ama-reference-dashboard .ama-notice-item:hover {
+  background: rgba(52,211,153,.09) !important;
+}
+
+.ama-reference-dashboard .ama-notice-avatar {
+  background: linear-gradient(145deg,#08784f,#24b879) !important;
+  color: #ffffff !important;
+}
+
+/* Dashboard text and empty states */
+.ama-reference-dashboard p,
+.ama-reference-dashboard label,
+.ama-reference-dashboard small,
+.ama-reference-dashboard .muted {
+  color: #b7cabe;
+}
+
+.ama-reference-dashboard .ama-empty-state,
+.ama-reference-dashboard .empty {
+  color: #c4d8cb !important;
+  background: rgba(52,211,153,.045) !important;
+  border: 1px dashed rgba(52,211,153,.28) !important;
+  border-radius: 16px !important;
+}
+
+/* Gold details */
+.ama-reference-dashboard .ama-mini-stat:nth-child(3n) strong {
+  color: #e5c66d !important;
+}
+
+/* Refined 3D hover */
+@media (hover:hover) and (pointer:fine) {
+  .ama-reference-dashboard .panel,
+  .ama-reference-dashboard .ama-mini-stat {
+    transition: transform .3s ease, box-shadow .3s ease !important;
+  }
+
+  .ama-reference-dashboard .panel:hover,
+  .ama-reference-dashboard .ama-mini-stat:hover {
+    transform: translateY(-4px) !important;
+    box-shadow: 0 20px 38px rgba(0,0,0,.4),
+                0 0 18px rgba(16,185,129,.08) !important;
+  }
+}
+
+@media (max-width:700px) {
+  .ama-reference-dashboard {
+    gap: 16px !important;
+  }
+}
