@@ -575,22 +575,29 @@ if(state.view==='Dashboard'){
           </div>
         </section>
 
-        <section class="panel ama-calendar-panel">
-          <div class="panel-head"><h3>Calendar</h3></div>
-          <div class="panel-body">
-            <div class="ama-calendar-title">
-              <button class="btn soft" data-action="calendar-prev" aria-label="Previous month">‹</button>
-              <strong>${monthName} ${state.calendarYear}</strong>
-              <button class="btn soft" data-action="calendar-next" aria-label="Next month">›</button>
-            </div>
-            <div class="ama-calendar-grid">
-              ${['Su','Mo','Tu','We','Th','Fr','Sa'].map(day=>`<span class="ama-calendar-weekday">${day}</span>`).join('')}
-              ${Array.from({length:firstDay},()=>'<span></span>').join('')}
-              ${Array.from({length:daysInMonth},(_,i)=>`<span class="${i+1===new Date().getDate() && state.calendarMonth===new Date().getMonth() && state.calendarYear===new Date().getFullYear()?'today':''}">${i+1}</span>`).join('')}
-            </div>
-          </div>
-        </section>
+    <section class="panel ama-events-panel">
+  <div class="panel-head">
+    <h3>Upcoming Events</h3>
+    <span class="ama-live-label">LIVE DATA</span>
+  </div>
+  <div class="panel-body">
+    ${d.events && d.events.length ? d.events.map((e,i)=>`
+      <article class="ama-event-item event-${i%4}">
+        <div>
+          <strong>${esc(e.startTime || 'All day')}</strong>
+          <p>${esc(e.title)}</p>
+          <small>${esc(e.description || e.location || 'School event')}</small>
+        </div>
+      </article>
+    `).join('') : `
+      <div class="ama-empty-state">
+        <p>No upcoming events recorded.</p>
+        <small>Events added to the school system will appear here.</small>
       </div>
+    `}
+  </div>
+</section>
+          </div>
 
       <div class="ama-dashboard-bottom">
         <section class="panel ama-marks-panel">
