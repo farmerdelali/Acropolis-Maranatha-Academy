@@ -6561,3 +6561,286 @@ body.dark-mode .ama-reference-dashboard .empty {
     gap: 16px !important;
   }
 }
+
+/* =====================================================
+   AMA — EXECUTIVE CHARCOAL 3D DASHBOARD
+   Solid surfaces • Emerald • Gold • No liquid glass
+   ===================================================== */
+
+.ama-reference-dashboard {
+  color: #e8eee9 !important;
+  gap: 23px !important;
+  padding: 18px 4px 35px !important;
+}
+
+/* Main dashboard background */
+.main-content:has(.ama-reference-dashboard) {
+  background: #0b100e !important;
+}
+
+.ama-reference-dashboard,
+.ama-reference-dashboard * {
+  text-shadow: none;
+}
+
+/* School identity panel */
+.ama-reference-dashboard .ama-profile-card {
+  background: linear-gradient(145deg,#123c2b,#0d241b 75%) !important;
+  border: 1px solid #287b53 !important;
+  border-radius: 20px !important;
+  box-shadow:
+    0 5px 0 #07140e,
+    0 10px 0 #10271c,
+    0 19px 28px rgba(0,0,0,.65) !important;
+  padding: 27px !important;
+}
+
+.ama-reference-dashboard .ama-profile-card::after {
+  display: none !important;
+}
+
+.ama-reference-dashboard .ama-profile-card h2 {
+  color: #ffffff !important;
+  font-size: clamp(21px,2vw,29px) !important;
+  font-weight: 850 !important;
+}
+
+.ama-reference-dashboard .ama-profile-card p {
+  color: #d0e6d8 !important;
+}
+
+.ama-reference-dashboard .ama-profile-orb {
+  background: #174e36 !important;
+  border: 3px solid #d4b65d !important;
+  box-shadow: 0 5px 0 #071b11, 0 9px 16px #000 !important;
+}
+
+/* Statistic layout */
+.ama-reference-dashboard .ama-stat-grid {
+  gap: 15px !important;
+}
+
+.ama-reference-dashboard .ama-mini-stat {
+  position: relative;
+  min-height: 140px !important;
+  padding: 21px !important;
+  overflow: hidden;
+  border-radius: 17px !important;
+  border: 1px solid #35483d !important;
+  box-shadow:
+    0 5px 0 #080d0a,
+    0 10px 0 #17231b,
+    0 17px 24px rgba(0,0,0,.65) !important;
+  transition: transform .25s ease, box-shadow .25s ease !important;
+}
+
+.ama-reference-dashboard .ama-mini-stat::after {
+  content: "";
+  position: absolute;
+  right: 13px;
+  bottom: 12px;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: 5px solid rgba(255,255,255,.07);
+  pointer-events: none;
+}
+
+.ama-reference-dashboard .ama-mini-stat span {
+  color: #d5e4da !important;
+  font-size: 11px !important;
+  font-weight: 800 !important;
+  text-transform: uppercase;
+  letter-spacing: .7px;
+}
+
+.ama-reference-dashboard .ama-mini-stat strong {
+  color: #ffffff !important;
+  font-size: clamp(25px,2.5vw,35px) !important;
+  font-weight: 900 !important;
+}
+
+.ama-reference-dashboard .ama-mini-stat small {
+  color: #a9c2b2 !important;
+}
+
+/* Individual statistic colours */
+.ama-reference-dashboard .ama-mini-stat.purple {
+  background: linear-gradient(145deg,#193d32,#10251d) !important;
+  border-color: #21865b !important;
+}
+
+.ama-reference-dashboard .ama-mini-stat.green {
+  background: linear-gradient(145deg,#183e30,#10251c) !important;
+  border-color: #258b59 !important;
+}
+
+.ama-reference-dashboard .ama-mini-stat.blue {
+  background: linear-gradient(145deg,#173342,#101e29) !important;
+  border-color: #287b9b !important;
+}
+
+.ama-reference-dashboard .ama-mini-stat.rose {
+  background: linear-gradient(145deg,#41252b,#25191e) !important;
+  border-color: #a64d5a !important;
+}
+
+/* Main dashboard panels */
+.ama-reference-dashboard .panel {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(155deg,#19231d,#111914 75%) !important;
+  color: #e7eee9 !important;
+  border: 1px solid #34453a !important;
+  border-radius: 18px !important;
+  box-shadow:
+    0 5px 0 #080d0a,
+    0 10px 0 #17231b,
+    0 18px 28px rgba(0,0,0,.65) !important;
+}
+
+.ama-reference-dashboard .panel-head {
+  background: #153525 !important;
+  border-bottom: 1px solid #2b6445 !important;
+  padding: 18px 20px !important;
+}
+
+.ama-reference-dashboard .panel-head h3 {
+  color: #f4f8f5 !important;
+  font-size: 15px !important;
+  font-weight: 850 !important;
+  letter-spacing: .1px;
+}
+
+.ama-reference-dashboard .panel-body {
+  color: #dce8df !important;
+  padding: 20px !important;
+}
+
+/* Attendance */
+.ama-reference-dashboard .ama-attendance-legend p {
+  color: #c8d9ce !important;
+}
+
+.ama-reference-dashboard .ama-attendance-legend strong {
+  color: #ffffff !important;
+}
+
+.ama-reference-dashboard .ama-donut {
+  filter: drop-shadow(0 5px 8px rgba(0,0,0,.45));
+}
+
+/* Notices and events */
+.ama-reference-dashboard .ama-notice-item,
+.ama-reference-dashboard .ama-event-item {
+  background: #17231c !important;
+  border: 1px solid #2d4435 !important;
+  border-radius: 12px !important;
+  padding: 15px !important;
+  margin-bottom: 11px;
+  color: #edf4ef !important;
+  box-shadow: 0 4px 0 #0b120d, 0 7px 12px rgba(0,0,0,.35) !important;
+}
+
+.ama-reference-dashboard .ama-notice-item strong,
+.ama-reference-dashboard .ama-event-item strong {
+  color: #ffffff !important;
+}
+
+.ama-reference-dashboard .ama-notice-item p,
+.ama-reference-dashboard .ama-event-item p {
+  color: #c7d8cd !important;
+}
+
+.ama-reference-dashboard .ama-notice-item small,
+.ama-reference-dashboard .ama-event-item small {
+  color: #91ad9b !important;
+}
+
+.ama-reference-dashboard .ama-notice-avatar {
+  background: #087a4c !important;
+  color: #ffffff !important;
+  border: 1px solid #39bd80 !important;
+  box-shadow: 0 4px 0 #063c28 !important;
+}
+
+/* Empty states */
+.ama-reference-dashboard .ama-empty-state,
+.ama-reference-dashboard .empty {
+  background: #121d16 !important;
+  border: 1px dashed #41634d !important;
+  border-radius: 13px !important;
+  color: #c8d9ce !important;
+  padding: 23px !important;
+}
+
+/* Tables and class summaries */
+.ama-reference-dashboard .dashboard-class-row,
+.ama-reference-dashboard .ama-enrollment-row {
+  background: #17251c !important;
+  border: 1px solid #304a38 !important;
+  border-radius: 11px !important;
+  padding: 13px !important;
+  margin-bottom: 9px;
+  color: #e6f0e9 !important;
+}
+
+.ama-reference-dashboard .ama-enrollment-track {
+  background: #080e0a !important;
+}
+
+.ama-reference-dashboard .ama-enrollment-fill {
+  background: linear-gradient(90deg,#087a4c,#42c889) !important;
+}
+
+/* Buttons */
+.ama-reference-dashboard .btn.primary {
+  background: linear-gradient(145deg,#15945c,#087244) !important;
+  color: #ffffff !important;
+  border: 1px solid #38c486 !important;
+  box-shadow: 0 4px 0 #06472d, 0 8px 13px rgba(0,0,0,.4) !important;
+}
+
+.ama-reference-dashboard .btn.soft,
+.ama-reference-dashboard .btn.btn-secondary {
+  background: #23352a !important;
+  color: #e4f1e8 !important;
+  border: 1px solid #45644f !important;
+  box-shadow: 0 3px 0 #0c160f !important;
+}
+
+/* Professional 3D interaction */
+@media (hover:hover) and (pointer:fine) {
+  .ama-reference-dashboard .ama-mini-stat:hover,
+  .ama-reference-dashboard .panel:hover {
+    transform: translateY(-4px) !important;
+    box-shadow:
+      0 7px 0 #080d0a,
+      0 13px 0 #17231b,
+      0 24px 32px rgba(0,0,0,.7) !important;
+  }
+}
+
+/* Mobile */
+@media (max-width:900px) {
+  .ama-dashboard-top,
+  .ama-dashboard-middle,
+  .ama-dashboard-bottom {
+    grid-template-columns: minmax(0,1fr) !important;
+  }
+
+  .ama-reference-dashboard .ama-stat-grid {
+    grid-template-columns: repeat(2,minmax(0,1fr)) !important;
+  }
+}
+
+@media (max-width:480px) {
+  .ama-reference-dashboard .ama-mini-stat {
+    min-height: 120px !important;
+    padding: 15px !important;
+  }
+
+  .ama-reference-dashboard .panel-head {
+    padding: 14px !important;
+  }
+}
