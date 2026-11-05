@@ -6248,3 +6248,183 @@ body.dark-mode .ama-reference-dashboard .empty {
     border-radius: 19px !important;
   }
 }
+/* AMA — PREMIUM EXECUTIVE DASHBOARD REDESIGN */
+
+/* Richer dashboard canvas */
+.ama-reference-dashboard {
+  position: relative;
+  gap: 24px !important;
+  padding-bottom: 35px !important;
+}
+
+.main-content:has(.ama-reference-dashboard) {
+  background:
+    radial-gradient(ellipse at 8% 5%, rgba(92,112,190,.09), transparent 34%),
+    radial-gradient(ellipse at 95% 35%, rgba(196,161,91,.08), transparent 30%),
+    #f2f5fb !important;
+}
+
+body.dark-mode .main-content:has(.ama-reference-dashboard) {
+  background:
+    radial-gradient(ellipse at 8% 5%, rgba(92,112,190,.15), transparent 34%),
+    #101729 !important;
+}
+
+/* School identity — premium navy and gold */
+.ama-reference-dashboard .ama-profile-card {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(220,190,120,.55) !important;
+  border-radius: 26px !important;
+  background:
+    radial-gradient(circle at 90% 12%, rgba(255,220,145,.24), transparent 35%),
+    linear-gradient(145deg, #101c3a 0%, #1d3158 58%, #293e68 100%) !important;
+  box-shadow: 0 18px 38px rgba(16,28,58,.22),
+              inset 0 1px 0 rgba(255,255,255,.22) !important;
+}
+
+.ama-reference-dashboard .ama-profile-card h2 {
+  color: #fff !important;
+  font-size: clamp(21px, 2vw, 29px) !important;
+  line-height: 1.2;
+  letter-spacing: -.7px;
+}
+
+.ama-reference-dashboard .ama-profile-card p {
+  color: #e4d5b1 !important;
+}
+
+.ama-reference-dashboard .ama-profile-orb {
+  border: 2px solid rgba(231,199,133,.8);
+  box-shadow: 0 8px 22px rgba(0,0,0,.22);
+}
+
+/* Statistics — richer dimensional cards */
+.ama-reference-dashboard .ama-mini-stat {
+  min-height: 145px;
+  padding: 23px !important;
+  border-radius: 23px !important;
+  border: 1px solid rgba(255,255,255,.9) !important;
+  box-shadow: 0 12px 25px rgba(22,35,65,.09),
+              inset 0 1px 0 rgba(255,255,255,.9) !important;
+}
+
+.ama-reference-dashboard .ama-mini-stat span {
+  font-size: 12px;
+  font-weight: 750;
+  letter-spacing: .35px;
+  text-transform: uppercase;
+}
+
+.ama-reference-dashboard .ama-mini-stat strong {
+  display: block;
+  margin-top: 13px;
+  font-size: clamp(25px, 2.4vw, 34px) !important;
+  font-weight: 850;
+  letter-spacing: -1px;
+}
+
+.ama-reference-dashboard .ama-mini-stat small {
+  display: block;
+  margin-top: 8px;
+  font-size: 11px;
+}
+
+/* Richer section panels */
+.ama-reference-dashboard .panel {
+  border-radius: 23px !important;
+  border: 1px solid rgba(151,165,194,.25) !important;
+  box-shadow: 0 12px 28px rgba(24,39,72,.075),
+              inset 0 1px 0 rgba(255,255,255,.9) !important;
+}
+
+.ama-reference-dashboard .panel-head {
+  border-bottom: 1px solid rgba(140,153,180,.16);
+  background: linear-gradient(110deg, rgba(236,241,251,.85), rgba(255,255,255,.35));
+}
+
+.ama-reference-dashboard .panel-head h3 {
+  font-size: 15px !important;
+  font-weight: 800 !important;
+  letter-spacing: -.3px;
+  color: #172747;
+}
+
+.ama-reference-dashboard .panel-body {
+  padding-top: 20px;
+  padding-bottom: 22px;
+}
+
+/* More defined notice and event items */
+.ama-reference-dashboard .ama-notice-item {
+  padding: 16px 10px;
+  border-radius: 14px;
+  transition: background .25s ease;
+}
+
+.ama-reference-dashboard .ama-notice-item:hover {
+  background: rgba(111,132,184,.08);
+}
+
+.ama-reference-dashboard .ama-notice-avatar {
+  width: 40px;
+  height: 40px;
+  flex-basis: 40px;
+  border-radius: 13px;
+  color: #fff;
+  background: linear-gradient(145deg,#263e70,#647fba);
+  box-shadow: 0 5px 12px rgba(35,57,105,.2);
+}
+
+.ama-reference-dashboard .ama-event-item {
+  padding: 16px;
+  border-radius: 15px;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.7);
+}
+
+/* Better visual hierarchy for empty states */
+.ama-reference-dashboard .ama-empty-state,
+.ama-reference-dashboard .empty {
+  padding: 24px 18px;
+  border: 1px dashed rgba(119,137,175,.38);
+  border-radius: 16px;
+  background: rgba(123,145,190,.055);
+  text-align: center;
+  line-height: 1.7;
+}
+
+/* Dark mode refinement */
+body.dark-mode .ama-reference-dashboard .panel-head {
+  background: linear-gradient(110deg, rgba(44,57,86,.85), rgba(28,39,62,.5));
+}
+
+body.dark-mode .ama-reference-dashboard .panel-head h3 {
+  color: #edf2ff;
+}
+
+body.dark-mode .ama-reference-dashboard .panel {
+  border-color: rgba(180,198,235,.16) !important;
+  box-shadow: 0 14px 32px rgba(0,0,0,.24),
+              inset 0 1px 0 rgba(255,255,255,.08) !important;
+}
+
+body.dark-mode .ama-reference-dashboard .ama-empty-state,
+body.dark-mode .ama-reference-dashboard .empty {
+  background: rgba(120,145,190,.08);
+  border-color: rgba(180,198,235,.2);
+}
+
+@media (max-width: 700px) {
+  .ama-reference-dashboard {
+    gap: 16px !important;
+  }
+
+  .ama-reference-dashboard .ama-mini-stat {
+    min-height: 125px;
+    padding: 17px !important;
+  }
+
+  .ama-reference-dashboard .panel {
+    border-radius: 19px !important;
+  }
+}
