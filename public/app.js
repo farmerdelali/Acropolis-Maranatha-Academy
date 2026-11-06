@@ -540,9 +540,9 @@ if(state.view==='Dashboard'){
         </section>
 
         <section class="ama-stat-grid">
-          <div class="ama-mini-stat purple"><span>Active Students</span><strong>${students.length}</strong><small>Registered records</small></div>
+          <div class="ama-mini-stat purple"><span>Active Students</span><strong data-ama-count="${students.length}">0</strong><small>Registered records</small></div>
           <div class="ama-mini-stat green"><span>Payments Received</span><strong>${money(paid)}</strong><small>Recorded receipts</small></div>
-          <div class="ama-mini-stat blue"><span>Active Staff</span><strong>${activeStaff}</strong><small>Active employee records</small></div>
+          <div class="ama-mini-stat blue"><span>Active Staff</span><strong data-ama-count="${typeof activeStaff === 'number' ? activeStaff : ''}">${activeStaff}</strong><small>Active employee records</small></div>
           <div class="ama-mini-stat rose"><span>Outstanding Fees</span><strong>${money(owing)}</strong><small>Student balances</small></div>
         </section>
 
@@ -662,8 +662,8 @@ if(state.view==='Dashboard'){
             <div class="ama-fee-pie"
               style="--collected:${feeCollectedPercent}%;--outstanding:${100-feeCollectedPercent}%">
               <div class="ama-pie-center">
-                <strong>${Math.round(feeCollectedPercent)}%</strong>
-                <span>Collected</span>
+              <strong data-ama-count="${Math.round(feeCollectedPercent)}" data-ama-suffix="%">0%</strong>  
+                                <span>Collected</span>
               </div>
             </div>
 
@@ -696,8 +696,8 @@ if(state.view==='Dashboard'){
                     style="width:${count / Math.max(1,...Object.values(gradeCounts)) * 100}%">
                   </div>
                 </div>
-                <span class="ama-grade-count">${count}</span>
-              </div>
+              <span class="ama-grade-count" data-ama-count="${count}">0</span> 
+                             </div>
             `).join('')}
           </div>
 
@@ -2259,6 +2259,39 @@ ${(state.data.employees || [])
 
 const mainContent = $('#mainContent');
 mainContent.innerHTML = html;
+ // AMA DASHBOARD: ANIMATED LIVE COUNTERS
+if (state.view === 'Dashboard') {
+  const counters = mainContent.querySelectorAll('[data-ama-count]');
+
+  counters.forEach(counter => {
+    const rawValue = counter.getAttribute('data-ama-count');
+
+    // Leave restricted or unavailable values unchanged.
+    if (rawValue === null || rawValue.trim() === '') return;
+
+    const target = Number(rawValue);
+    if (!Number.isFinite(target)) return;
+
+    const suffix = counter.getAttribute('data-ama-suffix') || '';
+    const duration = 750;
+    const startTime = performance.now();
+
+    function animateCount(now) {
+      const progress = Math.min((now - startTime) / duration, 1);
+      const eased = 1 - Math.pow(1 - progress, 4);
+      const current = Math.round(target * eased);
+
+      counter.textContent = current.toLocaleString() + suffix;
+
+      if (progress < 1) {
+        requestAnimationFrame(animateCount);
+      }
+    }
+
+    counter.textContent = '0' + suffix;
+    requestAnimationFrame(animateCount);
+  });
+}                 
 mainContent.classList.remove('motion-enter');
 void mainContent.offsetWidth;
 mainContent.classList.add('motion-enter');
