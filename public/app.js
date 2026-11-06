@@ -647,7 +647,66 @@ if(state.view==='Dashboard'){
           </div>
         </section>
       </div>
+      <section class="ama-analytics-grid">
 
+        <article class="panel ama-chart-card">
+          <div class="panel-head">
+            <div>
+              <h3>Fee Collection Analysis</h3>
+              <p class="muted">Payments received against outstanding balances</p>
+            </div>
+            <span class="ama-live-label">LIVE DATA</span>
+          </div>
+
+          <div class="ama-chart-content">
+            <div class="ama-fee-pie"
+              style="--collected:${feeCollectedPercent}%;--outstanding:${100-feeCollectedPercent}%">
+              <div class="ama-pie-center">
+                <strong>${Math.round(feeCollectedPercent)}%</strong>
+                <span>Collected</span>
+              </div>
+            </div>
+
+            <div class="ama-chart-legend">
+              <p><i class="ama-chart-dot collected"></i>
+                Payments received <strong>${money(paid)}</strong>
+              </p>
+              <p><i class="ama-chart-dot outstanding"></i>
+                Outstanding fees <strong>${money(outstandingFees)}</strong>
+              </p>
+            </div>
+          </div>
+        </article>
+
+        <article class="panel ama-chart-card">
+          <div class="panel-head">
+            <div>
+              <h3>Examination Performance</h3>
+              <p class="muted">Recorded results by grade</p>
+            </div>
+            <span class="ama-live-label">LIVE DATA</span>
+          </div>
+
+          <div class="ama-grade-chart">
+            ${Object.entries(gradeCounts).map(([letter, count]) => `
+              <div class="ama-grade-row">
+                <strong class="ama-grade-label">${letter}</strong>
+                <div class="ama-grade-track">
+                  <div class="ama-grade-fill grade-${letter}"
+                    style="width:${count / Math.max(1,...Object.values(gradeCounts)) * 100}%">
+                  </div>
+                </div>
+                <span class="ama-grade-count">${count}</span>
+              </div>
+            `).join('')}
+          </div>
+
+          <p class="ama-chart-footnote">
+            ${d.marks.length} examination result${d.marks.length === 1 ? '' : 's'} recorded
+          </p>
+        </article>
+
+      </section>
       <section class="panel ama-classes-panel">
         <div class="panel-head"><h3>Students by Class</h3><button class="btn soft" data-view="Students">View students</button></div>
         <div class="panel-body">
