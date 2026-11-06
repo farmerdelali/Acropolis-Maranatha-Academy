@@ -487,7 +487,32 @@ if(state.view==='Dashboard'){
   const studentsPresent = studentsOnTime + studentsLate;
   const studentsAbsent = [...studentAttendance.values()].filter(s => s === 'ABSENT').length;
   const attendanceTotal = studentsOnTime + studentsLate + studentsAbsent + studentsExcused;
+  // AMA LIVE DASHBOARD ANALYTICS
+  const feeChartTotal = paid + outstandingFees;
+  const feeCollectedPercent = feeChartTotal
+    ? (paid / feeChartTotal) * 100
+    : 0;
 
+  const attendancePercent = attendanceTotal
+    ? (studentsPresent / attendanceTotal) * 100
+    : 0;
+
+  const gradeCounts = { A: 0, B: 0, C: 0, D: 0, F: 0 };
+
+  (d.marks || []).forEach(mark => {
+    const score = Number(mark.score);
+    if (!Number.isFinite(score)) return;
+
+    const resultGrade = grade(score);
+    if (Object.prototype.hasOwnProperty.call(gradeCounts, resultGrade)) {
+      gradeCounts[resultGrade]++;
+    }
+  });
+
+  const enrollmentMaximum = Math.max(
+    1,
+    ...classCounts.map(([, count]) => count)
+  );
   const activeStaff = state.user.role === 'ADMIN'
     ? (d.employees || []).filter(e => String(e.status || '').toUpperCase() === 'ACTIVE').length
     : '—';
