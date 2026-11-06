@@ -6879,3 +6879,28 @@ body.dark-mode .ama-reference-dashboard .empty {
   background: none !important;
   opacity: 0 !important;
 }
+/* REMOVE STATIC WHITE SHEEN FROM DASHBOARD PANELS */
+.ama-reference-dashboard .panel {
+  background: #151d19 !important;
+  background-image: none !important;
+  filter: none !important;
+}
+
+.ama-reference-dashboard .panel::before,
+.ama-reference-dashboard .panel::after {
+  content: none !important;
+  display: none !important;
+  background: none !important;
+  box-shadow: none !important;
+  filter: none !important;
+}
+
+.ama-reference-dashboard .panel-head {
+  background: #153525 !important;
+  background-image: none !important;
+}
+
+.ama-reference-dashboard .panel-body {
+  background: #151d19 !important;
+  background-image: none !important;
+}
