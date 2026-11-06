@@ -6904,3 +6904,49 @@ body.dark-mode .ama-reference-dashboard .empty {
   background: #151d19 !important;
   background-image: none !important;
 }
+/* AMA — FIX AUTHENTICATION TAB CLICK AREA */
+
+.auth-shell,
+.auth-card {
+  position: relative !important;
+  isolation: isolate !important;
+}
+
+.auth-card {
+  z-index: 2 !important;
+}
+
+.auth-tabs {
+  position: relative !important;
+  z-index: 5 !important;
+  display: grid !important;
+  pointer-events: auto !important;
+  isolation: isolate !important;
+}
+
+.auth-tabs .tab {
+  position: relative !important;
+  z-index: 6 !important;
+  display: block !important;
+  width: 100% !important;
+  min-height: 44px !important;
+  pointer-events: auto !important;
+  touch-action: manipulation !important;
+  cursor: pointer !important;
+  transform: none;
+}
+
+.auth-tabs .tab::before,
+.auth-tabs .tab::after {
+  pointer-events: none !important;
+}
+
+.auth-tabs .tab.active {
+  position: relative !important;
+  z-index: 7 !important;
+}
+
+.auth-card::before,
+.auth-card::after {
+  pointer-events: none !important;
+}
