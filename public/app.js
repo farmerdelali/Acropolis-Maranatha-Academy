@@ -271,6 +271,28 @@ if (state.user && ['ADMIN', 'HEADMASTER'].includes(state.user.role)) {
     );
   }
 }
+  let staffAttendanceRegisters = [];
+
+if (state.user && ['ADMIN', 'HEADMASTER'].includes(state.user.role)) {
+  try {
+    const todayParts = new Intl.DateTimeFormat('en-CA', {
+      timeZone: 'Africa/Accra',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit'
+    }).formatToParts(new Date());
+
+    const today = `${todayParts.find(p => p.type === 'year').value}-${todayParts.find(p => p.type === 'month').value}-${todayParts.find(p => p.type === 'day').value}`;
+
+    const staffResult = await api(
+      `/api/attendance/staff/registers?from=${today}&to=${today}`
+    );
+
+    staffAttendanceRegisters = staffResult.registers || [];
+  } catch (error) {
+    console.warn('Staff attendance records could not be loaded:', error);
+  }
+}
 let attendanceRegisters = [];
 let attendanceRecorded = false;
 
