@@ -877,8 +877,7 @@ Required fields, file limits and your role permissions will still be checked.
                 </button>
      </div>
        </form>
-    <div id="importPreviewResults"></div>
-  `);
+     `);
 
 }else if(state.view==='Marks'){
 
