@@ -561,8 +561,8 @@ if(state.view==='Dashboard'){
           <div class="ama-mini-stat purple"><span>Active Students</span><strong data-ama-count="${students.length}">0</strong><small>Registered records</small></div>
                  <div class="ama-mini-stat green"><span>Payments Received</span><strong data-ama-count="${money(paid)}">0</strong><small>Recorded receipts</small></div>
                  <div class="ama-mini-stat blue"><span>Active Staff</span><strong data-ama-count="${typeof activeStaff === 'number' ? activeStaff : ''}">${activeStaff}</strong><small>Active employee records</small></div>
-          <div class="ama-mini-stat rose"><span>Outstanding Fees</span><strong>${money(owing)}</strong><small>Student balances</small></div>
-        </section>
+        <div class="ama-mini-stat rose"><span>Outstanding Fees</span><strong data-ama-count="${money(outstandingFees)}">0</strong><small>${owing} students with balances</small></div>
+                </section>
 
         <section class="panel ama-attendance-panel">
           <div class="panel-head"><h3>Attendance</h3><span class="ama-live-label">${attendanceTotal > 0 ? 'Recorded attendance' : 'Awaiting records'}</span></div>
