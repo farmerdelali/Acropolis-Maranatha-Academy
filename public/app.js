@@ -1630,7 +1630,18 @@ const attendanceClasses = [
     'Attendance Register',
     'Record daily attendance for each student in the selected class.'
   );
-
+html += `
+  <div class="toolbar" style="margin:16px 0">
+    <button class="btn ${state.attendanceTab === 'students' ? 'primary' : 'soft'}"
+      type="button" data-action="attendance-tab" data-tab="students">
+      Students Attendance
+    </button>
+    <button class="btn ${state.attendanceTab === 'staff' ? 'primary' : 'soft'}"
+      type="button" data-action="attendance-tab" data-tab="staff">
+      Staff Attendance
+    </button>
+  </div>
+`;
   html += panel('Register details', `
     <form id="attendanceRegisterForm">
       <div class="form-grid">
