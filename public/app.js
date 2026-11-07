@@ -269,10 +269,9 @@ if (state.user && ['ADMIN', 'HEADMASTER', 'TEACHER'].includes(state.user.role)) 
       `/api/attendance/registers?from=${today}&to=${today}`
     );
 
-    attendanceRegisters = (attendanceResult.registers || [])
-      .filter(register => register.status === 'SUBMITTED');
+attendanceRegisters = attendanceResult.registers || [];
 
-    attendanceRecorded = attendanceRegisters.length > 0;
+attendanceRecorded = attendanceRegisters.length > 0;
   } catch (error) {
     console.warn('Today’s attendance could not be loaded:', error);
   }
