@@ -171,6 +171,7 @@ if (name === 'Feeding Management') {
 })
 .join('');
   closeDrawer();
+  state.animateCountersOnNextRender = true;
   loadData().catch(e => toast(e.message, true));
 }
 
