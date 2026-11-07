@@ -2259,39 +2259,64 @@ ${(state.data.employees || [])
 
 const mainContent = $('#mainContent');
 mainContent.innerHTML = html;
- // AMA DASHBOARD: ANIMATED LIVE COUNTERS
-if (state.view === 'Dashboard') {
-  const counters = mainContent.querySelectorAll('[data-ama-count]');
+// AMA: AUTOMATIC LIVE COUNTERS ACROSS ALL SECTIONS
+const counters = mainContent.querySelectorAll(
+  '[data-ama-count], .stat-value'
+);
 
-  counters.forEach(counter => {
-    const rawValue = counter.getAttribute('data-ama-count');
+counters.forEach(counter => {
+  const dashboardValue = counter.getAttribute('data-ama-count');
 
-    // Leave restricted or unavailable values unchanged.
-    if (rawValue === null || rawValue.trim() === '') return;
+  const rawValue = dashboardValue !== null
+    ? dashboardValue
+    : counter.textContent.trim();
 
-    const target = Number(rawValue);
-    if (!Number.isFinite(target)) return;
+  // Leave unavailable or non-numeric values unchanged.
+  if (!rawValue) return;
 
-    const suffix = counter.getAttribute('data-ama-suffix') || '';
-    const duration = 750;
-    const startTime = performance.now();
+  const match = rawValue.match(
+    /^(\s*[^\d-]*?)(-?[\d,]+(?:\.\d+)?)(.*)$/
+  );
 
-    function animateCount(now) {
-      const progress = Math.min((now - startTime) / duration, 1);
-      const eased = 1 - Math.pow(1 - progress, 4);
-      const current = Math.round(target * eased);
+  if (!match) return;
 
-      counter.textContent = current.toLocaleString() + suffix;
+  const prefix = match[1];
+  const target = Number(match[2].replace(/,/g, ''));
+  const suffix =
+    counter.getAttribute('data-ama-suffix') || match[3];
 
-      if (progress < 1) {
-        requestAnimationFrame(animateCount);
-      }
+  if (!Number.isFinite(target)) return;
+
+  const decimals = (match[2].split('.')[1] || '').length;
+  const duration = 650;
+  const startTime = performance.now();
+
+  function animateCount(now) {
+    const progress = Math.min((now - startTime) / duration, 1);
+    const eased = 1 - Math.pow(1 - progress, 4);
+    const current = target * eased;
+
+    const formatted = current.toLocaleString('en-GH', {
+      minimumFractionDigits: decimals,
+      maximumFractionDigits: decimals
+    });
+
+    counter.textContent = prefix + formatted + suffix;
+
+    if (progress < 1) {
+      requestAnimationFrame(animateCount);
     }
+  }
 
-    counter.textContent = '0' + suffix;
-    requestAnimationFrame(animateCount);
-  });
-}                 
+  const zero = decimals
+    ? '0.' + '0'.repeat(decimals)
+    : '0';
+
+  counter.textContent = prefix + zero + suffix;
+
+  requestAnimationFrame(animateCount);
+});
+                 }                 
 mainContent.classList.remove('motion-enter');
 void mainContent.offsetWidth;
 mainContent.classList.add('motion-enter');
