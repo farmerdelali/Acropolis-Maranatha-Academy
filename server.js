@@ -1365,8 +1365,8 @@ if (!allowedImportRoles[importType]?.includes(role)) {
           }
 
           const studentResult = await client.query(
-            `SELECT id, student_code, full_name
-             FROM students
+            SELECT id, student_code, full_name, class_name
+            FROM students
              WHERE school_id = $1
                AND archived = false
                AND (
