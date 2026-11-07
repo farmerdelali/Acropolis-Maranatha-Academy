@@ -1739,9 +1739,11 @@ html += `
       </div>
     </form>
   `);
+  } else {
+    // Staff attendance panel will go here.
+  }
 
 } else if (state.view === 'Match Students') {
-
        const normalize = value =>
     String(value || '').trim().toLowerCase().replace(/\s+/g, ' ');
 
