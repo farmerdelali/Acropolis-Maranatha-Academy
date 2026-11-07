@@ -541,8 +541,8 @@ if(state.view==='Dashboard'){
 
         <section class="ama-stat-grid">
           <div class="ama-mini-stat purple"><span>Active Students</span><strong data-ama-count="${students.length}">0</strong><small>Registered records</small></div>
-          <div class="ama-mini-stat green"><span>Payments Received</span><strong>${money(paid)}</strong><small>Recorded receipts</small></div>
-          <div class="ama-mini-stat blue"><span>Active Staff</span><strong data-ama-count="${typeof activeStaff === 'number' ? activeStaff : ''}">${activeStaff}</strong><small>Active employee records</small></div>
+                 <div class="ama-mini-stat green"><span>Payments Received</span><strong data-ama-count="${money(paid)}">0</strong><small>Recorded receipts</small></div>
+                 <div class="ama-mini-stat blue"><span>Active Staff</span><strong data-ama-count="${typeof activeStaff === 'number' ? activeStaff : ''}">${activeStaff}</strong><small>Active employee records</small></div>
           <div class="ama-mini-stat rose"><span>Outstanding Fees</span><strong>${money(owing)}</strong><small>Student balances</small></div>
         </section>
 
