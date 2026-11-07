@@ -367,8 +367,8 @@ async function initDb() {
       school_id BIGINT NOT NULL REFERENCES schools(id) ON DELETE CASCADE,
       attendance_date DATE NOT NULL,
       session_name TEXT NOT NULL DEFAULT 'Morning',
-      status TEXT NOT NULL DEFAULT 'SUBMITTED'
-        CHECK (status IN ('DRAFT', 'SUBMITTED')),
+   status TEXT NOT NULL DEFAULT 'DRAFT'
+          CHECK (status IN ('DRAFT', 'SUBMITTED')),
       created_by BIGINT REFERENCES users(id) ON DELETE SET NULL,
       submitted_at TIMESTAMPTZ,
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -3793,6 +3793,171 @@ app.get(
     });
   })
 );
+app.get(
+  '/api/attendance/staff/bootstrap',
+  requireRole('ADMIN', 'HEADMASTER'),
+  asyncRoute(async (req, res) => {
+    const sid = schoolId(req);
+
+    const result = await q(
+      `SELECT id, employee_code, full_name, department, position
+       FROM employees
+       WHERE school_id = $1
+         AND status = 'ACTIVE'
+       ORDER BY full_name`,
+      [sid]
+    );
+
+    res.json({
+      employees: result.rows
+    });
+  })
+);
+app.post(
+  '/api/attendance/staff/registers',
+  requireRole('ADMIN', 'HEADMASTER'),
+  asyncRoute(async (req, res) => {
+    const sid = schoolId(req);
+    const {
+      attendanceDate,
+      sessionName = 'Morning',
+      entries
+    } = req.body || {};
+
+    if (
+      typeof attendanceDate !== 'string' ||
+      !/^\d{4}-\d{2}-\d{2}$/.test(attendanceDate) ||
+      !validText(sessionName, 40) ||
+      !Array.isArray(entries) ||
+      entries.length === 0 ||
+      entries.length > 500
+    ) {
+      return res.status(400).json({
+        error: 'Provide a valid date, session and staff attendance entries.'
+      });
+    }
+
+    const allowedStatuses = ['PRESENT', 'ABSENT', 'LATE', 'EXCUSED'];
+    const seen = new Set();
+
+    for (const entry of entries) {
+      const id = Number(entry?.employeeId);
+
+      if (
+        !Number.isSafeInteger(id) ||
+        id <= 0 ||
+        !allowedStatuses.includes(entry?.status) ||
+        seen.has(id)
+      ) {
+        return res.status(400).json({
+          error: 'Each staff member must have one valid attendance status.'
+        });
+      }
+
+      seen.add(id);
+    }
+
+    const client = await pool.connect();
+
+    try {
+      await client.query('BEGIN');
+
+      const employees = await client.query(
+        `SELECT id
+         FROM employees
+         WHERE school_id = $1
+           AND status = 'ACTIVE'
+           AND id = ANY($2::bigint[])`,
+        [sid, [...seen]]
+      );
+
+      if (employees.rowCount !== seen.size) {
+        await client.query('ROLLBACK');
+        return res.status(400).json({
+          error: 'One or more staff members are not active or do not belong to this school.'
+        });
+      }
+
+      await client.query(
+        `INSERT INTO staff_attendance_registers
+          (school_id, attendance_date, session_name, created_by)
+         VALUES ($1, $2, $3, $4)
+         ON CONFLICT (school_id, attendance_date, session_name)
+         DO NOTHING`,
+        [sid, attendanceDate, sessionName.trim(), req.session.user.id]
+      );
+
+      const existing = await client.query(
+        `SELECT id, status
+         FROM staff_attendance_registers
+         WHERE school_id = $1
+           AND attendance_date = $2
+           AND session_name = $3
+         FOR UPDATE`,
+        [sid, attendanceDate, sessionName.trim()]
+      );
+
+      const register = existing.rows[0];
+
+      if (register.status === 'SUBMITTED') {
+        await client.query('ROLLBACK');
+        return res.status(409).json({
+          error: 'This staff attendance register has already been submitted and is locked.'
+        });
+      }
+
+      await client.query(
+        `DELETE FROM staff_attendance_entries
+         WHERE register_id = $1 AND school_id = $2`,
+        [register.id, sid]
+      );
+
+      for (const entry of entries) {
+        await client.query(
+          `INSERT INTO staff_attendance_entries
+            (school_id, register_id, employee_id, status, reason)
+           VALUES ($1, $2, $3, $4, $5)`,
+          [
+            sid,
+            register.id,
+            Number(entry.employeeId),
+            entry.status,
+            typeof entry.reason === 'string'
+              ? entry.reason.trim().slice(0, 250)
+              : ''
+          ]
+        );
+      }
+
+      await client.query(
+        `UPDATE staff_attendance_registers
+         SET updated_at = NOW()
+         WHERE id = $1 AND school_id = $2`,
+        [register.id, sid]
+      );
+
+      await client.query('COMMIT');
+
+      await audit(
+        req,
+        'staff_attendance_register_saved',
+        'staff_attendance_register',
+        register.id
+      );
+
+      res.json({
+        ok: true,
+        registerId: register.id,
+        message: 'Staff attendance saved as a draft.'
+      });
+    } catch (error) {
+      await client.query('ROLLBACK').catch(() => {});
+      throw error;
+    } finally {
+      client.release();
+    }
+  })
+);
 app.post(
   '/api/attendance/registers',
   requireRole('ADMIN', 'HEADMASTER'),
@@ -4081,6 +4246,82 @@ app.post(
     );
 
     res.json({ registers: result.rows });
+  })
+);
+app.get(
+  '/api/attendance/staff/registers',
+  requireRole('ADMIN', 'HEADMASTER'),
+  asyncRoute(async (req, res) => {
+    const sid = schoolId(req);
+
+    const from = typeof req.query.from === 'string'
+      ? req.query.from
+      : '';
+
+    const to = typeof req.query.to === 'string'
+      ? req.query.to
+      : '';
+
+    const validDate = value =>
+      !value || (
+        /^\d{4}-\d{2}-\d{2}$/.test(value) &&
+        !Number.isNaN(Date.parse(value))
+      );
+
+    if (!validDate(from) || !validDate(to)) {
+      return res.status(400).json({
+        error: 'Use valid dates in YYYY-MM-DD format.'
+      });
+    }
+
+    if (from && to && from > to) {
+      return res.status(400).json({
+        error: 'The start date must not be after the end date.'
+      });
+    }
+
+    const result = await q(
+      `SELECT
+         r.id,
+         r.attendance_date,
+         r.session_name,
+         r.status,
+         r.created_at,
+         r.submitted_at,
+         COALESCE(
+           json_agg(
+             json_build_object(
+               'employeeId', e.id,
+               'employeeCode', e.employee_code,
+               'employeeName', e.full_name,
+               'department', e.department,
+               'position', e.position,
+               'status', ae.status,
+               'reason', ae.reason
+             )
+             ORDER BY e.full_name
+           ) FILTER (WHERE ae.id IS NOT NULL),
+           '[]'::json
+         ) AS entries
+       FROM staff_attendance_registers r
+       LEFT JOIN staff_attendance_entries ae
+         ON ae.register_id = r.id
+        AND ae.school_id = r.school_id
+       LEFT JOIN employees e
+         ON e.id = ae.employee_id
+        AND e.school_id = ae.school_id
+       WHERE r.school_id = $1
+         AND ($2 = '' OR r.attendance_date >= $2::date)
+         AND ($3 = '' OR r.attendance_date <= $3::date)
+       GROUP BY r.id
+       ORDER BY r.attendance_date DESC, r.session_name
+       LIMIT 100`,
+      [sid, from, to]
+    );
+
+    res.json({
+      registers: result.rows
+    });
   })
 );
 /* =========================================================
