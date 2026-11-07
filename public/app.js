@@ -4084,9 +4084,52 @@ toast(parentId ? 'Parent updated successfully.' : 'Parent registered successfull
       await refresh();
       state.view = 'Attendance Register';
       render();
-      toast('Attendance register saved and dashboard attendance refreshed.');
+          toast('Attendance register saved and dashboard attendance refreshed.');
+
+    } else if (form.id === 'staffAttendanceForm') {
+      if (!['ADMIN', 'HEADMASTER'].includes(state.user?.role)) {
+        throw new Error('You do not have permission to save staff attendance.');
+      }
+
+      const attendanceDate = String(v.attendanceDate || '');
+      const sessionName = String(v.sessionName || 'Morning');
+
+      const entries = Array.from(
+        form.querySelectorAll('[data-staff-attendance-status]')
+      ).map(select => {
+        const employeeId = Number(select.dataset.staffAttendanceStatus);
+        const reasonInput = form.querySelector(
+          `[data-staff-attendance-reason="${employeeId}"]`
+        );
+
+        return {
+          employeeId,
+          status: select.value,
+          reason: reasonInput ? reasonInput.value.trim() : ''
+        };
+      });
+
+      if (!attendanceDate || !entries.length) {
+        throw new Error('Select active staff members and a valid attendance date.');
+      }
+
+      await api('/api/attendance/staff/registers', {
+        method: 'POST',
+        body: JSON.stringify({
+          attendanceDate,
+          sessionName,
+          entries
+        })
+      });
+
+      await refresh();
+      state.view = 'Attendance Register';
+      state.attendanceTab = 'staff';
+      render();
+      toast('Staff attendance saved successfully.');
+
     } else if (form.id === 'attendanceSettingsForm') {
-      const schoolDays = String(v.schoolDays || '')
+     const schoolDays = String(v.schoolDays || '')
         .split(',')
         .map(day => day.trim())
         .filter(Boolean);
