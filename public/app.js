@@ -547,6 +547,24 @@ if(state.view==='Dashboard'){
   const studentsOnTime = [...studentAttendance.values()].filter(s => s === 'PRESENT').length;
   const studentsPresent = studentsOnTime + studentsLate;
   const studentsAbsent = [...studentAttendance.values()].filter(s => s === 'ABSENT').length;
+const staffAttendanceEntries = (d.staffAttendanceRegisters || [])
+  .flatMap(register => register.entries || []);
+
+const staffPresent = staffAttendanceEntries.filter(
+  entry => String(entry.status || '').toUpperCase() === 'PRESENT'
+).length;
+
+const staffAbsent = staffAttendanceEntries.filter(
+  entry => String(entry.status || '').toUpperCase() === 'ABSENT'
+).length;
+
+const staffLate = staffAttendanceEntries.filter(
+  entry => String(entry.status || '').toUpperCase() === 'LATE'
+).length;
+
+const staffExcused = staffAttendanceEntries.filter(
+  entry => String(entry.status || '').toUpperCase() === 'EXCUSED'
+).length;
   const attendanceTotal = studentsOnTime + studentsLate + studentsAbsent + studentsExcused;
   // AMA LIVE DASHBOARD ANALYTICS
   const feeChartTotal = paid + outstandingFees;
