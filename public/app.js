@@ -1740,9 +1740,93 @@ html += `
     </form>
   `);
   } else {
-    // Staff attendance panel will go here.
-  }
+    const staffEmployees = state.data.staffAttendanceEmployees || [];
 
+    html += panel('Staff Attendance Register', `
+      <form id="staffAttendanceForm">
+        <div class="form-grid">
+          <label class="field">
+            Attendance date
+            <input type="date" name="attendanceDate"
+              value="${todayString}" required>
+          </label>
+
+          <label class="field">
+            Session
+            <select name="sessionName" required>
+              <option value="Morning">Morning</option>
+              <option value="Afternoon">Afternoon</option>
+            </select>
+          </label>
+        </div>
+
+        <div class="toolbar" style="margin:16px 0">
+          <button class="btn soft" type="button"
+            data-action="staff-attendance-mark-all">
+            Mark all present
+          </button>
+          <span>
+            Active staff:
+            <strong>${staffEmployees.length}</strong>
+          </span>
+        </div>
+
+        ${staffEmployees.length ? `
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Staff ID</th>
+                  <th>Staff name</th>
+                  <th>Department</th>
+                  <th>Attendance status</th>
+                  <th>Reason / note</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${staffEmployees.map(employee => `
+                  <tr>
+                    <td>${esc(employee.employee_code || '—')}</td>
+                    <td><strong>${esc(employee.full_name)}</strong></td>
+                    <td>${esc(employee.department || '—')}</td>
+                    <td>
+                      <select
+                        name="status_${esc(employee.id)}"
+                        data-staff-attendance-status="${esc(employee.id)}"
+                        required>
+                        <option value="PRESENT">Present</option>
+                        <option value="ABSENT">Absent</option>
+                        <option value="LATE">Late</option>
+                        <option value="EXCUSED">Excused</option>
+                      </select>
+                    </td>
+                    <td>
+                      <input
+                        name="reason_${esc(employee.id)}"
+                        data-staff-attendance-reason="${esc(employee.id)}"
+                        maxlength="250"
+                        placeholder="Optional note">
+                    </td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
+        ` : `
+          <p class="empty">
+            No active staff members found. Register employees first.
+          </p>
+        `}
+
+        <div class="form-actions">
+          <button class="btn primary" type="submit"
+            ${staffEmployees.length ? '' : 'disabled'}>
+            Save staff attendance draft
+          </button>
+        </div>
+      </form>
+    `);
+  }
 } else if (state.view === 'Match Students') {
        const normalize = value =>
     String(value || '').trim().toLowerCase().replace(/\s+/g, ' ');
