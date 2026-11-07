@@ -1642,6 +1642,7 @@ html += `
     </button>
   </div>
 `;
+  if (state.attendanceTab === 'students') {
   html += panel('Register details', `
     <form id="attendanceRegisterForm">
       <div class="form-grid">
