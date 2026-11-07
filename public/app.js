@@ -3537,6 +3537,7 @@ document.addEventListener('submit', async e => {
 'classroomForm',
     'classManagementSettingsForm',
     'attendanceRegisterForm',
+       'staffAttendanceForm',
     'attendanceSettingsForm',
     'feedingSettingsForm',
 'feedingPlanForm',
