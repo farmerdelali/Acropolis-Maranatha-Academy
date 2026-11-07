@@ -1031,6 +1031,29 @@ if (!allowedImportRoles[importType]?.includes(role)) {
 
         if (student && finalSubject && term) {
           const markKey =
+            if (student && req.session.user.role === 'TEACHER') {
+  const assigned = await q(
+    `SELECT 1
+     FROM teacher_subject_assignments
+     WHERE school_id = $1
+       AND teacher_id = $2
+       AND class_name = $3
+       AND lower(subject) = lower($4)
+     LIMIT 1`,
+    [
+      sid,
+      req.session.user.id,
+      student.class_name,
+      finalSubject
+    ]
+  );
+
+  if (!assigned.rowCount) {
+    errors.push(
+      'You can only import marks for subjects assigned to you in the student’s class.'
+    );
+  }
+}
             `${student.id}|${finalSubject.toLowerCase()}|${term.toLowerCase()}`;
 
           if (seenMarks.has(markKey)) {
