@@ -347,6 +347,7 @@ state.data = {
   pickupPersons,
   employees,
   staffAttendanceEmployees,
+  staffAttendanceRegisters,
     systemSettings,
     graduations,
     classActivations,
