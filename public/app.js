@@ -2316,7 +2316,7 @@ counters.forEach(counter => {
 
   requestAnimationFrame(animateCount);
 });
-                 }                 
+                              
 mainContent.classList.remove('motion-enter');
 void mainContent.offsetWidth;
 mainContent.classList.add('motion-enter');
