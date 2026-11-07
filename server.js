@@ -768,7 +768,7 @@ app.put('/api/system-settings', requireRole('ADMIN'), asyncRoute(async (req, res
 
 app.post(
   '/api/import/preview',
-  requireRole('ADMIN'),
+  requireAuth,
   importUpload.single('importFile'),
   asyncRoute(async (req, res) => {
     if (!req.file) {
@@ -1079,7 +1079,7 @@ app.post(
 );
 app.post(
   '/api/import/commit',
-  requireRole('ADMIN'),
+  requireAuth,
   importUpload.single('importFile'),
   asyncRoute(async (req, res) => {
     if (!req.file) {
@@ -1089,7 +1089,18 @@ app.post(
     }
 
     const importType = String(req.body.importType || '');
+const role = req.session.user.role;
 
+const allowedImportRoles = {
+  students: ['ADMIN', 'HEADMASTER'],
+  marks: ['ADMIN', 'HEADMASTER', 'TEACHER']
+};
+
+if (!allowedImportRoles[importType]?.includes(role)) {
+  return res.status(403).json({
+    error: 'Your role does not have permission to import this type of record.'
+  });
+}
     if (!['students', 'marks'].includes(importType)) {
       return res.status(400).json({
         error: 'Choose student records or examination marks.'
