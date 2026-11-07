@@ -250,7 +250,7 @@ if (state.user && state.user.role === 'ADMIN') {
 const employeeResult = await api('/api/employees');
 employees = employeeResult.employees || [];
 }
-  
+
 let attendanceRegisters = [];
 let attendanceRecorded = false;
 
