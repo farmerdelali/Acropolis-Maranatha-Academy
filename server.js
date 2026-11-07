@@ -361,6 +361,36 @@ async function initDb() {
       updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
       UNIQUE (register_id, student_id)
     )
+  `);  await q(`
+    CREATE TABLE IF NOT EXISTS staff_attendance_registers (
+      id BIGSERIAL PRIMARY KEY,
+      school_id BIGINT NOT NULL REFERENCES schools(id) ON DELETE CASCADE,
+      attendance_date DATE NOT NULL,
+      session_name TEXT NOT NULL DEFAULT 'Morning',
+      status TEXT NOT NULL DEFAULT 'SUBMITTED'
+        CHECK (status IN ('DRAFT', 'SUBMITTED')),
+      created_by BIGINT REFERENCES users(id) ON DELETE SET NULL,
+      submitted_at TIMESTAMPTZ,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      UNIQUE (school_id, attendance_date, session_name)
+    )
+  `);
+
+  await q(`
+    CREATE TABLE IF NOT EXISTS staff_attendance_entries (
+      id BIGSERIAL PRIMARY KEY,
+      school_id BIGINT NOT NULL REFERENCES schools(id) ON DELETE CASCADE,
+      register_id BIGINT NOT NULL
+        REFERENCES staff_attendance_registers(id) ON DELETE CASCADE,
+      employee_id BIGINT NOT NULL
+        REFERENCES employees(id) ON DELETE CASCADE,
+      status TEXT NOT NULL
+        CHECK (status IN ('PRESENT', 'ABSENT', 'LATE', 'EXCUSED')),
+      reason TEXT NOT NULL DEFAULT '',
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      UNIQUE (register_id, employee_id)
+    )
   `);
 }
 
