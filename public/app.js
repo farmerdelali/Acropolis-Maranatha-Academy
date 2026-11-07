@@ -1568,19 +1568,36 @@ placeholder="Enter one class level per line">${esc(classLevels)}</textarea>
 
 } else if (state.view === 'Attendance Register') {
   
-  const attendanceClasses = [
-    ...new Set([
-      ...(d.classrooms || [])
-        .filter(c => !c.status || c.status === 'ACTIVE')
-        .map(c => String(c.class_name || '').trim())
-        .filter(Boolean),
-      ...students
-        .filter(s => !s.archived)
-        .map(s => String(s.class_name || s.class || s.className || '').trim())
-        .filter(Boolean)
-    ])
-  ];
+const defaultClasses = [
+  'Pre-Nursery',
+  'Nursery 1',
+  'Nursery 2',
+  'KG 1',
+  'KG 2',
+  'Basic 1',
+  'Basic 2',
+  'Basic 3',
+  'Basic 4',
+  'Basic 5',
+  'Basic 6',
+  'Basic 7',
+  'Basic 8',
+  'Basic 9'
+];
 
+const attendanceClasses = [
+  ...new Set([
+    ...defaultClasses,
+    ...(state.data.classActivationClasses || []),
+    ...(d.classrooms || [])
+      .map(c => String(c.class_name || '').trim())
+      .filter(Boolean),
+    ...students
+      .filter(s => !s.archived)
+      .map(s => String(s.class_name || s.class || s.className || '').trim())
+      .filter(Boolean)
+  ])
+].sort();
   const selectedClass = attendanceClasses[0] || '';
 
   const attendanceStudents = students.filter(s =>
