@@ -596,16 +596,26 @@ if(state.view==='Dashboard'){
 <div class="panel-head">
   <h3>Notice Board</h3>
   ${state.user && ['ADMIN', 'HEADMASTER'].includes(state.user.role) ? '<button class="btn btn-secondary" data-action="manage-notices">Manage Notices</button>' : ''}
-  <span class="ama-demo-label">SAMPLE</span>
+  <span class="ama-live-label">LIVE DATA</span>
 </div>
 
-                 <div class="panel-body">
-           ${(d.notices && d.notices.length ? d.notices : dashboardNotices.map(n => ({ title: n.name, message: n.text, createdAt: n.date, isDemo: true }))).map(n=>`
-              <article class="ama-notice-item">
-                <span class="ama-notice-avatar">${esc((n.title || 'N').slice(0,1))}</span>
-                <div><strong>${esc(n.title)}</strong><p>${esc(n.message)}</p><small>${esc(n.isDemo ? n.createdAt : new Date(n.createdAt).toLocaleDateString())}</small></div>
-              </article>`).join('')}
-          </div>
+               <div class="panel-body">
+  ${dashboardNotices.length ? dashboardNotices.map(n => `
+    <article class="ama-notice-item">
+      <span class="ama-notice-avatar">${esc((n.title || 'N').slice(0,1))}</span>
+      <div>
+        <strong>${esc(n.title)}</strong>
+        <p>${esc(n.message)}</p>
+        <small>${n.createdAt ? new Date(n.createdAt).toLocaleDateString() : ''}</small>
+      </div>
+    </article>
+  `).join('') : `
+    <div class="ama-empty-state">
+      <p>No published notices yet.</p>
+      <small>Published school notices will appear here.</small>
+    </div>
+  `}
+</div>
         </section>
 
         <section class="panel ama-events-panel">
