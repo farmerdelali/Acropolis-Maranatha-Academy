@@ -194,7 +194,9 @@ async function loadData() {
   const events = eventResult.events || [];
   if (state.user && state.user.role === 'PARENT') {
     state.data = {
-      ...d,
+           ...d,
+      notices,
+      events,
       parents: [],
       denials: [],
       pickupPersons: [],
@@ -295,7 +297,10 @@ if (state.user && state.user.role === 'ADMIN') {
   }
 }
 state.data = {
-  ...d,  registrationRules,
+  ...d,
+  notices,
+  events,
+  registrationRules,
   parents,
   denials,
   pickupPersons,
