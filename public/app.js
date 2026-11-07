@@ -244,10 +244,18 @@ const classActivations = classActivationResult.activations || [];
   const denialResult = await api('/api/drop-off-denials');
   denials = denialResult.denials || [];
 }
-  let employees = [];
+    let employees = [];
+
+  if (state.user && state.user.role === 'ADMIN') {
+    try {
+      const employeeResult = await api('/api/employees');
+      employees = employeeResult.employees || [];
+    } catch (error) {
+      console.warn('Employee records could not be loaded:', error);
+    }
+  }
 
 let staffAttendanceEmployees = [];
-
 if (state.user && ['ADMIN', 'HEADMASTER'].includes(state.user.role)) {
   try {
     const staffAttendanceResult = await api(
