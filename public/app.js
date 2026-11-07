@@ -880,10 +880,32 @@ Required fields, file limits and your role permissions will still be checked.
      `);
 
 }else if(state.view==='Marks'){
+const markClasses = [...new Set([
+  'Pre-Nursery','Nursery 1','Nursery 2',
+  'KG 1','KG 2',
+  'Basic 1','Basic 2','Basic 3',
+  'Basic 4','Basic 5','Basic 6',
+  'Basic 7','Basic 8','Basic 9',
+  ...(state.data.classActivationClasses || []),
+  ...(state.data.students || [])
+    .filter(s => !s.archived)
+    .map(s => s.class_name)
+    .filter(Boolean)
+])].sort();
+  const markClassDropdown = `
+  <label class="field">
+    Filter marks by class
+    <select id="marksClassFilter">
+      <option value="">All registered classes</option>
+      ${markClasses.map(c =>
+        `<option value="${esc(c)}">${esc(c)}</option>`
+      ).join('')}
+    </select>
+  </label>
+`;
+ const markRows=d.marks.length?`<div class="table-wrap"><table><thead><tr><th>Student</th><th>Student ID</th><th>Class</th><th>Subject</th><th>Term</th><th>Class Score / 30</th><th>Exams Score / 70</th><th>Total / 100</th><th>Grade</th><th>Actions</th></tr></thead><tbody>${d.marks.map(m=>{const total=Number(m.score)||0;return `<tr data-mark-class="${esc(m.class_name||'')}"><td>${esc(m.student_name||'')}</td><td>${esc(m.student_code||'')}</td><td>${esc(m.class_name||'')}</td><td>${esc(m.subject)}</td><td>${esc(m.term)}</td><td>${m.class_score==null?'—':Number(m.class_score).toFixed(1)}</td><td>${m.exam_score==null?'—':Number(m.exam_score).toFixed(1)}</td><td><strong>${total.toFixed(1)}</strong></td><td><span class="badge">${grade(total)}</span></td><td>${state.user.role==='ADMIN'?`<button class="btn danger" data-action="delete-mark" data-id="${esc(m.id)}">Delete</button>`:'—'}</td></tr>`}).join('')}</tbody></table></div>`:'<div class="empty">No marks recorded yet. Use Enter mark to add results.</div>';
 
- const markRows=d.marks.length?`<div class="table-wrap"><table><thead><tr><th>Student</th><th>Student ID</th><th>Class</th><th>Subject</th><th>Term</th><th>Class Score / 30</th><th>Exams Score / 70</th><th>Total / 100</th><th>Grade</th><th>Actions</th></tr></thead><tbody>${d.marks.map(m=>{const total=Number(m.score)||0;return `<tr><td>${esc(m.student_name||'')}</td><td>${esc(m.student_code||'')}</td><td>${esc(m.class_name||'')}</td><td>${esc(m.subject)}</td><td>${esc(m.term)}</td><td>${m.class_score==null?'—':Number(m.class_score).toFixed(1)}</td><td>${m.exam_score==null?'—':Number(m.exam_score).toFixed(1)}</td><td><strong>${total.toFixed(1)}</strong></td><td><span class="badge">${grade(total)}</span></td><td>${state.user.role==='ADMIN'?`<button class="btn danger" data-action="delete-mark" data-id="${esc(m.id)}">Delete</button>`:'—'}</td></tr>`}).join('')}</tbody></table></div>`:'<div class="empty">No marks recorded yet. Use Enter mark to add results.</div>';
-
- html=pageHead('Examinations & marks','Record subject scores and review students’ results.',`${['ADMIN','TEACHER'].includes(state.user.role)?'<button class="btn primary" data-action="add-mark">+ Enter mark</button><button class="btn soft" data-action="bulk-class-marks">Bulk Class Marks</button>':''}`)+panel('Recorded results',markRows);
+ html=pageHead('Examinations & marks','Record subject scores and review students’ results.',`${['ADMIN','TEACHER'].includes(state.user.role)?'<button class="btn primary" data-action="add-mark">+ Enter mark</button><button class="btn soft" data-action="bulk-class-marks">Bulk Class Marks</button>':''}`)+panel('Recorded results',markClassDropdown+markRows);
 
 
 } else if (state.view === 'Terminal Reports') {
@@ -3217,7 +3239,14 @@ document.addEventListener('change', e => {
         ).join('');
     }
   }
- 
+   if (e.target.id === 'marksClassFilter') {
+    const selectedClass = e.target.value;
+
+    document.querySelectorAll('[data-mark-class]').forEach(row => {
+      row.hidden = selectedClass !== '' &&
+        row.dataset.markClass !== selectedClass;
+    });
+   }
   if (e.target.id === 'attendanceClass') {
 const selectedClass = e.target.value;
 const rows = document.getElementById('attendanceStudentRows');
