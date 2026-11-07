@@ -650,11 +650,38 @@ if(state.view==='Dashboard'){
             <span class="ama-live-label">LIVE DATA</span>
           </div>
           <div class="panel-body">
-            <div class="ama-empty-state">
-              <p>No examination results recorded yet.</p>
-              <small>Marks entered into the school system will appear here.</small>
-            </div>
-          </div>
+  ${dashboardMarks.length ? `
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Student</th>
+            <th>Subject</th>
+            <th>Term</th>
+            <th>Score</th>
+            <th>Grade</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${dashboardMarks.map(m => `
+            <tr>
+              <td>${esc(m.student_name || 'Student')}</td>
+              <td>${esc(m.subject || '')}</td>
+              <td>${esc(m.term || '')}</td>
+              <td><strong>${Number(m.score || 0).toFixed(1)}</strong></td>
+              <td><span class="badge">${grade(Number(m.score || 0))}</span></td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    </div>
+  ` : `
+    <div class="ama-empty-state">
+      <p>No examination results recorded yet.</p>
+      <small>Marks entered into the school system will appear here.</small>
+    </div>
+  `}
+</div>
           <div class="panel-body"><button class="btn soft" data-view="Marks">Open Marks</button></div>
         </section>
 
