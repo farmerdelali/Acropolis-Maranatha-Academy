@@ -406,10 +406,11 @@ app.use('/api', (req, res, next) => {
   const allowed =
     (req.method === 'GET' && (
       req.path === '/bootstrap' ||
-      req.path === '/parent-portal'
+      req.path === '/parent-portal' ||
+      req.path === '/notices' ||
+      req.path === '/events'
     )) ||
     (req.method === 'POST' && req.path === '/logout');
-
   if (allowed) {
     return next();
   }
