@@ -7251,3 +7251,222 @@ body.dark-mode .ama-reference-dashboard .empty {
     transition: none;
   }
 }
+/* =====================================================
+   ACROPOLIS MARANATHA ACADEMY
+   PREMIUM MULTI-COLOUR DASHBOARD THEME
+   ===================================================== */
+
+/* ENTIRE DASHBOARD BACKGROUND */
+.main-content:has(.ama-reference-dashboard) {
+  background:
+    radial-gradient(
+      ellipse at 8% 5%,
+      rgba(72, 111, 170, .24),
+      transparent 40%
+    ),
+    radial-gradient(
+      ellipse at 92% 25%,
+      rgba(126, 91, 165, .17),
+      transparent 36%
+    ),
+    radial-gradient(
+      ellipse at 50% 100%,
+      rgba(38, 130, 119, .14),
+      transparent 45%
+    ),
+    #dce5ef !important;
+  background-attachment: fixed !important;
+}
+
+.ama-reference-dashboard {
+  background: transparent !important;
+  color: #203047 !important;
+}
+
+.ama-reference-dashboard .ama-dashboard-top,
+.ama-reference-dashboard .ama-dashboard-middle,
+.ama-reference-dashboard .ama-dashboard-bottom {
+  background: transparent !important;
+}
+
+/* SCHOOL PROFILE — DEEP NAVY */
+.ama-reference-dashboard .ama-profile-card {
+  background: linear-gradient(145deg, #203b60, #142943) !important;
+  border: 1px solid #5476a5 !important;
+}
+
+/* STATISTIC CARDS — DISTINCT COLOURS */
+.ama-reference-dashboard .ama-mini-stat.purple {
+  background: linear-gradient(145deg, #61478b, #3c2c60) !important;
+  border: 1px solid #a58bd7 !important;
+}
+
+.ama-reference-dashboard .ama-mini-stat.green {
+  background: linear-gradient(145deg, #21845f, #145b43) !important;
+  border: 1px solid #51c69a !important;
+}
+
+.ama-reference-dashboard .ama-mini-stat.blue {
+  background: linear-gradient(145deg, #3478ad, #204c78) !important;
+  border: 1px solid #75b8e5 !important;
+}
+
+.ama-reference-dashboard .ama-mini-stat.rose {
+  background: linear-gradient(145deg, #a34e68, #71364d) !important;
+  border: 1px solid #e18da4 !important;
+}
+
+/* GENERAL DASHBOARD PANELS */
+.ama-reference-dashboard .panel {
+  background: linear-gradient(145deg, #263951, #1a2a40) !important;
+  border: 1px solid #506985 !important;
+  border-radius: 16px !important;
+}
+
+.ama-reference-dashboard .panel-head {
+  background: #304963 !important;
+  border-bottom: 1px solid #526e8c !important;
+}
+
+/* ATTENDANCE — TEAL */
+.ama-reference-dashboard .ama-attendance-panel {
+  background: linear-gradient(145deg, #1c6267, #14464d) !important;
+  border-color: #4a9fa1 !important;
+}
+
+/* ANALYTICS CARDS */
+.ama-reference-dashboard .ama-chart-card {
+  background: linear-gradient(145deg, #edf2f8, #d8e3f0) !important;
+  border: 1px solid #a9bdd5 !important;
+  border-radius: 16px !important;
+  box-shadow: 0 9px 20px rgba(20, 39, 65, .16) !important;
+}
+
+.ama-reference-dashboard .ama-chart-card h3 {
+  color: #203957 !important;
+}
+
+.ama-reference-dashboard .ama-chart-card .muted,
+.ama-reference-dashboard .ama-chart-legend p {
+  color: #52677f !important;
+}
+
+/* FEE COLLECTION — GREEN AND GOLD */
+.ama-reference-dashboard .ama-fee-pie {
+  background: conic-gradient(
+    #159b70 0 var(--collected),
+    #e5ad43 var(--collected) 100%
+  ) !important;
+}
+
+.ama-reference-dashboard .ama-pie-center {
+  background: #edf2f8 !important;
+}
+
+.ama-reference-dashboard .ama-pie-center strong {
+  color: #203957 !important;
+}
+
+/* GRADE CHART — MIXED COLOURS */
+.ama-reference-dashboard .ama-grade-row:nth-child(1) .ama-grade-fill {
+  background: linear-gradient(90deg, #159b70, #55c99a) !important;
+}
+
+.ama-reference-dashboard .ama-grade-row:nth-child(2) .ama-grade-fill {
+  background: linear-gradient(90deg, #3478c0, #70b8ed) !important;
+}
+
+.ama-reference-dashboard .ama-grade-row:nth-child(3) .ama-grade-fill {
+  background: linear-gradient(90deg, #8060bd, #b092e8) !important;
+}
+
+.ama-reference-dashboard .ama-grade-row:nth-child(4) .ama-grade-fill {
+  background: linear-gradient(90deg, #c18a2d, #edc46a) !important;
+}
+
+.ama-reference-dashboard .ama-grade-row:nth-child(5) .ama-grade-fill {
+  background: linear-gradient(90deg, #bd5267, #e58a9b) !important;
+}
+
+/* NOTICES AND EVENTS */
+.ama-reference-dashboard .ama-notice-item,
+.ama-reference-dashboard .ama-event-item {
+  background: #2b4059 !important;
+  border: 1px solid #506985 !important;
+  border-radius: 12px !important;
+}
+
+.ama-reference-dashboard .ama-notice-avatar {
+  background: linear-gradient(145deg, #8060bd, #513b83) !important;
+  border: 1px solid #ad91e0 !important;
+}
+
+/* CLASS AND ENROLMENT PANELS */
+.ama-reference-dashboard .dashboard-class-row,
+.ama-reference-dashboard .ama-enrollment-row {
+  background: #2a405b !important;
+  border: 1px solid #506985 !important;
+}
+
+.ama-reference-dashboard .ama-enrollment-fill {
+  background: linear-gradient(90deg, #347fba, #65b9e9) !important;
+}
+
+/* READABLE TEXT ON COLOURED CARDS */
+.ama-reference-dashboard .ama-mini-stat span,
+.ama-reference-dashboard .ama-mini-stat small,
+.ama-reference-dashboard .ama-mini-stat strong {
+  color: #ffffff !important;
+}
+
+/* DARK MODE BACKGROUND */
+body.dark-mode .main-content:has(.ama-reference-dashboard) {
+  background:
+    radial-gradient(
+      ellipse at 8% 5%,
+      rgba(54, 91, 145, .25),
+      transparent 40%
+    ),
+    radial-gradient(
+      ellipse at 92% 25%,
+      rgba(103, 70, 145, .17),
+      transparent 36%
+    ),
+    #101a2b !important;
+}
+
+/* DARK MODE ANALYTICS */
+body.dark-mode .ama-reference-dashboard .ama-chart-card {
+  background: linear-gradient(145deg, #293b53, #1b2b40) !important;
+  border-color: #506985 !important;
+}
+
+body.dark-mode .ama-reference-dashboard .ama-chart-card h3,
+body.dark-mode .ama-reference-dashboard .ama-chart-legend strong,
+body.dark-mode .ama-reference-dashboard .ama-grade-label,
+body.dark-mode .ama-reference-dashboard .ama-grade-count {
+  color: #edf3fc !important;
+}
+
+body.dark-mode .ama-reference-dashboard .ama-chart-card .muted,
+body.dark-mode .ama-reference-dashboard .ama-chart-legend p {
+  color: #c1d0e4 !important;
+}
+
+body.dark-mode .ama-reference-dashboard .ama-pie-center {
+  background: #293b53 !important;
+}
+
+body.dark-mode .ama-reference-dashboard .ama-pie-center strong {
+  color: #75dfb3 !important;
+}
+
+/* NO GLASS OR WHITE REFLECTION EFFECTS */
+.ama-reference-dashboard .panel,
+.ama-reference-dashboard .ama-mini-stat,
+.ama-reference-dashboard .ama-chart-card,
+.ama-reference-dashboard .ama-profile-card {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  animation: none;
+}
