@@ -316,7 +316,7 @@ state.data = {
   denials,
   pickupPersons,
   employees,
-  staffAttendanceEmployees
+  staffAttendanceEmployees,
     systemSettings,
     graduations,
     classActivations,
