@@ -685,14 +685,28 @@ if(state.view==='Dashboard'){
           <div class="panel-body"><button class="btn soft" data-view="Marks">Open Marks</button></div>
         </section>
 
-        <section class="panel ama-leave-panel">
-          <div class="panel-head"><h3>Leave Status</h3><span class="ama-demo-label">SAMPLE</span></div>
-          <div class="panel-body">
-            ${dashboardLeave.map(l=>`<article class="ama-leave-item"><div><strong>${esc(l.type)}</strong><small>Illustrative entry · Demo only</small></div><span class="ama-leave-status ${l.status==='Approved'?'approved':'pending'}">${l.status}</span></article>`).join('')}
-            <p class="ama-demo-note">These entries are examples, not actual leave requests.</p>
-          </div>
-        </section>
+       <section class="panel ama-leave-panel">
+  <div class="panel-head">
+    <h3>Recent Payments</h3>
+    <span class="ama-live-label">LIVE DATA</span>
+  </div>
+  <div class="panel-body">
+    ${d.payments && d.payments.length ? d.payments.slice(0, 5).map(p => `
+      <article class="ama-leave-item">
+        <div>
+          <strong>${esc(p.student_name || 'Student')}</strong>
+          <small>${p.paid_at ? new Date(p.paid_at).toLocaleDateString() : 'Date unavailable'}</small>
+        </div>
+        <span class="ama-leave-status approved">${money(Number(p.amount) || 0)}</span>
+      </article>
+    `).join('') : `
+      <div class="ama-empty-state">
+        <p>No payments recorded yet.</p>
+        <small>Recorded school payments will appear here.</small>
       </div>
+    `}
+  </div>
+</section>
       <section class="ama-analytics-grid">
 
         <article class="panel ama-chart-card">
