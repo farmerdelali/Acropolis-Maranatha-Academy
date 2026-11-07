@@ -778,7 +778,18 @@ app.post(
     }
 
     const importType = String(req.body.importType || '');
+const role = req.session.user.role;
 
+const allowedImportRoles = {
+  students: ['ADMIN', 'HEADMASTER'],
+  marks: ['ADMIN', 'HEADMASTER', 'TEACHER']
+};
+
+if (!allowedImportRoles[importType]?.includes(role)) {
+  return res.status(403).json({
+    error: 'Your role does not have permission to import this type of record.'
+  });
+}
     if (!['students', 'marks'].includes(importType)) {
       return res.status(400).json({
         error: 'Choose either student records or examination marks.'
