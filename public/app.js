@@ -843,7 +843,7 @@ if(state.view==='Dashboard'){
    'Import Data',
    'Import student records and examination marks using CSV or Excel files.'
  )+
- panel('Upload and validate records',`
+panel('Upload and save records',`
    <form id="importDataForm">
      <label class="field">What would you like to import?
        <select name="importType" required>
@@ -866,16 +866,15 @@ if(state.view==='Dashboard'){
      <div style="padding:14px;border-radius:10px;background:var(--bg);margin:16px 0">
        <strong>Before importing</strong>
        <p style="margin:8px 0 0;color:var(--muted)">
-         Your file will be checked before records are saved.
-         We will identify invalid entries and possible duplicates.
-         Existing records must not be silently overwritten.
-       </p>
+       Your selected file will be uploaded and saved directly.
+Required fields, file limits and your role permissions will still be checked.
+              </p>
      </div>
 
      <div class="form-actions">
        <button class="btn primary" type="submit">
-         Preview and validate file
-       </button>
+         Upload and save records
+                </button>
      </div>
        </form>
     <div id="importPreviewResults"></div>
