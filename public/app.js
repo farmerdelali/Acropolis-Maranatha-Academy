@@ -3964,10 +3964,10 @@ toast(parentId ? 'Parent updated successfully.' : 'Parent registered successfull
         })
       });
 
+      await refresh();
       state.view = 'Attendance Register';
       render();
-      toast('Attendance register saved as a draft.');
-
+      toast('Attendance register saved and dashboard attendance refreshed.');
     } else if (form.id === 'attendanceSettingsForm') {
       const schoolDays = String(v.schoolDays || '')
         .split(',')
