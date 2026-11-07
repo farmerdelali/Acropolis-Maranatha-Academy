@@ -648,6 +648,15 @@ const staffExcused = staffAttendanceEntries.filter(
     Record attendance to see your school's attendance summary.
   </p>`
           }
+                    ${staffAttendanceEntries.length ? `
+            <div class="ama-staff-attendance-summary">
+              <h4>Staff Attendance</h4>
+              <p>Present: <strong>${staffPresent}</strong></p>
+              <p>Absent: <strong>${staffAbsent}</strong></p>
+              <p>Late: <strong>${staffLate}</strong></p>
+              <p>Excused: <strong>${staffExcused}</strong></p>
+            </div>
+          ` : ''}
           </section>
       </div>
 
