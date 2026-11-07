@@ -179,7 +179,19 @@ if (name === 'Feeding Management') {
  
 async function loadData() {
   const d = await api('/api/bootstrap');
-  
+    const [noticeResult, eventResult] = await Promise.all([
+    api('/api/notices').catch(error => {
+      console.warn('Notices could not be loaded:', error);
+      return { notices: [] };
+    }),
+    api('/api/events').catch(error => {
+      console.warn('Events could not be loaded:', error);
+      return { events: [] };
+    })
+  ]);
+
+  const notices = noticeResult.notices || [];
+  const events = eventResult.events || [];
   if (state.user && state.user.role === 'PARENT') {
     state.data = {
       ...d,
