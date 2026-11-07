@@ -2259,64 +2259,68 @@ ${(state.data.employees || [])
 
 const mainContent = $('#mainContent');
 mainContent.innerHTML = html;
-// AMA: AUTOMATIC LIVE COUNTERS ACROSS ALL SECTIONS
-const counters = mainContent.querySelectorAll(
-  '[data-ama-count], .stat-value'
-);
+// AMA: SIX-SECOND COUNTERS WHEN A SECTION OPENS
+if (state.animateCountersOnNextRender) {
+  state.animateCountersOnNextRender = false;
 
-counters.forEach(counter => {
-  const dashboardValue = counter.getAttribute('data-ama-count');
-
-  const rawValue = dashboardValue !== null
-    ? dashboardValue
-    : counter.textContent.trim();
-
-  // Leave unavailable or non-numeric values unchanged.
-  if (!rawValue) return;
-
-  const match = rawValue.match(
-    /^(\s*[^\d-]*?)(-?[\d,]+(?:\.\d+)?)(.*)$/
+  const counters = mainContent.querySelectorAll(
+    '[data-ama-count], .stat-value'
   );
 
-  if (!match) return;
+  counters.forEach(counter => {
+    const dashboardValue = counter.getAttribute('data-ama-count');
+    const rawValue = dashboardValue !== null
+      ? dashboardValue
+      : counter.textContent.trim();
 
-  const prefix = match[1];
-  const target = Number(match[2].replace(/,/g, ''));
-  const suffix =
-    counter.getAttribute('data-ama-suffix') || match[3];
+    if (!rawValue) return;
 
-  if (!Number.isFinite(target)) return;
+    const match = rawValue.match(
+      /^(\s*[^\d-]*?)(-?[\d,]+(?:\.\d+)?)(.*)$/
+    );
 
-  const decimals = (match[2].split('.')[1] || '').length;
-  const duration = 650;
-  const startTime = performance.now();
+    if (!match) return;
 
-  function animateCount(now) {
-    const progress = Math.min((now - startTime) / duration, 1);
-    const eased = 1 - Math.pow(1 - progress, 4);
-    const current = target * eased;
+    const prefix = match[1];
+    const target = Number(match[2].replace(/,/g, ''));
+    const suffix =
+      counter.getAttribute('data-ama-suffix') || match[3];
 
-    const formatted = current.toLocaleString('en-GH', {
-      minimumFractionDigits: decimals,
-      maximumFractionDigits: decimals
-    });
+    if (!Number.isFinite(target)) return;
 
-    counter.textContent = prefix + formatted + suffix;
+    const decimals = (match[2].split('.')[1] || '').length;
+    const duration = 6000;
+    const startTime = performance.now();
 
-    if (progress < 1) {
-      requestAnimationFrame(animateCount);
+    function animateCount(now) {
+      const progress = Math.min(
+        (now - startTime) / duration,
+        1
+      );
+
+      const eased = 1 - Math.pow(1 - progress, 4);
+      const current = target * eased;
+
+      const formatted = current.toLocaleString('en-GH', {
+        minimumFractionDigits: decimals,
+        maximumFractionDigits: decimals
+      });
+
+      counter.textContent = prefix + formatted + suffix;
+
+      if (progress < 1) {
+        requestAnimationFrame(animateCount);
+      }
     }
-  }
 
-  const zero = decimals
-    ? '0.' + '0'.repeat(decimals)
-    : '0';
+    const zero = decimals
+      ? '0.' + '0'.repeat(decimals)
+      : '0';
 
-  counter.textContent = prefix + zero + suffix;
-
-  requestAnimationFrame(animateCount);
-});
-                              
+    counter.textContent = prefix + zero + suffix;
+    requestAnimationFrame(animateCount);
+  });
+}                              
 mainContent.classList.remove('motion-enter');
 void mainContent.offsetWidth;
 mainContent.classList.add('motion-enter');
@@ -4159,6 +4163,7 @@ if (!allowedMenus.includes(button.dataset.view) && !canOpenFeeding) {
 }
     state.view = button.dataset.view;
     state.search = '';
+    state.animateCountersOnNextRender = true;
     render();
     closeDrawer();
 
