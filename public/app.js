@@ -246,11 +246,23 @@ const classActivations = classActivationResult.activations || [];
 }
   let employees = [];
 
-if (state.user && state.user.role === 'ADMIN') {
-const employeeResult = await api('/api/employees');
-employees = employeeResult.employees || [];
-}
+let staffAttendanceEmployees = [];
 
+if (state.user && ['ADMIN', 'HEADMASTER'].includes(state.user.role)) {
+  try {
+    const staffAttendanceResult = await api(
+      '/api/attendance/staff/bootstrap'
+    );
+
+    staffAttendanceEmployees =
+      staffAttendanceResult.employees || [];
+  } catch (error) {
+    console.warn(
+      'Staff attendance employees could not be loaded:',
+      error
+    );
+  }
+}
 let attendanceRegisters = [];
 let attendanceRecorded = false;
 
