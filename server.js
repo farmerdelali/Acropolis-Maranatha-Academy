@@ -1175,7 +1175,7 @@ if (!allowedImportRoles[importType]?.includes(role)) {
 
         if (importType === 'students') {
           const fullName = get('fullname');
-          const className = get('classname');
+         const className = get('classname') || get('class');
           let studentCode = get('studentcode');
           const totalFeesText = get('totalfees');
           const totalFees = totalFeesText === '' ? 0 : Number(totalFeesText);
