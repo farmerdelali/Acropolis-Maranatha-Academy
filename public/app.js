@@ -3493,7 +3493,18 @@ if (e.target.closest('[data-action="calendar-next"]')) {
 document.addEventListener('click', e => {
   const button = e.target.closest('button');
   if (!button) return;
+  if (button.dataset.action === 'attendance-tab') {
+    state.attendanceTab = button.dataset.tab;
+    render();
+    return;
+  }
 
+  if (button.dataset.action === 'staff-attendance-mark-all') {
+    document.querySelectorAll('[data-staff-attendance-status]').forEach(select => {
+      select.value = 'PRESENT';
+    });
+    return;
+  }
   if (button.id === 'grad-select-all' || button.id === 'grad-clear') {
     document.querySelectorAll('input[name="gradStudentIds"]').forEach(input => {
       input.checked = button.id === 'grad-select-all';
