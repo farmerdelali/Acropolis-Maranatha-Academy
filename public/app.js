@@ -3552,7 +3552,6 @@ if (!allowedForms.includes(form.id)) return;
 
   toast(result.message || 'Records imported successfully.');
 } else if (form.id === 'registerForm') {
-} else if (form.id === 'registerForm') {
  
   
       if (v.password !== v.confirmPassword) {
