@@ -1029,9 +1029,7 @@ if (!allowedImportRoles[importType]?.includes(role)) {
           }
         }
 
-        if (student && finalSubject && term) {
-          const markKey =
-          if (student && finalSubject && term) {
+      if (student && finalSubject && term) {
   if (req.session.user.role === 'TEACHER') {
     const assigned = await q(
       `SELECT 1
@@ -1058,20 +1056,15 @@ if (!allowedImportRoles[importType]?.includes(role)) {
 
   const markKey =
     `${student.id}|${finalSubject.toLowerCase()}|${term.toLowerCase()}`;
-      'You can only import marks for subjects assigned to you in the student’s class.'
+
+  if (seenMarks.has(markKey)) {
+    errors.push(
+      'This student, subject and term appear more than once in the file.'
     );
+  } else {
+    seenMarks.add(markKey);
   }
 }
-            `${student.id}|${finalSubject.toLowerCase()}|${term.toLowerCase()}`;
-
-          if (seenMarks.has(markKey)) {
-            errors.push(
-              'This student, subject and term appear more than once in the file.'
-            );
-          } else {
-            seenMarks.add(markKey);
-          }
-
           const existingMark = await q(
             `SELECT id FROM marks
              WHERE school_id = $1
