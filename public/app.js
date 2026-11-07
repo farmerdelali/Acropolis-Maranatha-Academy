@@ -618,16 +618,7 @@ if(state.view==='Dashboard'){
 </div>
         </section>
 
-        <section class="panel ama-events-panel">
-          <div class="panel-head"><h3>Upcoming Events</h3><span class="ama-demo-label">SAMPLE</span></div>
-          <div class="panel-body">
-           ${(d.events && d.events.length ? d.events : dashboardEvents.map(e => ({ title: e.title, description: e.detail + ' · Demo', eventDate: '', startTime: e.time, isDemo: true }))).map((e,i)=>`
-              <article class="ama-event-item event-${i%4}">
-                <div><strong>${esc(e.isDemo ? e.time : (e.startTime || 'All day'))}</strong><p>${esc(e.title)}</p><small>${esc(e.isDemo ? e.detail + ' · Demo' : (e.description || e.location || 'School event'))}</small></div>
-              </article>`).join('')}
-          </div>
-        </section>
-
+      
     <section class="panel ama-events-panel">
   <div class="panel-head">
     <h3>Upcoming Events</h3>
