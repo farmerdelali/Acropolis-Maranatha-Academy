@@ -7470,3 +7470,582 @@ body.dark-mode .ama-reference-dashboard .ama-pie-center strong {
   -webkit-backdrop-filter: none !important;
   animation: none;
 }
+
+/* =========================================================
+   ACROPOLIS — UNIFIED PREMIUM DESIGN FOR ALL OTHER SECTIONS
+   Dashboard and authentication screens are excluded.
+   ========================================================= */
+
+/* MAIN PAGE BACKGROUND */
+.main-content:not(:has(.ama-reference-dashboard)) {
+  background:
+    radial-gradient(ellipse at 5% 5%, rgba(76, 132, 177, .13), transparent 38%),
+    radial-gradient(ellipse at 95% 90%, rgba(105, 83, 157, .10), transparent 38%),
+    linear-gradient(145deg, #e8eef4, #dce6ed 55%, #e9edf3);
+  min-height: calc(100vh - 78px);
+  border-radius: 0 0 22px 22px;
+}
+
+/* PAGE HEADINGS */
+.main-content:not(:has(.ama-reference-dashboard)) .page-head {
+  padding: 5px 2px 17px;
+  border-bottom: 1px solid rgba(77, 101, 132, .18);
+}
+
+.main-content:not(:has(.ama-reference-dashboard)) .page-head h1 {
+  color: #172b49;
+  font-weight: 850;
+  letter-spacing: -.035em;
+}
+
+.main-content:not(:has(.ama-reference-dashboard)) .page-head p {
+  color: #65758a;
+}
+
+/* STATISTIC CARDS — MULTI-COLOUR */
+.main-content:not(:has(.ama-reference-dashboard)) .cards > .stat {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,.24);
+  border-radius: 17px;
+  box-shadow: 0 9px 24px rgba(28, 45, 73, .13),
+              inset 0 1px 0 rgba(255,255,255,.18);
+  transition: transform .25s ease, box-shadow .25s ease;
+}
+
+.main-content:not(:has(.ama-reference-dashboard)) .cards > .stat:nth-child(4n+1) {
+  background: linear-gradient(140deg, #285b83, #347fa0);
+  color: #fff;
+}
+
+.main-content:not(:has(.ama-reference-dashboard)) .cards > .stat:nth-child(4n+2) {
+  background: linear-gradient(140deg, #176d55, #299477);
+  color: #fff;
+}
+
+.main-content:not(:has(.ama-reference-dashboard)) .cards > .stat:nth-child(4n+3) {
+  background: linear-gradient(140deg, #594a91, #8068b5);
+  color: #fff;
+}
+
+.main-content:not(:has(.ama-reference-dashboard)) .cards > .stat:nth-child(4n) {
+  background: linear-gradient(140deg, #a45a48, #c77b59);
+  color: #fff;
+}
+
+.main-content:not(:has(.ama-reference-dashboard)) .cards > .stat .stat-label,
+.main-content:not(:has(.ama-reference-dashboard)) .cards > .stat .stat-note {
+  color: rgba(255,255,255,.83);
+}
+
+.main-content:not(:has(.ama-reference-dashboard)) .cards > .stat .stat-value {
+  color: #fff;
+  font-size: clamp(23px, 2.5vw, 31px);
+}
+
+.main-content:not(:has(.ama-reference-dashboard)) .cards > .stat:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 15px 30px rgba(28, 45, 73, .20);
+}
+
+/* PANELS */
+.main-content:not(:has(.ama-reference-dashboard)) .panel {
+  background: linear-gradient(145deg, #fdfefe, #edf3f7);
+  border: 1px solid #d0dce6;
+  border-radius: 17px;
+  box-shadow: 0 8px 23px rgba(35, 57, 83, .09),
+              inset 0 1px 0 #fff;
+  overflow: hidden;
+}
+
+.main-content:not(:has(.ama-reference-dashboard)) .panel-head {
+  background: linear-gradient(100deg, #e4edf4, #edf1f7);
+  border-bottom: 1px solid #d2dfe9;
+  padding: 17px 20px;
+}
+
+.main-content:not(:has(.ama-reference-dashboard)) .panel-head h2 {
+  color: #1c3554;
+  font-weight: 800;
+}
+
+.main-content:not(:has(.ama-reference-dashboard)) .panel-body {
+  color: #26384e;
+}
+
+/* TABLES */
+.main-content:not(:has(.ama-reference-dashboard)) .table-wrap {
+  border: 1px solid #d9e2ea;
+  border-radius: 12px;
+  background: #fff;
+}
+
+.main-content:not(:has(.ama-reference-dashboard)) table {
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.main-content:not(:has(.ama-reference-dashboard)) th {
+  background: #e8eff5;
+  color: #3d5875;
+  font-weight: 850;
+  padding: 14px 13px;
+  border-bottom: 1px solid #d1dce6;
+}
+
+.main-content:not(:has(.ama-reference-dashboard)) td {
+  color: #34445a;
+  padding: 13px;
+  border-bottom: 1px solid #e7edf2;
+}
+
+.main-content:not(:has(.ama-reference-dashboard)) tbody tr:nth-child(even) {
+  background: #f5f8fb;
+}
+
+.main-content:not(:has(.ama-reference-dashboard)) tbody tr:hover {
+  background: #eaf3f7;
+}
+
+/* SEARCH AND TOOLBARS */
+.main-content:not(:has(.ama-reference-dashboard)) .toolbar {
+  align-items: center;
+  padding: 10px;
+  background: #e8eff5;
+  border: 1px solid #d4e0e9;
+  border-radius: 13px;
+}
+
+.main-content:not(:has(.ama-reference-dashboard)) .toolbar input,
+.main-content:not(:has(.ama-reference-dashboard)) .toolbar select {
+  background: #fff;
+}
+
+/* FORM FIELDS */
+.main-content:not(:has(.ama-reference-dashboard)) .field {
+  color: #30445c;
+  font-weight: 750;
+  gap: 8px;
+}
+
+.main-content:not(:has(.ama-reference-dashboard)) input:not([type="checkbox"]):not([type="radio"]),
+.main-content:not(:has(.ama-reference-dashboard)) select,
+.main-content:not(:has(.ama-reference-dashboard)) textarea {
+  background: #fff;
+  color: #1e3048;
+  border: 1px solid #cbd8e3;
+  border-radius: 11px;
+  box-shadow: inset 0 1px 2px rgba(25, 48, 75, .04);
+}
+
+.main-content:not(:has(.ama-reference-dashboard)) input:focus,
+.main-content:not(:has(.ama-reference-dashboard)) select:focus,
+.main-content:not(:has(.ama-reference-dashboard)) textarea:focus {
+  border-color: #3688a4;
+  outline: 3px solid rgba(54, 136, 164, .13);
+  box-shadow: 0 0 0 4px rgba(54, 136, 164, .07);
+}
+
+/* BUTTONS */
+.main-content:not(:has(.ama-reference-dashboard)) .btn {
+  border-radius: 10px;
+  font-weight: 800;
+  box-shadow: 0 3px 8px rgba(30, 48, 73, .09);
+  transition: transform .2s ease, box-shadow .2s ease, filter .2s ease;
+}
+
+.main-content:not(:has(.ama-reference-dashboard)) .btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 7px 15px rgba(30, 48, 73, .15);
+}
+
+.main-content:not(:has(.ama-reference-dashboard)) .btn.primary {
+  background: linear-gradient(135deg, #1d5878, #287e91);
+  color: #fff;
+}
+
+.main-content:not(:has(.ama-reference-dashboard)) .btn.soft {
+  background: linear-gradient(135deg, #e0eaf2, #d2e1eb);
+  color: #24415d;
+  border: 1px solid #c4d5e2;
+}
+
+.main-content:not(:has(.ama-reference-dashboard)) .btn.danger {
+  background: linear-gradient(135deg, #f8e5e7, #f1d4d8);
+  color: #9b293b;
+  border: 1px solid #e8c4ca;
+}
+
+/* BADGES AND EMPTY STATES */
+.main-content:not(:has(.ama-reference-dashboard)) .badge {
+  background: #dff2e9;
+  color: #17694d;
+  border: 1px solid #bfe3d1;
+  padding: 5px 10px;
+}
+
+.main-content:not(:has(.ama-reference-dashboard)) .empty,
+.main-content:not(:has(.ama-reference-dashboard)) .empty-state {
+  background: linear-gradient(145deg, #f5f9fc, #eaf1f6);
+  border: 1px dashed #bdcdd9;
+  border-radius: 13px;
+  color: #65778b;
+}
+
+/* REPORT ROWS */
+.main-content:not(:has(.ama-reference-dashboard)) .report-row {
+  padding: 15px 12px;
+  border-bottom: 1px solid #dce5ec;
+  border-radius: 8px;
+}
+
+.main-content:not(:has(.ama-reference-dashboard)) .report-row:hover {
+  background: #eaf2f7;
+}
+
+/* IMPORT AND FILE UPLOAD */
+.main-content:not(:has(.ama-reference-dashboard)) .import-file-field {
+  padding: 17px;
+  background: linear-gradient(145deg, #edf4f8, #e1edf3);
+  border: 1px dashed #91adbf;
+  border-radius: 14px;
+}
+
+.main-content:not(:has(.ama-reference-dashboard)) .import-file-hint {
+  color: #63788d;
+}
+
+/* SETTINGS — APPEARANCE SWITCH */
+.main-content:not(:has(.ama-reference-dashboard)) .theme-toggle-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+  padding: 17px;
+  background: linear-gradient(135deg, #e8f1f5, #e7eaf5);
+  border: 1px solid #d1dfe8;
+  border-radius: 13px;
+}
+
+.main-content:not(:has(.ama-reference-dashboard)) .theme-toggle-copy strong,
+.main-content:not(:has(.ama-reference-dashboard)) .theme-toggle-copy span {
+  display: block;
+}
+
+.main-content:not(:has(.ama-reference-dashboard)) .theme-toggle-copy strong {
+  color: #203b57;
+  font-size: 15px;
+}
+
+.main-content:not(:has(.ama-reference-dashboard)) .theme-toggle-copy span {
+  color: #687c90;
+  font-size: 12px;
+}
+
+.main-content:not(:has(.ama-reference-dashboard)) .theme-switch {
+  position: relative;
+  display: inline-flex;
+  width: 54px;
+  height: 30px;
+  flex: 0 0 54px;
+  margin: 0;
+}
+
+.main-content:not(:has(.ama-reference-dashboard)) .theme-switch input {
+  position: absolute;
+  opacity: 0;
+  width: 1px;
+  height: 1px;
+}
+
+.main-content:not(:has(.ama-reference-dashboard)) .theme-switch-track {
+  position: absolute;
+  inset: 0;
+  border-radius: 30px;
+  background: #aab9c7;
+  transition: background .2s ease;
+}
+
+.main-content:not(:has(.ama-reference-dashboard)) .theme-switch-thumb {
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 2px 6px rgba(0,0,0,.2);
+  transition: transform .2s ease;
+}
+
+.main-content:not(:has(.ama-reference-dashboard)) .theme-switch input:checked + .theme-switch-track {
+  background: #247b69;
+}
+
+.main-content:not(:has(.ama-reference-dashboard)) .theme-switch input:checked + .theme-switch-track .theme-switch-thumb {
+  transform: translateX(24px);
+}
+
+/* SETTINGS MENU BUTTONS */
+.main-content:not(:has(.ama-reference-dashboard)) .settings-menu {
+  display: grid;
+  gap: 11px;
+}
+
+.main-content:not(:has(.ama-reference-dashboard)) .settings-menu .btn {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 5px;
+  width: 100%;
+  min-height: 65px;
+  padding: 14px 16px;
+  text-align: left;
+}
+
+.main-content:not(:has(.ama-reference-dashboard)) .settings-menu .btn span:first-child {
+  font-weight: 850;
+}
+
+.main-content:not(:has(.ama-reference-dashboard)) .settings-menu .btn span:last-child {
+  font-size: 12px;
+  font-weight: 500;
+  opacity: .8;
+}
+
+/* SIDEBAR NAVIGATION */
+.sidebar {
+  background: linear-gradient(180deg, #f4f7fa, #e5edf3) !important;
+  border-right: 1px solid #cbd8e3;
+}
+
+.sidebar-school {
+  border-bottom-color: #cbd8e3;
+}
+
+.sidebar .nav-item {
+  border-radius: 11px;
+  color: #40556d;
+}
+
+.sidebar .nav-item:hover {
+  background: #dce8ef;
+  color: #173e59;
+}
+
+.sidebar .nav-item.active {
+  background: linear-gradient(110deg, #d5e9e8, #dce6f4);
+  color: #174e56;
+  border-left-color: #23947d;
+  box-shadow: inset 0 0 0 1px rgba(35, 148, 125, .15);
+}
+
+.sidebar .nav-submenu {
+  background: #e8eff4;
+  border: 1px solid #d1dfe8;
+  border-radius: 11px;
+  padding: 6px;
+}
+
+.sidebar .nav-subitem {
+  border-radius: 8px;
+  color: #465b70;
+}
+
+.sidebar .nav-subitem:hover,
+.sidebar .nav-subitem.active {
+  background: #d4e6e9;
+  color: #174f59;
+}
+
+/* DARK MODE */
+body.dark-mode .main-content:not(:has(.ama-reference-dashboard)) {
+  background:
+    radial-gradient(ellipse at 5% 5%, rgba(47, 91, 131, .22), transparent 38%),
+    radial-gradient(ellipse at 95% 90%, rgba(91, 72, 133, .17), transparent 38%),
+    #111b2a;
+}
+
+body.dark-mode .main-content:not(:has(.ama-reference-dashboard)) .page-head h1 {
+  color: #e7f0f8;
+}
+
+body.dark-mode .main-content:not(:has(.ama-reference-dashboard)) .page-head p,
+body.dark-mode .main-content:not(:has(.ama-reference-dashboard)) .muted {
+  color: #aebed0;
+}
+
+body.dark-mode .main-content:not(:has(.ama-reference-dashboard)) .panel {
+  background: linear-gradient(145deg, #25364a, #1b2b3d);
+  border-color: #40566d;
+  color: #edf3f8;
+}
+
+body.dark-mode .main-content:not(:has(.ama-reference-dashboard)) .panel-head {
+  background: linear-gradient(100deg, #2c4056, #25364b);
+  border-color: #40566d;
+}
+
+body.dark-mode .main-content:not(:has(.ama-reference-dashboard)) .panel-head h2,
+body.dark-mode .main-content:not(:has(.ama-reference-dashboard)) .panel-body,
+body.dark-mode .main-content:not(:has(.ama-reference-dashboard)) .field {
+  color: #e5edf5;
+}
+
+body.dark-mode .main-content:not(:has(.ama-reference-dashboard)) .table-wrap {
+  background: #1b2b3d;
+  border-color: #40566d;
+}
+
+body.dark-mode .main-content:not(:has(.ama-reference-dashboard)) th {
+  background: #30465d;
+  color: #d8e5f1;
+  border-color: #40566d;
+}
+
+body.dark-mode .main-content:not(:has(.ama-reference-dashboard)) td {
+  color: #e0e9f2;
+  border-color: #354a60;
+}
+
+body.dark-mode .main-content:not(:has(.ama-reference-dashboard)) tbody tr:nth-child(even) {
+  background: #223449;
+}
+
+body.dark-mode .main-content:not(:has(.ama-reference-dashboard)) tbody tr:hover {
+  background: #30475e;
+}
+
+body.dark-mode .main-content:not(:has(.ama-reference-dashboard)) input:not([type="checkbox"]):not([type="radio"]),
+body.dark-mode .main-content:not(:has(.ama-reference-dashboard)) select,
+body.dark-mode .main-content:not(:has(.ama-reference-dashboard)) textarea {
+  background: #172638;
+  color: #edf3f8;
+  border-color: #50677e;
+}
+
+body.dark-mode .main-content:not(:has(.ama-reference-dashboard)) .toolbar,
+body.dark-mode .main-content:not(:has(.ama-reference-dashboard)) .theme-toggle-row,
+body.dark-mode .main-content:not(:has(.ama-reference-dashboard)) .import-file-field {
+  background: #263b50;
+  border-color: #465e76;
+}
+
+body.dark-mode .main-content:not(:has(.ama-reference-dashboard)) .theme-toggle-copy strong {
+  color: #edf3f8;
+}
+
+body.dark-mode .main-content:not(:has(.ama-reference-dashboard)) .theme-toggle-copy span,
+body.dark-mode .main-content:not(:has(.ama-reference-dashboard)) .import-file-hint {
+  color: #b8c9d9;
+}
+
+body.dark-mode .main-content:not(:has(.ama-reference-dashboard)) .empty,
+body.dark-mode .main-content:not(:has(.ama-reference-dashboard)) .empty-state {
+  background: #26394d;
+  border-color: #50677e;
+  color: #b9c9d8;
+}
+
+body.dark-mode .main-content:not(:has(.ama-reference-dashboard)) .report-row {
+  border-color: #40566d;
+  color: #e0e9f2;
+}
+
+body.dark-mode .main-content:not(:has(.ama-reference-dashboard)) .report-row:hover {
+  background: #30475e;
+}
+
+body.dark-mode .sidebar {
+  background: linear-gradient(180deg, #1b2b3d, #142235) !important;
+  border-color: #40566d;
+  color: #e7eef6;
+}
+
+body.dark-mode .sidebar .nav-item {
+  color: #c4d2df;
+}
+
+body.dark-mode .sidebar .nav-item:hover,
+body.dark-mode .sidebar .nav-item.active {
+  background: #30475e;
+  color: #fff;
+}
+
+body.dark-mode .sidebar .nav-submenu {
+  background: #172638;
+  border-color: #40566d;
+}
+
+body.dark-mode .sidebar .nav-subitem {
+  color: #c4d2df;
+}
+
+body.dark-mode .sidebar .nav-subitem:hover,
+body.dark-mode .sidebar .nav-subitem.active {
+  background: #30475e;
+  color: #fff;
+}
+
+body.dark-mode .sidebar-bottom {
+  background: #142235;
+  border-color: #40566d;
+  color: #aebed0;
+}
+
+/* MOBILE LAYOUT */
+@media (max-width: 700px) {
+  .main-content:not(:has(.ama-reference-dashboard)) {
+    padding: 16px 11px 28px;
+  }
+
+  .main-content:not(:has(.ama-reference-dashboard)) .panel {
+    border-radius: 13px;
+  }
+
+  .main-content:not(:has(.ama-reference-dashboard)) .panel-head {
+    padding: 14px;
+  }
+
+  .main-content:not(:has(.ama-reference-dashboard)) .panel-body {
+    padding: 13px;
+  }
+
+  .main-content:not(:has(.ama-reference-dashboard)) .cards {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  .main-content:not(:has(.ama-reference-dashboard)) .cards > .stat {
+    padding: 13px;
+  }
+
+  .main-content:not(:has(.ama-reference-dashboard)) .toolbar {
+    padding: 9px;
+  }
+
+  .main-content:not(:has(.ama-reference-dashboard)) .toolbar input,
+  .main-content:not(:has(.ama-reference-dashboard)) .toolbar select {
+    max-width: 100%;
+  }
+
+  .main-content:not(:has(.ama-reference-dashboard)) .form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .main-content:not(:has(.ama-reference-dashboard)) .form-actions .btn {
+    flex: 1 1 100%;
+  }
+
+  .main-content:not(:has(.ama-reference-dashboard)) .theme-toggle-row {
+    align-items: center;
+  }
+}
+
+/* REDUCE MOTION WHEN REQUESTED BY DEVICE */
+@media (prefers-reduced-motion: reduce) {
+  .main-content:not(:has(.ama-reference-dashboard)) .stat,
+  .main-content:not(:has(.ama-reference-dashboard)) .btn {
+    transition: none !important;
+  }
+}
