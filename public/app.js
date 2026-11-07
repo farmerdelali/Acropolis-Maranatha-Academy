@@ -29,7 +29,7 @@ function loadSavedTheme() {
 loadSavedTheme();
 
 const nowForCalendar = new Date();
-const state = { user:null, data:{students:[],payments:[],marks:[],users:[],parents:[]}, view:'Dashboard', search:'', drawer:false, calendarMonth:nowForCalendar.getMonth(), calendarYear:nowForCalendar.getFullYear() };
+const state = { user:null, data:{students:[],payments:[],marks:[],users:[],parents:[]}, view:'Dashboard', search:'', drawer:false, calendarMonth:nowForCalendar.getMonth(), calendarYear:nowForCalendar.getFullYear(), attendanceTab:'students' };
 const nav = [
   ['Dashboard','▦','Overview'],
   ['Students','♙','Student records'],
