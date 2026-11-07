@@ -1392,8 +1392,29 @@ if (!allowedImportRoles[importType]?.includes(role)) {
             continue;
           }
 
-          const studentId = studentResult.rows[0].id;
+        const student = studentResult.rows[0];
 
+if (req.session.user.role === 'TEACHER') {
+  const assigned = await client.query(
+    `SELECT 1
+     FROM teacher_subject_assignments
+     WHERE school_id = $1
+       AND teacher_id = $2
+       AND class_name = $3
+       AND lower(subject) = lower($4)
+     LIMIT 1`,
+    [sid, req.session.user.id, student.class_name, subject]
+  );
+
+  if (!assigned.rowCount) {
+    errors.push(
+      `Row ${row._rowNumber}: you are not assigned to teach ${subject} in ${student.class_name}.`
+    );
+    continue;
+  }
+}
+
+const studentId = student.id;
           const markKey =
             `${studentId}|${subject.toLowerCase()}|${term.toLowerCase()}`;
 
