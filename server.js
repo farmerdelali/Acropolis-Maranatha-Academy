@@ -1064,7 +1064,7 @@ if (!allowedImportRoles[importType]?.includes(role)) {
   } else {
     seenMarks.add(markKey);
   }
-}
+
           const existingMark = await q(
             `SELECT id FROM marks
              WHERE school_id = $1
