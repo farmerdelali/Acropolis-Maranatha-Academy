@@ -77,6 +77,24 @@ const documentUpload = multer({
     cb(null, true);
   }
 });
+function hasValidDocumentSignature(buffer, ext) {
+  if (!Buffer.isBuffer(buffer) || buffer.length < 8) return false;
+
+  const signatures = {
+    '.pdf': Buffer.from('%PDF-'),
+    '.jpg': Buffer.from([0xff, 0xd8, 0xff]),
+    '.jpeg': Buffer.from([0xff, 0xd8, 0xff]),
+    '.png': Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]),
+    '.doc': Buffer.from([0xd0, 0xcf, 0x11, 0xe0, 0xa1, 0xb1, 0x1a, 0xe1]),
+    '.docx': Buffer.from([0x50, 0x4b, 0x03, 0x04])
+  };
+
+  const signature = signatures[ext];
+  return Boolean(
+    signature &&
+    buffer.subarray(0, signature.length).equals(signature)
+  );
+}
 function normalizeImportHeader(value) {
   return String(value ?? '')
     .trim()
@@ -539,7 +557,65 @@ app.get('/api/bootstrap', requireAuth, asyncRoute(async (req, res) => {
       session: req.session.user
     });
   }
+  if (req.session.user.role === 'TEACHER') {
+    const teacherId = req.session.user.id;
 
+    const [students, marks, school] = await Promise.all([
+      q(
+        `SELECT s.id, s.school_id, s.student_code, s.full_name,
+                s.class_name, s.gender, s.archived, s.created_at
+         FROM students s
+         WHERE s.school_id = $1
+           AND EXISTS (
+             SELECT 1
+             FROM teacher_subject_assignments tsa
+             WHERE tsa.school_id = $1
+               AND tsa.teacher_id = $2
+               AND tsa.class_name = s.class_name
+           )
+         ORDER BY s.created_at DESC`,
+        [sid, teacherId]
+      ),
+
+      q(
+        `SELECT m.*, s.full_name AS student_name,
+                s.student_code, s.class_name
+         FROM marks m
+         JOIN students s
+           ON s.id = m.student_id
+          AND s.school_id = m.school_id
+         WHERE m.school_id = $1
+           AND EXISTS (
+             SELECT 1
+             FROM teacher_subject_assignments tsa
+             WHERE tsa.school_id = $1
+               AND tsa.teacher_id = $2
+               AND tsa.class_name = s.class_name
+               AND lower(tsa.subject) = lower(m.subject)
+           )
+         ORDER BY m.created_at DESC`,
+        [sid, teacherId]
+      ),
+
+      q(
+        `SELECT name, motto,
+                academic_year AS "academicYear",
+                current_term AS "currentTerm"
+         FROM schools
+         WHERE id = $1`,
+        [sid]
+      )
+    ]);
+
+    return res.json({
+      students: students.rows,
+      payments: [],
+      marks: marks.rows,
+      users: [],
+      school: school.rows[0] || {},
+      session: req.session.user
+    });
+  }
   const [students, payments, marks, users, school] = await Promise.all([
     q('SELECT s.*, COALESCE((SELECT SUM(p.amount) FROM payments p WHERE p.student_id=s.id AND p.school_id=s.school_id),0) AS paid FROM students s WHERE s.school_id=$1 ORDER BY s.created_at DESC', [sid]),
 
@@ -1567,16 +1643,32 @@ const studentId = student.id;
   })
 );
 
-app.get('/api/students/:id/documents', requireAuth, asyncRoute(async (req, res) => {
+app.get('/api/students/:id/documents', requireRole('ADMIN', 'HEADMASTER', 'TEACHER'), asyncRoute(async (req, res) => {
   const student = await q(
-    'SELECT id FROM students WHERE id = $1 AND school_id = $2',
+    'SELECT id, class_name FROM students WHERE id = $1 AND school_id = $2',
     [req.params.id, schoolId(req)]
   );
 
   if (!student.rows.length) {
     return res.status(404).json({ error: 'Student not found.' });
   }
+if (req.session.user.role === 'TEACHER') {
+  const assignment = await q(
+    `SELECT 1
+     FROM teacher_subject_assignments
+     WHERE school_id = $1
+       AND teacher_id = $2
+       AND class_name = $3
+     LIMIT 1`,
+    [schoolId(req), req.session.user.id, student.rows[0].class_name]
+  );
 
+  if (!assignment.rows.length) {
+    return res.status(403).json({
+      error: 'You do not have permission to view documents for this class.'
+    });
+  }
+}
   const result = await q(
     `SELECT id, student_id, original_name, mime_type, size_bytes,
             uploaded_by, created_at
@@ -1591,7 +1683,7 @@ app.get('/api/students/:id/documents', requireAuth, asyncRoute(async (req, res) 
 
 app.post(
   '/api/students/:id/documents',
-  requireAuth,
+  requireRole('ADMIN', 'HEADMASTER', 'TEACHER'),
   documentUpload.single('document'),
   asyncRoute(async (req, res) => {
     if (!['ADMIN', 'HEADMASTER', 'TEACHER'].includes(req.session.user.role)) {
@@ -1603,7 +1695,13 @@ app.post(
     if (!req.file) {
       return res.status(400).json({ error: 'Choose a document to upload.' });
     }
+const ext = path.extname(req.file.originalname || '').toLowerCase();
 
+if (!hasValidDocumentSignature(req.file.buffer, ext)) {
+  return res.status(400).json({
+    error: 'The uploaded file does not match its file format.'
+  });
+}
     const student = await q(
       'SELECT id FROM students WHERE id = $1 AND school_id = $2',
       [req.params.id, schoolId(req)]
@@ -1616,7 +1714,18 @@ app.post(
     const originalName = path.basename(req.file.originalname || 'document')
       .replace(/[\r\n"]/g, '_')
       .slice(0, 240);
+const originalName = path.basename(req.file.originalname || 'document')
+  .replace(/[\r\n"]/g, '_')
+  .slice(0, 240);
 
+const safeMimeType = {
+  '.pdf': 'application/pdf',
+  '.jpg': 'image/jpeg',
+  '.jpeg': 'image/jpeg',
+  '.png': 'image/png',
+  '.doc': 'application/msword',
+  '.docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+}[ext];
     const result = await q(
       `INSERT INTO student_documents
        (school_id, student_id, original_name, file_data, mime_type,
@@ -1629,7 +1738,7 @@ app.post(
         req.params.id,
         originalName,
         req.file.buffer,
-        req.file.mimetype || 'application/octet-stream',
+        safeMimeType,
         req.file.size,
         req.session.user.id
       ]
@@ -1646,11 +1755,15 @@ app.post(
   })
 );
 
-app.get('/api/student-documents/:id/file', requireAuth, asyncRoute(async (req, res) => {
+app.get('/api/student-documents/:id/file', requireRole('ADMIN', 'HEADMASTER', 'TEACHER'), asyncRoute(async (req, res) => {
   const result = await q(
-    `SELECT original_name, file_data, mime_type
-     FROM student_documents
-     WHERE id = $1 AND school_id = $2`,
+    `SELECT sd.original_name, sd.file_data, sd.mime_type,
+        s.class_name
+ FROM student_documents sd
+ JOIN students s
+   ON s.id = sd.student_id
+  AND s.school_id = sd.school_id
+ WHERE sd.id = $1 AND sd.school_id = $2`,
     [req.params.id, schoolId(req)]
   );
 
@@ -1659,6 +1772,23 @@ app.get('/api/student-documents/:id/file', requireAuth, asyncRoute(async (req, r
   }
 
   const doc = result.rows[0];
+  if (req.session.user.role === 'TEACHER') {
+  const assignment = await q(
+    `SELECT 1
+     FROM teacher_subject_assignments
+     WHERE school_id = $1
+       AND teacher_id = $2
+       AND class_name = $3
+     LIMIT 1`,
+    [schoolId(req), req.session.user.id, doc.class_name]
+  );
+
+  if (!assignment.rows.length) {
+    return res.status(403).json({
+      error: 'You do not have permission to download documents for this class.'
+    });
+  }
+}
   const ext = path.extname(doc.original_name).toLowerCase();
   const inline = ['.pdf', '.jpg', '.jpeg', '.png'].includes(ext);
 
@@ -1680,12 +1810,30 @@ app.delete('/api/student-documents/:id', requireAuth, asyncRoute(async (req, res
   }
 
   const result = await q(
-    `DELETE FROM student_documents
-     WHERE id = $1 AND school_id = $2
-     RETURNING id`,
-    [req.params.id, schoolId(req)]
-  );
-
+  `DELETE FROM student_documents sd
+   USING students s
+   WHERE sd.id = $1
+     AND sd.school_id = $2
+     AND s.id = sd.student_id
+     AND s.school_id = sd.school_id
+     AND (
+       $3 <> 'TEACHER'
+       OR EXISTS (
+         SELECT 1
+         FROM teacher_subject_assignments tsa
+         WHERE tsa.school_id = $2
+           AND tsa.teacher_id = $4
+           AND tsa.class_name = s.class_name
+       )
+     )
+   RETURNING sd.id`,
+  [
+    req.params.id,
+    schoolId(req),
+    req.session.user.role,
+    req.session.user.id
+  ]
+);
   if (!result.rows.length) {
     return res.status(404).json({ error: 'Document not found.' });
   }
@@ -2523,7 +2671,7 @@ app.delete('/api/teacher-subject-assignments/:id', requireRole('ADMIN', 'HEADMAS
   await audit(req, 'teacher_subject_assignment_deleted', 'teacher_subject_assignment', req.params.id);
   res.json({ ok: true });
 }));
-app.get('/api/parents', requireAuth, asyncRoute(async (req, res) => {
+app.get('/api/parents', requireRole('ADMIN', 'HEADMASTER'), asyncRoute(async (req, res) => {
   const result = await q(
     `SELECT p.*,
       COALESCE(
@@ -2702,7 +2850,7 @@ app.delete('/api/parents/:id', requireRole('ADMIN'), asyncRoute(async (req, res)
   res.json({ ok: true });
 }));
 
-app.get('/api/parents', requireAuth, asyncRoute(async (req, res) => {
+app.get('/api/parents', requireRole('ADMIN', 'HEADMASTER'), asyncRoute(async (req, res) => {
   const result = await q(
     `SELECT p.*,
       COALESCE(
