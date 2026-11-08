@@ -10,7 +10,7 @@ const bcrypt = require('bcryptjs');
 const { rateLimit } = require('express-rate-limit');
 const multer = require('multer');
 const ExcelJS = require('exceljs');
-const XLSX = require('xlsx');
+const ExcelJS = require('exceljs');
 const mammoth = require('mammoth');
 const pdfParse = require('pdf-parse');
 const { parse } = require('csv-parse/sync');
@@ -114,26 +114,31 @@ async function readImportRows(file) {
       trim: true,
       relax_column_count: true
     });
-  } else if (['.xlsx', '.xls'].includes(ext)) {
-    const workbook = XLSX.read(file.buffer, {
-      type: 'buffer'
-    });
+ } else if (ext === '.xlsx') {
+  const workbook = new ExcelJS.Workbook();
 
-    const firstSheetName = workbook.SheetNames[0];
-    const sheet = firstSheetName
-      ? workbook.Sheets[firstSheetName]
-      : null;
+  await workbook.xlsx.load(file.buffer);
 
-    if (!sheet) {
-      throw new Error('The Excel file contains no worksheets.');
-    }
+  const sheet = workbook.worksheets[0];
 
-    rawRows = XLSX.utils.sheet_to_json(sheet, {
-      header: 1,
-      defval: '',
-      raw: false,
-      blankrows: false
-    });
+  if (!sheet) {
+    throw new Error('The Excel file contains no worksheets.');
+  }
+
+  rawRows = [];
+
+  sheet.eachRow({ includeEmpty: false }, (row) => {
+    rawRows.push(
+      row.values.slice(1).map(value => {
+        if (value === null || value === undefined) return '';
+        if (value instanceof Date) return value.toISOString();
+        if (typeof value === 'object') {
+          return value.text || value.result || value.hyperlink || '';
+        }
+        return String(value);
+      })
+    );
+  });
   } else if (ext === '.docx') {
     const result = await mammoth.convertToHtml({
       buffer: file.buffer
