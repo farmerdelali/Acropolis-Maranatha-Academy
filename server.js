@@ -1718,9 +1718,6 @@ if (!hasValidDocumentSignature(req.file.buffer, ext)) {
     const originalName = path.basename(req.file.originalname || 'document')
       .replace(/[\r\n"]/g, '_')
       .slice(0, 240);
-const originalName = path.basename(req.file.originalname || 'document')
-  .replace(/[\r\n"]/g, '_')
-  .slice(0, 240);
 
 const safeMimeType = {
   '.pdf': 'application/pdf',
