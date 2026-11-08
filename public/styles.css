@@ -8077,3 +8077,28 @@ body:has(.app-shell):not(:has(.ama-reference-dashboard))::before {
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
 }
+/* LIGHT MODE — FIX INVISIBLE TEXT */
+body:not(.dark-mode) .main-content:not(:has(.ama-reference-dashboard)) .cards > .stat {
+  background: linear-gradient(140deg, #285b83, #347fa0) !important;
+  color: #ffffff !important;
+}
+
+body:not(.dark-mode) .main-content:not(:has(.ama-reference-dashboard)) .cards > .stat .stat-label,
+body:not(.dark-mode) .main-content:not(:has(.ama-reference-dashboard)) .cards > .stat .stat-value,
+body:not(.dark-mode) .main-content:not(:has(.ama-reference-dashboard)) .cards > .stat .stat-note {
+  color: #ffffff !important;
+  opacity: 1 !important;
+}
+
+body:not(.dark-mode) .topbar .user-badge {
+  color: #26384e !important;
+  font-weight: 700 !important;
+}
+
+body:not(.dark-mode) .topbar .topbrand strong {
+  color: #172b49 !important;
+}
+
+body:not(.dark-mode) .topbar .topbrand small {
+  color: #52647a !important;
+}
