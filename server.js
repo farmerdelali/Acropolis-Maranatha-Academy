@@ -2387,36 +2387,39 @@ attitude.length > 500 ||
     }
   }
 
-  const saved = await q(
-    `INSERT INTO terminal_reports
-       (school_id, student_id, academic_year, term,
-        teacher_remarks, conduct, headmaster_remarks, created_by)
-     VALUES ($1, $2, $3, $4,
-       CASE WHEN $5 = 'TEACHER' THEN $6 ELSE '' END,
-       CASE WHEN $5 = 'TEACHER' THEN $7 ELSE '' END,
-       CASE WHEN $5 IN ('ADMIN', 'HEADMASTER') THEN $8 ELSE '' END,
-       $9)
-     ON CONFLICT (school_id, student_id, academic_year, term)
-     DO UPDATE SET
-       teacher_remarks = CASE
-         WHEN $5 = 'TEACHER' THEN EXCLUDED.teacher_remarks
-         ELSE terminal_reports.teacher_remarks END,
-       conduct = CASE
-         WHEN $5 = 'TEACHER' THEN EXCLUDED.conduct
-         ELSE terminal_reports.conduct END,
-       headmaster_remarks = CASE
-         WHEN $5 IN ('ADMIN', 'HEADMASTER') THEN EXCLUDED.headmaster_remarks
-         ELSE terminal_reports.headmaster_remarks END,
-       updated_at = NOW()
-     RETURNING id, academic_year, term,
-       teacher_remarks, conduct, headmaster_remarks`,
-    [
-      schoolId(req), studentId, academicYear.trim(), term.trim(),
-      role, teacherRemarks, conduct, headmasterRemarks,
-      req.session.user.id
-    ]
-  );
-
+const saved = await q(
+  `INSERT INTO terminal_reports
+     (school_id, student_id, academic_year, term,
+      teacher_remarks, conduct, attitude, headmaster_remarks, created_by)
+   VALUES ($1, $2, $3, $4,
+     CASE WHEN $5 = 'TEACHER' THEN $6 ELSE '' END,
+     CASE WHEN $5 = 'TEACHER' THEN $7 ELSE '' END,
+     CASE WHEN $5 = 'TEACHER' THEN $8 ELSE '' END,
+     CASE WHEN $5 IN ('ADMIN', 'HEADMASTER') THEN $9 ELSE '' END,
+     $10)
+   ON CONFLICT (school_id, student_id, academic_year, term)
+   DO UPDATE SET
+     teacher_remarks = CASE
+       WHEN $5 = 'TEACHER' THEN EXCLUDED.teacher_remarks
+       ELSE terminal_reports.teacher_remarks END,
+     conduct = CASE
+       WHEN $5 = 'TEACHER' THEN EXCLUDED.conduct
+       ELSE terminal_reports.conduct END,
+     attitude = CASE
+       WHEN $5 = 'TEACHER' THEN EXCLUDED.attitude
+       ELSE terminal_reports.attitude END,
+     headmaster_remarks = CASE
+       WHEN $5 IN ('ADMIN', 'HEADMASTER') THEN EXCLUDED.headmaster_remarks
+       ELSE terminal_reports.headmaster_remarks END,
+     updated_at = NOW()
+   RETURNING id, academic_year, term,
+     teacher_remarks, conduct, attitude, headmaster_remarks`,
+  [
+    schoolId(req), studentId, academicYear.trim(), term.trim(),
+    role, teacherRemarks, conduct, attitude, headmasterRemarks,
+    req.session.user.id
+  ]
+);
   await audit(req, 'terminal_report_saved', 'student', studentId);
 
   res.json({ ok: true, report: saved.rows[0] });
@@ -2443,8 +2446,8 @@ app.get('/api/terminal-reports/:studentId', requireAuth, asyncRoute(async (req, 
             tr.id AS report_id,
             tr.academic_year, tr.term,
             tr.teacher_remarks, tr.conduct,
-            tr.headmaster_remarks
-     FROM students s
+tr.attitude, tr.headmaster_remarks
+                 FROM students s
      LEFT JOIN LATERAL (
        SELECT *
        FROM terminal_reports
