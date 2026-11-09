@@ -2434,10 +2434,15 @@ app.get('/api/terminal-reports/:studentId', requireAuth, asyncRoute(async (req, 
           tr.teacher_remarks, tr.conduct,
           tr.headmaster_remarks
    FROM students s
-   LEFT JOIN terminal_reports tr
-     ON tr.student_id = s.id
-    AND tr.school_id = s.school_id
-   WHERE s.id = $1
+     LEFT JOIN LATERAL (
+     SELECT *
+     FROM terminal_reports
+     WHERE student_id = s.id
+       AND school_id = s.school_id
+     ORDER BY updated_at DESC
+     LIMIT 1
+   ) tr ON TRUE
+     WHERE s.id = $1
      AND s.school_id = $2
      AND (
        $3 IN ('ADMIN', 'HEADMASTER')
