@@ -2428,44 +2428,45 @@ app.get('/api/terminal-reports/:studentId', requireAuth, asyncRoute(async (req, 
   }
 
   const result = await q(
-    `SELECT s.id, s.full_name, s.student_code, s.class_name,
-            tr.id AS report_id,
-            tr.academic_year, tr.term,
-            tr.teacher_remarks, tr.conduct,
-            tr.headmaster_remarks
-     FROM students s
-     LEFT JOIN terminal_reports tr
-       ON tr.student_id = s.id
-      AND tr.school_id = s.school_id
-     WHERE s.id = $1
-       AND s.school_id = $2
-       AND (
-               AND (
-         $3 IN ('ADMIN', 'HEADMASTER')
-         OR (
-           $3 = 'PARENT'
-           AND EXISTS (
-             SELECT 1
-             FROM users u
-             JOIN parent_students ps
-               ON ps.parent_id = u.parent_id
-              AND ps.student_id = s.id
-              AND ps.school_id = s.school_id
-             WHERE u.id = $4
-               AND u.school_id = $2
-           )
-         )
-         OR (
-           $3 = 'TEACHER'
-           AND EXISTS (
-             SELECT 1
-             FROM teacher_subject_assignments tsa
-             WHERE tsa.school_id = $2
-               AND tsa.teacher_id = $4
-               AND tsa.class_name = s.class_name
-           )
+  `SELECT s.id, s.full_name, s.student_code, s.class_name,
+          tr.id AS report_id,
+          tr.academic_year, tr.term,
+          tr.teacher_remarks, tr.conduct,
+          tr.headmaster_remarks
+   FROM students s
+   LEFT JOIN terminal_reports tr
+     ON tr.student_id = s.id
+    AND tr.school_id = s.school_id
+   WHERE s.id = $1
+     AND s.school_id = $2
+     AND (
+       $3 IN ('ADMIN', 'HEADMASTER')
+       OR (
+         $3 = 'PARENT'
+         AND EXISTS (
+           SELECT 1
+           FROM users u
+           JOIN parent_students ps
+             ON ps.parent_id = u.parent_id
+            AND ps.student_id = s.id
+            AND ps.school_id = s.school_id
+           WHERE u.id = $4
+             AND u.school_id = $2
          )
        )
+       OR (
+         $3 = 'TEACHER'
+         AND EXISTS (
+           SELECT 1
+           FROM teacher_subject_assignments tsa
+           WHERE tsa.school_id = $2
+             AND tsa.teacher_id = $4
+             AND tsa.class_name = s.class_name
+         )
+       )
+     )`,
+  [studentId, sid, role, req.session.user.id]
+);
   if (!result.rowCount) {
     return res.status(404).json({
       error: 'Student not found or you do not have permission to view this report.'
