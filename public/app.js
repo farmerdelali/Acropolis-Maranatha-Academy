@@ -974,9 +974,9 @@ const markClasses = [...new Set([
     </select>
   </label>
 `;
- const markRows=d.marks.length?`<div class="table-wrap"><table><thead><tr><th>Student</th><th>Student ID</th><th>Class</th><th>Subject</th><th>Term</th><th>Class Score / 30</th><th>Exams Score / 70</th><th>Total / 100</th><th>Grade</th><th>Actions</th></tr></thead><tbody>${d.marks.map(m=>{const total=Number(m.score)||0;return `<tr data-mark-class="${esc(m.class_name||'')}"><td>${esc(m.student_name||'')}</td><td>${esc(m.student_code||'')}</td><td>${esc(m.class_name||'')}</td><td>${esc(m.subject)}</td><td>${esc(m.term)}</td><td>${m.class_score==null?'—':Number(m.class_score).toFixed(1)}</td><td>${m.exam_score==null?'—':Number(m.exam_score).toFixed(1)}</td><td><strong>${total.toFixed(1)}</strong></td><td><span class="badge">${grade(total)}</span></td><td>${state.user.role==='ADMIN'?`<button class="btn danger" data-action="delete-mark" data-id="${esc(m.id)}">Delete</button>`:'—'}</td></tr>`}).join('')}</tbody></table></div>`:'<div class="empty">No marks recorded yet. Use Enter mark to add results.</div>';
+ const markRows=d.marks.length?`<div class="table-wrap"><table><thead><tr><th>Student</th><th>Student ID</th><th>Class</th><th>Subject</th><th>Term</th><th>Class Score / 30</th><th>Exams Score / 70</th><th>Total / 100</th><th>Grade</th><th>Actions</th></tr></thead><tbody>${d.marks.map(m=>{const total=Number(m.score)||0;return `<tr data-mark-class="${esc(m.class_name||'')}" data-mark-student="${esc(m.student_id||'')}"><td>${esc(m.student_name||'')}</td><td>${esc(m.student_code||'')}</td><td>${esc(m.class_name||'')}</td><td>${esc(m.subject)}</td><td>${esc(m.term)}</td><td>${m.class_score==null?'—':Number(m.class_score).toFixed(1)}</td><td>${m.exam_score==null?'—':Number(m.exam_score).toFixed(1)}</td><td><strong>${total.toFixed(1)}</strong></td><td><span class="badge">${grade(total)}</span></td><td>${state.user.role==='ADMIN'?`<button class="btn danger" data-action="delete-mark" data-id="${esc(m.id)}">Delete</button>`:'—'}</td></tr>`}).join('')}</tbody></table></div>`:'<div class="empty">No marks recorded yet. Use Enter mark to add results.</div>';
 
- html=pageHead('Examinations & marks','Record subject scores and review students’ results.',`${['ADMIN','TEACHER'].includes(state.user.role)?'<button class="btn primary" data-action="add-mark">+ Enter mark</button><button class="btn soft" data-action="bulk-class-marks">Bulk Class Marks</button>':''}`)+panel('Recorded results',markClassDropdown+markRows);
+ html=pageHead('Examinations & marks','Record subject scores and review students’ results.',`${['ADMIN','TEACHER'].includes(state.user.role)?'<button class="btn primary" data-action="add-mark">+ Enter mark</button><button class="btn soft" data-action="bulk-class-marks">Bulk Class Marks</button>':''}`)+panel('Recorded results',`<div class="form-grid">${markClassDropdown}${markStudentDropdown}</div>`+markRows);
 
 
 } else if (state.view === 'Terminal Reports') {
@@ -3425,14 +3425,24 @@ document.addEventListener('change', e => {
         ).join('');
     }
   }
-   if (e.target.id === 'marksClassFilter') {
-    const selectedClass = e.target.value;
+if (
+  e.target.id === 'marksClassFilter' ||
+  e.target.id === 'marksStudentFilter'
+) {
+  const selectedClass =
+    document.getElementById('marksClassFilter')?.value || '';
+  const selectedStudent =
+    document.getElementById('marksStudentFilter')?.value || '';
 
-    document.querySelectorAll('[data-mark-class]').forEach(row => {
-      row.hidden = selectedClass !== '' &&
-        row.dataset.markClass !== selectedClass;
-    });
-   }
+  document.querySelectorAll('[data-mark-class]').forEach(row => {
+    const classMatches =
+      !selectedClass || row.dataset.markClass === selectedClass;
+    const studentMatches =
+      !selectedStudent || row.dataset.markStudent === selectedStudent;
+
+    row.hidden = !classMatches || !studentMatches;
+  });
+}
   if (e.target.id === 'attendanceClass') {
 const selectedClass = e.target.value;
 const rows = document.getElementById('attendanceStudentRows');
