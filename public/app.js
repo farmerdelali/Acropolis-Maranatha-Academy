@@ -1046,6 +1046,11 @@ html = pageHead(
         <td>${esc(student.student_code || '—')}</td>
           <td>${marks.length}</td>
           <td>${average === null ? 'No marks yet' : average.toFixed(1) + '%'}</td>
+          <td>
+  <button type="button" class="btn soft"
+    data-action="open-terminal-report"
+    data-id="${esc(student.id)}">Open Report Card</button>
+</td>
         </tr>`;
       }).join('');
 
@@ -1059,6 +1064,7 @@ html = pageHead(
                 <th>Student ID</th>
                 <th>Subjects Recorded</th>
                 <th>Average Score</th>
+                <th>Report Card</th>
               </tr>
             </thead>
             <tbody>${rows}</tbody>
@@ -1066,6 +1072,71 @@ html = pageHead(
         </div>`
       );
     });
+  }
+  } else if (state.view === 'Individual Report Card') {
+  const reportStudent = (d.students || []).find(student =>
+    String(student.id) === String(state.selectedReportStudentId)
+  );
+
+  if (!reportStudent) {
+    html = pageHead('Report Card', 'Student record not found.') +
+      panel('Report Card', `
+        <button type="button" class="btn soft"
+          data-action="back-to-terminal-reports">Back to Terminal Reports</button>
+      `);
+  } else {
+    const studentMarks = (d.marks || []).filter(mark =>
+      String(mark.student_id) === String(reportStudent.id)
+    );
+
+    const reportRows = studentMarks.map(mark => `
+      <tr>
+        <td>${esc(mark.subject || '')}</td>
+        <td>${esc(mark.class_score ?? '—')}</td>
+        <td>${esc(mark.exam_score ?? '—')}</td>
+        <td>${esc(mark.score ?? '—')}</td>
+        <td>${esc(mark.term || '—')}</td>
+      </tr>
+    `).join('');
+
+    html = pageHead(
+      'Individual Report Card',
+      'Student academic performance.'
+    ) + panel('Report Card', `
+      <div class="report-card">
+        <div style="text-align:center;">
+          <img src="/school-logo.png" alt="School logo"
+            style="width:90px;height:90px;object-fit:contain;">
+          <h2>${esc(d.school?.name || 'Acropolis Maranatha Academy')}</h2>
+          <p>${esc(d.school?.motto || 'Always praising God, Jehovah.')}</p>
+          <h3>TERMINAL REPORT</h3>
+        </div>
+
+        <p><strong>Student:</strong> ${esc(reportStudent.full_name || '')}</p>
+        <p><strong>Student ID:</strong> ${esc(reportStudent.student_code || '—')}</p>
+        <p><strong>Class:</strong> ${esc(reportStudent.class_name || '—')}</p>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Subject</th>
+                <th>Class Score /30</th>
+                <th>Exam Score /70</th>
+                <th>Total</th>
+                <th>Term</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${reportRows || '<tr><td colspan="5">No subject scores recorded.</td></tr>'}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <button type="button" class="btn soft"
+        data-action="back-to-terminal-reports">Back to Terminal Reports</button>
+    `);
   }
 } else if(state.view==='Fees & Payments') {
   const outstanding = Math.max(0, expected - paid);
@@ -3592,6 +3663,18 @@ if (e.target.closest('[data-action="calendar-next"]')) {
 document.addEventListener('click', e => {
   const button = e.target.closest('button');
   if (!button) return;
+  if (button.dataset.action === 'open-terminal-report') {
+    if (button.dataset.action === 'back-to-terminal-reports') {
+  state.view = 'Terminal Reports';
+  state.selectedReportStudentId = null;
+  render();
+  return;
+}
+  state.selectedReportStudentId = button.dataset.id;
+  state.view = 'Individual Report Card';
+  render();
+  return;
+}
   if (button.dataset.action === 'attendance-tab') {
     state.attendanceTab = button.dataset.tab;
     render();
