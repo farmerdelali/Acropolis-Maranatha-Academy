@@ -2423,55 +2423,66 @@ app.get('/api/terminal-reports/:studentId', requireAuth, asyncRoute(async (req, 
   const studentId = Number(req.params.studentId);
   const role = req.session.user.role;
 
+  const term = ['Term 1', 'Term 2', 'Term 3'].includes(req.query.term)
+    ? req.query.term
+    : null;
+
+  const academicYear = typeof req.query.academicYear === 'string'
+    ? req.query.academicYear.trim()
+    : null;
+
   if (!Number.isSafeInteger(studentId) || studentId < 1) {
     return res.status(400).json({ error: 'Invalid student.' });
   }
 
   const result = await q(
-  `SELECT s.id, s.full_name, s.student_code, s.class_name,
-          tr.id AS report_id,
-          tr.academic_year, tr.term,
-          tr.teacher_remarks, tr.conduct,
-          tr.headmaster_remarks
-   FROM students s
+    `SELECT s.id, s.full_name, s.student_code, s.class_name,
+            tr.id AS report_id,
+            tr.academic_year, tr.term,
+            tr.teacher_remarks, tr.conduct,
+            tr.headmaster_remarks
+     FROM students s
      LEFT JOIN LATERAL (
-     SELECT *
-     FROM terminal_reports
-     WHERE student_id = s.id
-       AND school_id = s.school_id
-     ORDER BY updated_at DESC
-     LIMIT 1
-   ) tr ON TRUE
+       SELECT *
+       FROM terminal_reports
+       WHERE student_id = s.id
+         AND school_id = s.school_id
+         AND ($5::text IS NULL OR term = $5)
+         AND ($6::text IS NULL OR academic_year = $6)
+       ORDER BY updated_at DESC
+       LIMIT 1
+     ) tr ON TRUE
      WHERE s.id = $1
-     AND s.school_id = $2
-     AND (
-       $3 IN ('ADMIN', 'HEADMASTER')
-       OR (
-         $3 = 'PARENT'
-         AND EXISTS (
-           SELECT 1
-           FROM users u
-           JOIN parent_students ps
-             ON ps.parent_id = u.parent_id
-            AND ps.student_id = s.id
-            AND ps.school_id = s.school_id
-           WHERE u.id = $4
-             AND u.school_id = $2
+       AND s.school_id = $2
+       AND (
+         $3 IN ('ADMIN', 'HEADMASTER')
+         OR (
+           $3 = 'PARENT'
+           AND EXISTS (
+             SELECT 1
+             FROM users u
+             JOIN parent_students ps
+               ON ps.parent_id = u.parent_id
+              AND ps.student_id = s.id
+              AND ps.school_id = s.school_id
+             WHERE u.id = $4
+               AND u.school_id = $2
+           )
          )
-       )
-       OR (
-         $3 = 'TEACHER'
-         AND EXISTS (
-           SELECT 1
-           FROM teacher_subject_assignments tsa
-           WHERE tsa.school_id = $2
-             AND tsa.teacher_id = $4
-             AND tsa.class_name = s.class_name
+         OR (
+           $3 = 'TEACHER'
+           AND EXISTS (
+             SELECT 1
+             FROM teacher_subject_assignments tsa
+             WHERE tsa.school_id = $2
+               AND tsa.teacher_id = $4
+               AND tsa.class_name = s.class_name
+           )
          )
-       )
-     )`,
-  [studentId, sid, role, req.session.user.id]
-);
+       )`,
+    [studentId, sid, role, req.session.user.id, term, academicYear]
+  );
+
   if (!result.rowCount) {
     return res.status(404).json({
       error: 'Student not found or you do not have permission to view this report.'
@@ -2481,9 +2492,11 @@ app.get('/api/terminal-reports/:studentId', requireAuth, asyncRoute(async (req, 
   const marks = await q(
     `SELECT subject, class_score, exam_score, score, term
      FROM marks
-     WHERE school_id = $1 AND student_id = $2
+     WHERE school_id = $1
+       AND student_id = $2
+       AND ($3::text IS NULL OR term = $3)
      ORDER BY subject`,
-    [sid, studentId]
+    [sid, studentId, term]
   );
 
   res.json({
