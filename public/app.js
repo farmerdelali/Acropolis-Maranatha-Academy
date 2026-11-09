@@ -1167,8 +1167,8 @@ ${['ADMIN', 'HEADMASTER', 'TEACHER'].includes(d.session?.role) ? `
  <select name="term" id="terminalReportTerm" required>
      ${['Term 1', 'Term 2', 'Term 3'].map(term => `
       <option value="${term}"
-       ${(state.selectedReportTerm || state.selectedTerminalReport?.student?.term || d.school?.currentTerm || 'Term 1') === term ? 'selected' : ''}
-               ${term}
+       ${(state.selectedReportTerm || state.selectedTerminalReport?.student?.term || d.school?.currentTerm || 'Term 1') === term ? 'selected' : ''}>
+       ${term}   
       </option>
     `).join('')}
   </select>
