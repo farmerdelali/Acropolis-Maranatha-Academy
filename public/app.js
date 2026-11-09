@@ -1086,9 +1086,9 @@ html = pageHead(
           data-action="back-to-terminal-reports">Back to Terminal Reports</button>
       `);
   } else {
-   const selectedTerm = state.selectedTerminalReport?.student?.term ||
+const selectedTerm = state.selectedReportTerm ||
+  state.selectedTerminalReport?.student?.term ||
   d.school?.currentTerm || 'Term 1';
-
 const studentMarks = (
   state.selectedTerminalReport?.marks ||
   (d.marks || []).filter(mark =>
@@ -1144,11 +1144,11 @@ ${['ADMIN', 'HEADMASTER', 'TEACHER'].includes(d.session?.role) ? `
 
    <label class="field">
   Term
-  <select name="term" required>
-    ${['Term 1', 'Term 2', 'Term 3'].map(term => `
+ <select name="term" id="terminalReportTerm" required>
+     ${['Term 1', 'Term 2', 'Term 3'].map(term => `
       <option value="${term}"
-        ${(state.selectedTerminalReport?.student?.term || d.school?.currentTerm || 'Term 1') === term ? 'selected' : ''}>
-        ${term}
+       ${(state.selectedReportTerm || state.selectedTerminalReport?.student?.term || d.school?.currentTerm || 'Term 1') === term ? 'selected' : ''}
+               ${term}
       </option>
     `).join('')}
   </select>
@@ -3538,8 +3538,23 @@ async function loadStudentDocuments(studentId) {
   }
 }
 
-document.addEventListener('change', e => {
-  
+ document.addEventListener('change', async e => {
+  if (e.target.id === 'terminalReportTerm') {
+    const term = e.target.value;
+    const academicYear =
+      document.querySelector('#terminalReportForm [name="academicYear"]')?.value || '';
+
+    try {
+      state.selectedReportTerm = term;
+      state.selectedTerminalReport = await api(
+        `/api/terminal-reports/${encodeURIComponent(state.selectedReportStudentId)}?term=${encodeURIComponent(term)}&academicYear=${encodeURIComponent(academicYear)}`
+      );
+      render();
+    } catch (error) {
+      toast(error.message || 'Could not load this term.', true);
+    }
+    return;
+  } 
   if (e.target.id === 'documentStudent') {
     loadStudentDocuments(e.target.value);
   }
@@ -3738,13 +3753,8 @@ if (button.dataset.action === 'open-terminal-report') {
     toast(error.message || 'Could not load report card.', true);
     return;
   }
-
-  state.view = 'Individual Report Card';
-  render();
-  return;
-}
-if (button.dataset.action === 'open-terminal-report') {
-  state.selectedReportStudentId = button.dataset.id;
+state.selectedReportTerm =
+  state.selectedTerminalReport?.student?.term || 'Term 1';
   state.view = 'Individual Report Card';
   render();
   return;
@@ -3755,11 +3765,7 @@ if (button.dataset.action === 'open-terminal-report') {
   render();
   return;
 }
-  state.selectedReportStudentId = button.dataset.id;
-  state.view = 'Individual Report Card';
-  render();
-  return;
-}
+ 
   if (button.dataset.action === 'attendance-tab') {
     state.attendanceTab = button.dataset.tab;
     render();
@@ -3973,7 +3979,7 @@ if (!allowedForms.includes(form.id)) return;
 
   if (state.selectedReportStudentId) {
     state.selectedTerminalReport = await api(
-      `/api/terminal-reports/${encodeURIComponent(state.selectedReportStudentId)}`
+     `/api/terminal-reports/${encodeURIComponent(state.selectedReportStudentId)}?term=${encodeURIComponent(v.term)}&academicYear=${encodeURIComponent(v.academicYear)}`
     );
   }
 
