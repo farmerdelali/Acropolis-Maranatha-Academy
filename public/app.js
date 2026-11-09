@@ -892,37 +892,20 @@ const staffExcused = staffAttendanceEntries.filter(
       </section>
     </div>`;
 }else if(state.view==='Students'){
- html=pageHead('Student records','Register, search and maintain student information.',`<button class="btn primary" data-action="add-student">+ Register student</button><button class="btn soft" data-action="student-documents">📁 Student Documents</button>`)+`<section class="panel"><div class="panel-body"><div class="toolbar"><input id="studentSearch" placeholder="Search name, ID, class or guardian…" value="${esc(state.search)}"><button class="btn soft" data-action="clear-search">Clear</button></div>${studentRows(students.filter(s=>[s.full_name,s.student_code,s.class_name,s.guardian_name,s.guardian_phone].join(' ').toLowerCase().includes(state.search.toLowerCase())))}</div></section>`;
-
-}else if(state.view==='Student Documents'){
-   const studentClasses = [...new Set(
-   students.filter(s => !s.archived).map(s => s.class_name).filter(Boolean)
- )].sort();
-
- const filteredStudents = students.filter(s =>
-   (!state.studentClassFilter || s.class_name === state.studentClassFilter) &&
-   [s.full_name, s.student_code, s.class_name, s.guardian_name, s.guardian_phone]
-     .join(' ').toLowerCase().includes((state.search || '').toLowerCase())
- );
-
- html=pageHead('Student records','Register, search and maintain student information.',`<button class="btn primary" data-action="add-student">+ Register student</button><button class="btn soft" data-action="student-documents">📁 Student Documents</button>`)+`
- <section class="panel">
-   <div class="panel-body">
-     <div class="form-grid">
-       <label class="field">Select Class
-         <select id="studentClassFilter">
-           <option value="">All Classes</option>
-           ${studentClasses.map(c => `<option value="${esc(c)}" ${state.studentClassFilter === c ? 'selected' : ''}>${esc(c)}</option>`).join('')}
-         </select>
-       </label>
-       <label class="field">Search Students
-         <input id="studentSearch" placeholder="Search name, ID, class or guardian…" value="${esc(state.search || '')}">
-       </label>
+   html=pageHead('Student Documents','Upload and manage documents for individual students.',`<button class="btn soft" data-view="Students">← Back to Students</button>`)+
+   `<section class="panel"><div class="panel-body">
+     <h3>Select Student</h3>
+     <div class="field">
+       <label for="documentStudent">Student</label>
+       <select id="documentStudent" required>
+         <option value="">Choose a student</option>
+         ${students.map(s=>`<option value="${esc(s.id)}">${esc(s.full_name)}${s.student_code?' · '+esc(s.student_code):''}</option>`).join('')}
+       </select>
      </div>
-     <button class="btn soft" data-action="clear-search">Clear Search</button>
-     ${studentRows(filteredStudents)}
-   </div>
- </section>`;
+     <div id="studentDocumentArea">
+       <p>Select a student to manage their documents.</p>
+     </div>
+   </div></section>`;
 }else if(state.view==='Import Data'){
  html=pageHead(
    'Import Data',
