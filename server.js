@@ -2331,7 +2331,161 @@ app.post(
     }
   })
 );
+app.post('/api/terminal-reports', requireRole('ADMIN', 'HEADMASTER', 'TEACHER'), asyncRoute(async (req, res) => {
+  const b = req.body || {};
+  const role = req.session.user.role;
+  const studentId = Number(b.studentId);
+  const academicYear = b.academicYear;
+  const term = b.term;
+  const teacherRemarks = typeof b.teacherRemarks === 'string'
+    ? b.teacherRemarks.trim() : '';
+  const conduct = typeof b.conduct === 'string'
+    ? b.conduct.trim() : '';
+  const headmasterRemarks = typeof b.headmasterRemarks === 'string'
+    ? b.headmasterRemarks.trim() : '';
 
+  if (
+    !Number.isSafeInteger(studentId) || studentId < 1 ||
+    !validText(academicYear, 30) ||
+    !validText(term, 40) ||
+    teacherRemarks.length > 1500 ||
+    conduct.length > 500 ||
+    headmasterRemarks.length > 1500
+  ) {
+    return res.status(400).json({
+      error: 'Check the student, academic year, term and remarks.'
+    });
+  }
+
+  const student = await q(
+    `SELECT id, class_name FROM students
+     WHERE id = $1 AND school_id = $2 AND archived = false`,
+    [studentId, schoolId(req)]
+  );
+
+  if (!student.rowCount) {
+    return res.status(404).json({ error: 'Student not found.' });
+  }
+
+  if (role === 'TEACHER') {
+    const assignment = await q(
+      `SELECT id FROM teacher_subject_assignments
+       WHERE school_id = $1
+         AND teacher_id = $2
+         AND class_name = $3
+       LIMIT 1`,
+      [schoolId(req), req.session.user.id, student.rows[0].class_name]
+    );
+
+    if (!assignment.rowCount) {
+      return res.status(403).json({
+        error: 'You are not assigned to this student’s class.'
+      });
+    }
+  }
+
+  const saved = await q(
+    `INSERT INTO terminal_reports
+       (school_id, student_id, academic_year, term,
+        teacher_remarks, conduct, headmaster_remarks, created_by)
+     VALUES ($1, $2, $3, $4,
+       CASE WHEN $5 = 'TEACHER' THEN $6 ELSE '' END,
+       CASE WHEN $5 = 'TEACHER' THEN $7 ELSE '' END,
+       CASE WHEN $5 IN ('ADMIN', 'HEADMASTER') THEN $8 ELSE '' END,
+       $9)
+     ON CONFLICT (school_id, student_id, academic_year, term)
+     DO UPDATE SET
+       teacher_remarks = CASE
+         WHEN $5 = 'TEACHER' THEN EXCLUDED.teacher_remarks
+         ELSE terminal_reports.teacher_remarks END,
+       conduct = CASE
+         WHEN $5 = 'TEACHER' THEN EXCLUDED.conduct
+         ELSE terminal_reports.conduct END,
+       headmaster_remarks = CASE
+         WHEN $5 IN ('ADMIN', 'HEADMASTER') THEN EXCLUDED.headmaster_remarks
+         ELSE terminal_reports.headmaster_remarks END,
+       updated_at = NOW()
+     RETURNING id, academic_year, term,
+       teacher_remarks, conduct, headmaster_remarks`,
+    [
+      schoolId(req), studentId, academicYear.trim(), term.trim(),
+      role, teacherRemarks, conduct, headmasterRemarks,
+      req.session.user.id
+    ]
+  );
+
+  await audit(req, 'terminal_report_saved', 'student', studentId);
+
+  res.json({ ok: true, report: saved.rows[0] });
+}));
+app.get('/api/terminal-reports/:studentId', requireAuth, asyncRoute(async (req, res) => {
+  const sid = schoolId(req);
+  const studentId = Number(req.params.studentId);
+  const role = req.session.user.role;
+
+  if (!Number.isSafeInteger(studentId) || studentId < 1) {
+    return res.status(400).json({ error: 'Invalid student.' });
+  }
+
+  const result = await q(
+    `SELECT s.id, s.full_name, s.student_code, s.class_name,
+            tr.id AS report_id,
+            tr.academic_year, tr.term,
+            tr.teacher_remarks, tr.conduct,
+            tr.headmaster_remarks
+     FROM students s
+     LEFT JOIN terminal_reports tr
+       ON tr.student_id = s.id
+      AND tr.school_id = s.school_id
+     WHERE s.id = $1
+       AND s.school_id = $2
+       AND (
+         $3 <> 'PARENT'
+         OR EXISTS (
+           SELECT 1
+           FROM users u
+           JOIN parent_students ps
+             ON ps.parent_id = u.parent_id
+            AND ps.student_id = s.id
+            AND ps.school_id = s.school_id
+           WHERE u.id = $4
+             AND u.school_id = $2
+         )
+       )
+       AND (
+         $3 <> 'TEACHER'
+         OR EXISTS (
+           SELECT 1
+           FROM teacher_subject_assignments tsa
+           WHERE tsa.school_id = $2
+             AND tsa.teacher_id = $4
+             AND tsa.class_name = s.class_name
+         )
+       )
+     ORDER BY tr.updated_at DESC
+     LIMIT 1`,
+    [studentId, sid, role, req.session.user.id]
+  );
+
+  if (!result.rowCount) {
+    return res.status(404).json({
+      error: 'Student not found or you do not have permission to view this report.'
+    });
+  }
+
+  const marks = await q(
+    `SELECT subject, class_score, exam_score, score, term
+     FROM marks
+     WHERE school_id = $1 AND student_id = $2
+     ORDER BY subject`,
+    [sid, studentId]
+  );
+
+  res.json({
+    student: result.rows[0],
+    marks: marks.rows
+  });
+}));
 app.post('/api/marks', requireRole('ADMIN', 'TEACHER'), asyncRoute(async (req, res) => {
   const b = req.body || {};
   const classScore = Number(b.classScore);
