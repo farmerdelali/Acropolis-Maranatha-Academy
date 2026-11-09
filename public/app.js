@@ -3754,6 +3754,8 @@ if (button.dataset.action === 'open-terminal-report') {
   state.selectedReportStudentId = button.dataset.id;
 
   try {
+       const freshBootstrap = await api('/api/bootstrap');
+   state.data.school = freshBootstrap.school;
    state.selectedReportTerm =
   state.data?.school?.currentTerm || 'Term 1';
 
