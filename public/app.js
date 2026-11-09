@@ -1121,13 +1121,33 @@ const studentMarks = (
         <p><strong>Student:</strong> ${esc(reportStudent.full_name || '')}</p>
         <p><strong>Student ID:</strong> ${esc(reportStudent.student_code || '—')}</p>
         <p><strong>Class:</strong> ${esc(reportStudent.class_name || '—')}</p>
-       <div class="report-remarks">
+     
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Subject</th>
+                <th>Class Score /30</th>
+                <th>Exam Score /70</th>
+                <th>Total</th>
+                <th>Term</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${reportRows || '<tr><td colspan="5">No subject scores recorded.</td></tr>'}
+            </tbody>
+          </table>
+        </div>
+          <div class="report-remarks">
   <p><strong>Teacher's Remarks:</strong>
     ${esc(state.selectedTerminalReport?.student?.teacher_remarks || 'Not yet entered')}
   </p>
   <p><strong>Conduct:</strong>
     ${esc(state.selectedTerminalReport?.student?.conduct || 'Not yet entered')}
   </p>
+  <p><strong>Attitude:</strong>
+  ${esc(state.selectedTerminalReport?.student?.attitude || 'Not yet entered')}
+</p>
   <p><strong>Headmaster's Remarks:</strong>
     ${esc(state.selectedTerminalReport?.student?.headmaster_remarks || 'Not yet entered')}
   </p>
@@ -1166,6 +1186,11 @@ ${['ADMIN', 'HEADMASTER', 'TEACHER'].includes(d.session?.role) ? `
     <textarea name="conduct" maxlength="500"
       placeholder="Enter student's conduct">${esc(state.selectedTerminalReport?.student?.conduct || '')}</textarea>
   </label>
+    <label class="field">
+    Attitude
+    <textarea name="attitude" maxlength="500"
+      placeholder="Enter student's attitude">${esc(state.selectedTerminalReport?.student?.attitude || '')}</textarea>
+  </label>
 ` : ''}
 
     ${['ADMIN', 'HEADMASTER'].includes(d.session?.role) ? `
@@ -1179,22 +1204,6 @@ ${['ADMIN', 'HEADMASTER', 'TEACHER'].includes(d.session?.role) ? `
     <button type="submit" class="btn primary">Save Report Remarks</button>
   </form>
 ` : ''}
-        <div class="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>Subject</th>
-                <th>Class Score /30</th>
-                <th>Exam Score /70</th>
-                <th>Total</th>
-                <th>Term</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${reportRows || '<tr><td colspan="5">No subject scores recorded.</td></tr>'}
-            </tbody>
-          </table>
-        </div>
       </div>
 
       <button type="button" class="btn soft"
