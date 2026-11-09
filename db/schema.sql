@@ -380,6 +380,7 @@ CREATE TABLE IF NOT EXISTS terminal_reports (
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   UNIQUE (school_id, student_id, academic_year, term)
 );
-
+ALTER TABLE terminal_reports
+ADD COLUMN IF NOT EXISTS attitude TEXT NOT NULL DEFAULT '';
 CREATE INDEX IF NOT EXISTS terminal_reports_student_idx
 ON terminal_reports(school_id, student_id, academic_year, term);
