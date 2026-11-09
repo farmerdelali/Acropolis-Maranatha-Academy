@@ -2341,6 +2341,8 @@ app.post('/api/terminal-reports', requireRole('ADMIN', 'HEADMASTER', 'TEACHER'),
     ? b.teacherRemarks.trim() : '';
   const conduct = typeof b.conduct === 'string'
     ? b.conduct.trim() : '';
+ const attitude = typeof b.attitude === 'string'
+  ? b.attitude.trim() : ''; 
   const headmasterRemarks = typeof b.headmasterRemarks === 'string'
     ? b.headmasterRemarks.trim() : '';
 
@@ -2350,6 +2352,7 @@ app.post('/api/terminal-reports', requireRole('ADMIN', 'HEADMASTER', 'TEACHER'),
     !validText(term, 40) ||
     teacherRemarks.length > 1500 ||
     conduct.length > 500 ||
+attitude.length > 500 ||
     headmasterRemarks.length > 1500
   ) {
     return res.status(400).json({
