@@ -1148,17 +1148,19 @@ ${['ADMIN', 'HEADMASTER', 'TEACHER'].includes(d.session?.role) ? `
        value="${esc(state.selectedTerminalReport?.student?.term || d.school?.currentTerm || 'Term 1')}" required>
            </label>
 
-    <label class="field">
-      Teacher's Remarks
-      <textarea name="teacherRemarks" maxlength="1500"
-        placeholder="Enter teacher's remarks"></textarea>
-    </label>
+   ${d.session?.role === 'TEACHER' ? `
+  <label class="field">
+    Teacher's Remarks
+    <textarea name="teacherRemarks" maxlength="1500"
+      placeholder="Enter teacher's remarks">${esc(state.selectedTerminalReport?.student?.teacher_remarks || '')}</textarea>
+  </label>
 
-    <label class="field">
-      Conduct
-      <textarea name="conduct" maxlength="500"
+  <label class="field">
+    Conduct
+    <textarea name="conduct" maxlength="500"
       placeholder="Enter student's conduct">${esc(state.selectedTerminalReport?.student?.conduct || '')}</textarea>
-          </label>
+  </label>
+` : ''}
 
     ${['ADMIN', 'HEADMASTER'].includes(d.session?.role) ? `
       <label class="field">
@@ -3962,8 +3964,14 @@ if (!allowedForms.includes(form.id)) return;
 
   toast('Report remarks saved successfully.');
   await refresh();
-  render();
 
+  if (state.selectedReportStudentId) {
+    state.selectedTerminalReport = await api(
+      `/api/terminal-reports/${encodeURIComponent(state.selectedReportStudentId)}`
+    );
+  }
+
+  render();
 } else if (form.id === 'importDataForm') {
   const uploadData = new FormData(form);
 
