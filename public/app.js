@@ -1,3 +1,4 @@
+
 'use strict';
 
 if ('serviceWorker' in navigator) {
@@ -1085,10 +1086,15 @@ html = pageHead(
           data-action="back-to-terminal-reports">Back to Terminal Reports</button>
       `);
   } else {
-    const studentMarks = state.selectedTerminalReport?.marks ||
+   const selectedTerm = state.selectedTerminalReport?.student?.term ||
+  d.school?.currentTerm || 'Term 1';
+
+const studentMarks = (
+  state.selectedTerminalReport?.marks ||
   (d.marks || []).filter(mark =>
     String(mark.student_id) === String(reportStudent.id)
-  );
+  )
+).filter(mark => mark.term === selectedTerm);
     const reportRows = studentMarks.map(mark => `
       <tr>
         <td>${esc(mark.subject || '')}</td>
@@ -1133,14 +1139,14 @@ ${['ADMIN', 'HEADMASTER', 'TEACHER'].includes(d.session?.role) ? `
     <label class="field">
       Academic Year
       <input name="academicYear"
-        value="${esc(d.school?.academicYear || '')}" required>
-    </label>
+       value="${esc(state.selectedTerminalReport?.student?.academic_year || d.school?.academicYear || '')}" required>
+           </label>
 
     <label class="field">
       Term
       <input name="term"
-        value="${esc(d.school?.currentTerm || 'Term 1')}" required>
-    </label>
+       value="${esc(state.selectedTerminalReport?.student?.term || d.school?.currentTerm || 'Term 1')}" required>
+           </label>
 
     <label class="field">
       Teacher's Remarks
@@ -1151,15 +1157,15 @@ ${['ADMIN', 'HEADMASTER', 'TEACHER'].includes(d.session?.role) ? `
     <label class="field">
       Conduct
       <textarea name="conduct" maxlength="500"
-        placeholder="Enter student's conduct"></textarea>
-    </label>
+      placeholder="Enter student's conduct">${esc(state.selectedTerminalReport?.student?.conduct || '')}</textarea>
+          </label>
 
     ${['ADMIN', 'HEADMASTER'].includes(d.session?.role) ? `
       <label class="field">
         Headmaster's Remarks
         <textarea name="headmasterRemarks" maxlength="1500"
-          placeholder="Enter Headmaster's remarks"></textarea>
-      </label>
+  placeholder="Enter Headmaster's remarks">${esc(state.selectedTerminalReport?.student?.headmaster_remarks || '')}</textarea>
+                       </label>
     ` : ''}
 
     <button type="submit" class="btn primary">Save Report Remarks</button>
