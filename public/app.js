@@ -3745,16 +3745,19 @@ if (button.dataset.action === 'open-terminal-report') {
   state.selectedReportStudentId = button.dataset.id;
 
   try {
-    state.selectedTerminalReport = await api(
-      `/api/terminal-reports/${encodeURIComponent(button.dataset.id)}`
-    );
+   state.selectedReportTerm =
+  state.data?.school?.currentTerm || 'Term 1';
+
+const academicYear = state.data?.school?.academicYear || '';
+
+state.selectedTerminalReport = await api(
+  `/api/terminal-reports/${encodeURIComponent(button.dataset.id)}?term=${encodeURIComponent(state.selectedReportTerm)}&academicYear=${encodeURIComponent(academicYear)}`
+); 
   } catch (error) {
     state.selectedTerminalReport = null;
     toast(error.message || 'Could not load report card.', true);
     return;
   }
-state.selectedReportTerm =
-  state.selectedTerminalReport?.student?.term || 'Term 1';
   state.view = 'Individual Report Card';
   render();
   return;
