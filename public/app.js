@@ -1142,11 +1142,17 @@ ${['ADMIN', 'HEADMASTER', 'TEACHER'].includes(d.session?.role) ? `
        value="${esc(state.selectedTerminalReport?.student?.academic_year || d.school?.academicYear || '')}" required>
            </label>
 
-    <label class="field">
-      Term
-      <input name="term"
-       value="${esc(state.selectedTerminalReport?.student?.term || d.school?.currentTerm || 'Term 1')}" required>
-           </label>
+   <label class="field">
+  Term
+  <select name="term" required>
+    ${['Term 1', 'Term 2', 'Term 3'].map(term => `
+      <option value="${term}"
+        ${(state.selectedTerminalReport?.student?.term || d.school?.currentTerm || 'Term 1') === term ? 'selected' : ''}>
+        ${term}
+      </option>
+    `).join('')}
+  </select>
+</label>
 
    ${d.session?.role === 'TEACHER' ? `
   <label class="field">
