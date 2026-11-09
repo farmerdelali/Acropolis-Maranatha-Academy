@@ -1085,10 +1085,10 @@ html = pageHead(
           data-action="back-to-terminal-reports">Back to Terminal Reports</button>
       `);
   } else {
-    const studentMarks = (d.marks || []).filter(mark =>
-      String(mark.student_id) === String(reportStudent.id)
-    );
-
+    const studentMarks = state.selectedTerminalReport?.marks ||
+  (d.marks || []).filter(mark =>
+    String(mark.student_id) === String(reportStudent.id)
+  );
     const reportRows = studentMarks.map(mark => `
       <tr>
         <td>${esc(mark.subject || '')}</td>
@@ -1115,7 +1115,56 @@ html = pageHead(
         <p><strong>Student:</strong> ${esc(reportStudent.full_name || '')}</p>
         <p><strong>Student ID:</strong> ${esc(reportStudent.student_code || '—')}</p>
         <p><strong>Class:</strong> ${esc(reportStudent.class_name || '—')}</p>
+       <div class="report-remarks">
+  <p><strong>Teacher's Remarks:</strong>
+    ${esc(state.selectedTerminalReport?.student?.teacher_remarks || 'Not yet entered')}
+  </p>
+  <p><strong>Conduct:</strong>
+    ${esc(state.selectedTerminalReport?.student?.conduct || 'Not yet entered')}
+  </p>
+  <p><strong>Headmaster's Remarks:</strong>
+    ${esc(state.selectedTerminalReport?.student?.headmaster_remarks || 'Not yet entered')}
+  </p>
+</div> 
+${['ADMIN', 'HEADMASTER', 'TEACHER'].includes(d.session?.role) ? `
+  <form id="terminalReportForm" class="form-grid">
+    <input type="hidden" name="studentId" value="${esc(reportStudent.id)}">
 
+    <label class="field">
+      Academic Year
+      <input name="academicYear"
+        value="${esc(d.school?.academicYear || '')}" required>
+    </label>
+
+    <label class="field">
+      Term
+      <input name="term"
+        value="${esc(d.school?.currentTerm || 'Term 1')}" required>
+    </label>
+
+    <label class="field">
+      Teacher's Remarks
+      <textarea name="teacherRemarks" maxlength="1500"
+        placeholder="Enter teacher's remarks"></textarea>
+    </label>
+
+    <label class="field">
+      Conduct
+      <textarea name="conduct" maxlength="500"
+        placeholder="Enter student's conduct"></textarea>
+    </label>
+
+    ${['ADMIN', 'HEADMASTER'].includes(d.session?.role) ? `
+      <label class="field">
+        Headmaster's Remarks
+        <textarea name="headmasterRemarks" maxlength="1500"
+          placeholder="Enter Headmaster's remarks"></textarea>
+      </label>
+    ` : ''}
+
+    <button type="submit" class="btn primary">Save Report Remarks</button>
+  </form>
+` : ''}
         <div class="table-wrap">
           <table>
             <thead>
@@ -3660,11 +3709,33 @@ if (e.target.closest('[data-action="calendar-next"]')) {
   `;
 });
 
-document.addEventListener('click', e => {
-  const button = e.target.closest('button');
+document.addEventListener('click', async e => {
+const button = e.target.closest('button');
   if (!button) return;
-  if (button.dataset.action === 'open-terminal-report') {
-    if (button.dataset.action === 'back-to-terminal-reports') {
+if (button.dataset.action === 'open-terminal-report') {
+  state.selectedReportStudentId = button.dataset.id;
+
+  try {
+    state.selectedTerminalReport = await api(
+      `/api/terminal-reports/${encodeURIComponent(button.dataset.id)}`
+    );
+  } catch (error) {
+    state.selectedTerminalReport = null;
+    toast(error.message || 'Could not load report card.', true);
+    return;
+  }
+
+  state.view = 'Individual Report Card';
+  render();
+  return;
+}
+if (button.dataset.action === 'open-terminal-report') {
+  state.selectedReportStudentId = button.dataset.id;
+  state.view = 'Individual Report Card';
+  render();
+  return;
+}
+  if (button.dataset.action === 'back-to-terminal-reports') {
   state.view = 'Terminal Reports';
   state.selectedReportStudentId = null;
   render();
@@ -3724,6 +3795,7 @@ document.addEventListener('submit', async e => {
     'feedingSettingsForm',
 'feedingPlanForm',
 'feedingPaymentForm',
+ 'terminalReportForm',   
 ];
 
  e.preventDefault();
@@ -3876,7 +3948,17 @@ if (!allowedForms.includes(form.id)) return;
   }
 
   try {
-   if (form.id === 'importDataForm') {
+ if (form.id === 'terminalReportForm') {
+  await api('/api/terminal-reports', {
+    method: 'POST',
+    body: JSON.stringify(v)
+  });
+
+  toast('Report remarks saved successfully.');
+  await refresh();
+  render();
+
+} else if (form.id === 'importDataForm') {
   const uploadData = new FormData(form);
 
   const response = await fetch('/api/import/commit', {
