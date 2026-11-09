@@ -1008,12 +1008,21 @@ const markStudentDropdown = `
   });
 
   const classNames = Object.keys(groupedByClass).sort();
-
-  html = pageHead(
+const reportStudentFilter = `
+  <label class="field">
+    Filter reports by student
+    <select id="terminalStudentFilter">
+      <option value="">All students</option>
+      ${reportStudents.map(student =>
+        `<option value="${esc(student.id)}">${esc(student.full_name || '')}</option>`
+      ).join('')}
+    </select>
+  </label>
+`;
+html = pageHead(
     'Terminal Reports',
     'Academic performance grouped by class.'
-  );
-
+  ) + panel('Find individual student', reportStudentFilter);
   if (!classNames.length) {
     html += panel(
       'Terminal Reports',
@@ -1032,9 +1041,9 @@ const markStudentDropdown = `
 
         const average = marks.length ? total / marks.length : null;
 
-        return `<tr>
+       return `<tr data-report-student="${esc(student.id)}">
           <td><strong>${esc(student.full_name || '')}</strong></td>
-          <td>${esc(student.student_code || '—')}</td>
+        <td>${esc(student.student_code || '—')}</td>
           <td>${marks.length}</td>
           <td>${average === null ? 'No marks yet' : average.toFixed(1) + '%'}</td>
         </tr>`;
@@ -3455,6 +3464,14 @@ if (
       !selectedStudent || row.dataset.markStudent === selectedStudent;
 
     row.hidden = !classMatches || !studentMatches;
+  });
+}
+  if (e.target.id === 'terminalStudentFilter') {
+  const selectedStudent = e.target.value;
+
+  document.querySelectorAll('[data-report-student]').forEach(row => {
+    row.hidden = selectedStudent !== '' &&
+      row.dataset.reportStudent !== selectedStudent;
   });
 }
   if (e.target.id === 'attendanceClass') {
