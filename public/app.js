@@ -30,7 +30,7 @@ function loadSavedTheme() {
 loadSavedTheme();
 
 const nowForCalendar = new Date();
-const state = { user:null, data:{students:[],payments:[],marks:[],users:[],parents:[]}, view:'Dashboard', search:'', drawer:false, calendarMonth:nowForCalendar.getMonth(), calendarYear:nowForCalendar.getFullYear(), attendanceTab:'students' };
+const state = { user:null, data:{students:[],payments:[],marks:[],users:[],parents:[]}, view:'Dashboard', search:'', drawer:false, calendarMonth:nowForCalendar.getMonth(), calendarYear:nowForCalendar.getFullYear(), paymentHistoryClassFilter:'', attendanceTab:'students' };
 const nav = [
   ['Dashboard','▦','Overview'],
   ['Students','♙','Student records'],
@@ -1236,6 +1236,7 @@ ${['ADMIN', 'HEADMASTER', 'TEACHER'].includes(d.session?.role) ? `
         data-action="back-to-terminal-reports">Back to Terminal Reports</button>
     `);
   }
+
 } else if(state.view==='Fees & Payments') {
   const outstanding = Math.max(0, expected - paid);
 
@@ -1254,7 +1255,78 @@ ${['ADMIN', 'HEADMASTER', 'TEACHER'].includes(d.session?.role) ? `
     ${stat('Receipts issued', d.payments.length, 'Payment transactions')}
   </div>`;
 
-  const rows = d.payments.length
+  const paymentClasses = [...new Set(
+    students.map(s => s.class_name).filter(Boolean)
+  )].sort();
+
+  const filteredFeeStudents = students.filter(s =>
+    !state.paymentHistoryClassFilter ||
+    s.class_name === state.paymentHistoryClassFilter
+  );
+
+  const studentById = new Map(
+    students.map(s => [String(s.id), s])
+  );
+
+  const filteredPayments = d.payments.filter(p => {
+    if (!state.paymentHistoryClassFilter) return true;
+
+    const student = studentById.get(String(p.student_id));
+    return student?.class_name === state.paymentHistoryClassFilter;
+  });
+
+  const classFilter = `
+    <label class="field">
+      Select Class
+      <select id="paymentHistoryClassFilter">
+        <option value="">All Classes</option>
+        ${paymentClasses.map(c => `
+          <option value="${esc(c)}"
+            ${state.paymentHistoryClassFilter === c ? 'selected' : ''}>
+            ${esc(c)}
+          </option>
+        `).join('')}
+      </select>
+    </label>
+  `;
+
+  html += panel('Filter payment records by class', classFilter);
+
+  const balanceRows = filteredFeeStudents.length
+    ? `<div class="table-wrap"><table>
+        <thead>
+          <tr>
+            <th>Student</th>
+            <th>Student ID</th>
+            <th>Class</th>
+            <th>Total Fees</th>
+            <th>Paid</th>
+            <th>Outstanding Balance</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${filteredFeeStudents.map(s => {
+            const studentBalance = Math.max(
+              0,
+              Number(s.total_fees || 0) - Number(s.paid || 0)
+            );
+
+            return `<tr>
+              <td><b>${esc(s.full_name)}</b></td>
+              <td>${esc(s.student_code)}</td>
+              <td>${esc(s.class_name || '—')}</td>
+              <td>${money(s.total_fees)}</td>
+              <td>${money(s.paid)}</td>
+              <td><b>${money(studentBalance)}</b></td>
+            </tr>`;
+          }).join('')}
+        </tbody>
+      </table></div>`
+    : '<div class="empty">No students found for this class.</div>';
+
+  html += panel('Student outstanding balances', balanceRows);
+
+  const rows = filteredPayments.length
     ? `<div class="table-wrap"><table>
         <thead><tr>
           <th>Receipt</th>
@@ -1265,7 +1337,7 @@ ${['ADMIN', 'HEADMASTER', 'TEACHER'].includes(d.session?.role) ? `
           <th>Note</th>
           <th>Actions</th>
         </tr></thead>
-        <tbody>${d.payments.map(p => `<tr>
+        <tbody>${filteredPayments.map(p => `<tr>
           <td><b>${esc(p.receipt_no)}</b></td>
           <td>${esc(p.student_name)}</td>
           <td>${esc(p.student_code)}</td>
@@ -1280,7 +1352,7 @@ ${['ADMIN', 'HEADMASTER', 'TEACHER'].includes(d.session?.role) ? `
             : '—'}</td>
         </tr>`).join('')}</tbody>
       </table></div>`
-    : '<div class="empty">No payments recorded yet. Use Record Payment to add a receipt.</div>';
+    : '<div class="empty">No payments recorded for this class yet.</div>';
 
   html += panel('Payment history', rows);
 
@@ -5232,6 +5304,11 @@ break;
 document.addEventListener('change', e => {
   if (e.target.id === 'studentClassFilter') {
     state.studentClassFilter = e.target.value;
+    render();
+  }
+
+  if (e.target.id === 'paymentHistoryClassFilter') {
+    state.paymentHistoryClassFilter = e.target.value;
     render();
   }
 });
