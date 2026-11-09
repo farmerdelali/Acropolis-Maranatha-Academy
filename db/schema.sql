@@ -366,3 +366,20 @@ CREATE TABLE IF NOT EXISTS school_events (
 
 CREATE INDEX IF NOT EXISTS school_events_school_date_idx
 ON school_events(school_id, status, event_date, start_time);
+-- TERMINAL REPORT RECORDS
+CREATE TABLE IF NOT EXISTS terminal_reports (
+  id BIGSERIAL PRIMARY KEY,
+  school_id BIGINT NOT NULL REFERENCES schools(id) ON DELETE CASCADE,
+  student_id BIGINT NOT NULL REFERENCES students(id) ON DELETE CASCADE,
+  academic_year TEXT NOT NULL DEFAULT '',
+  term TEXT NOT NULL DEFAULT 'Term 1',
+  teacher_remarks TEXT NOT NULL DEFAULT '',
+  conduct TEXT NOT NULL DEFAULT '',
+  headmaster_remarks TEXT NOT NULL DEFAULT '',
+  created_by BIGINT REFERENCES users(id) ON DELETE SET NULL,
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  UNIQUE (school_id, student_id, academic_year, term)
+);
+
+CREATE INDEX IF NOT EXISTS terminal_reports_student_idx
+ON terminal_reports(school_id, student_id, academic_year, term);
