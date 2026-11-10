@@ -123,14 +123,14 @@ function showApp(user) {
 'Teacher Subject Assignments'
 ],
 
-    TEACHER: [
-      'Dashboard',
-      'Students',
-            'Marks',
-      'Classrooms',
-      'Attendance Register'
-    ],
-
+   TEACHER: [
+  'Dashboard',
+  'Students',
+  'Marks',
+  'Classrooms',
+  'Attendance Register',
+  'Terminal Reports'
+],
     BURSAR: [
   'Dashboard',
   'Fees & Payments',
@@ -4749,9 +4749,8 @@ HEADMASTER: [
 ],
 TEACHER: [
   'Dashboard', 'Students', 'Marks', 'Classrooms',
-  'Attendance Register'
+  'Attendance Register', 'Terminal Reports'
 ],
-
       BURSAR: [
   'Dashboard',
   'Fees & Payments',
