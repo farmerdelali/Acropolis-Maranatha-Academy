@@ -73,10 +73,19 @@ CREATE TABLE IF NOT EXISTS marks (
   student_id BIGINT NOT NULL REFERENCES students(id) ON DELETE CASCADE,
   subject TEXT NOT NULL,
   term TEXT NOT NULL DEFAULT 'Term 1',
+  academic_year TEXT NOT NULL DEFAULT '',
   score NUMERIC(5,2) NOT NULL CHECK (score >= 0 AND score <= 100),
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   UNIQUE (school_id, student_id, subject, term)
 );
+ALTER TABLE marks
+ADD COLUMN IF NOT EXISTS academic_year TEXT NOT NULL DEFAULT '';
+
+ALTER TABLE marks
+DROP CONSTRAINT IF EXISTS marks_school_id_student_id_subject_term_key;
+
+CREATE UNIQUE INDEX IF NOT EXISTS marks_school_student_subject_term_year_uidx
+ON marks (school_id, student_id, subject, term, academic_year);
 CREATE TABLE IF NOT EXISTS payments (
   id BIGSERIAL PRIMARY KEY,
   school_id BIGINT NOT NULL REFERENCES schools(id) ON DELETE CASCADE,
