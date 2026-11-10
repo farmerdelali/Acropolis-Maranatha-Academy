@@ -1611,7 +1611,7 @@ const studentId = student.id;
         } else {
           const inserted = await client.query(
             `INSERT INTO marks
-             (school_id, student_id, subject, term, score, class_score, exam_score)
+             (school_id, student_id, subject, term, academic_year, score, class_score, exam_score)
              VALUES ($1,$2,$3,$4,$5,$6,$7)
              RETURNING id`,
             [
