@@ -1200,8 +1200,8 @@ ${['ADMIN', 'HEADMASTER', 'TEACHER'].includes(d.session?.role) ? `
   </select>
 </label>
 
-   ${d.session?.role === 'TEACHER' ? `
-  <label class="field">
+ ${['ADMIN', 'HEADMASTER', 'TEACHER'].includes(d.session?.role) ? `
+   <label class="field">
     Teacher's Remarks
     <textarea name="teacherRemarks" maxlength="1500"
       placeholder="Enter teacher's remarks">${esc(state.selectedTerminalReport?.student?.teacher_remarks || '')}</textarea>
