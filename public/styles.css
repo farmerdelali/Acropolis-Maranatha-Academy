@@ -8102,3 +8102,117 @@ body:not(.dark-mode) .topbar .topbrand strong {
 body:not(.dark-mode) .topbar .topbrand small {
   color: #52647a !important;
 }
+
+/* ACROPOLIS PREMIUM LOGIN ANIMATIONS */
+
+.auth-shell {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  background:
+    radial-gradient(circle at 15% 20%, #263f70 0, transparent 38%),
+    radial-gradient(circle at 85% 80%, #263f70 0, transparent 35%),
+    linear-gradient(135deg, #101c3a, #172b50, #101c3a);
+  background-size: 150% 150%;
+  animation: amaLoginBackground 12s ease-in-out infinite alternate;
+}
+
+.auth-card {
+  position: relative;
+  animation: amaLoginEntrance 0.9s cubic-bezier(.16,1,.3,1) both,
+             amaLoginCardGlow 5s ease-in-out 1s infinite;
+  transform-origin: center;
+}
+
+.brand img {
+  animation: amaLogoEntrance 1s cubic-bezier(.16,1,.3,1) both;
+}
+
+.auth-form h2 {
+  animation: amaLoginText 0.8s ease both;
+}
+
+.auth-form label {
+  animation: amaLoginText 0.8s ease both;
+}
+
+.auth-form input {
+  transition: border-color .3s ease, box-shadow .3s ease,
+              transform .3s ease;
+}
+
+.auth-form input:focus {
+  transform: translateY(-2px);
+  border-color: #d49b24;
+  box-shadow: 0 0 0 4px #d49b2420;
+}
+
+.auth-card .btn {
+  transition: transform .3s ease, box-shadow .3s ease,
+              filter .3s ease;
+}
+
+.auth-card .btn:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 24px #080f2070;
+}
+
+.auth-tabs .tab {
+  transition: background .3s ease, color .3s ease,
+              transform .3s ease;
+}
+
+.auth-tabs .tab:hover {
+  transform: translateY(-2px);
+}
+
+@keyframes amaLoginBackground {
+  from { background-position: 0% 20%; }
+  to { background-position: 100% 80%; }
+}
+
+@keyframes amaLoginEntrance {
+  from {
+    opacity: 0;
+    transform: translateY(35px) scale(.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes amaLogoEntrance {
+  from {
+    opacity: 0;
+    transform: translateY(-15px) scale(.8);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes amaLoginText {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes amaLoginCardGlow {
+  0%, 100% {
+    box-shadow: 0 25px 75px #050d2080;
+  }
+  50% {
+    box-shadow: 0 30px 85px #d49b2425;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .auth-shell,
+  .auth-card,
+  .brand img,
+  .auth-form h2,
+  .auth-form label {
+    animation: none !important;
+  }
+}
