@@ -2497,20 +2497,54 @@ tr.attitude, tr.headmaster_remarks
     });
   }
 
-  const marks = await q(
-    `SELECT subject, class_score, exam_score, score, term
-     FROM marks
-     WHERE school_id = $1
-       AND student_id = $2
-       AND ($3::text IS NULL OR term = $3)
-     ORDER BY subject`,
-    [sid, studentId, term]
-  );
+const marks = await q(
+  `SELECT subject, class_score, exam_score, score, term, academic_year
+   FROM marks
+   WHERE school_id = $1
+     AND student_id = $2
+     AND ($3::text IS NULL OR term = $3)
+     AND ($4::text IS NULL OR academic_year = $4)
+   ORDER BY subject`,
+  [sid, studentId, term, academicYear]
+);
+  const positionResult = await q(
+  `WITH student_totals AS (
+     SELECT s.id, AVG(m.score)::numeric AS average_score
+     FROM students s
+     JOIN marks m
+       ON m.school_id = s.school_id
+      AND m.student_id = s.id
+     WHERE s.school_id = $1
+       AND s.class_name = $2
+       AND s.archived = false
+       AND ($3::text IS NULL OR m.term = $3)
+       AND ($4::text IS NULL OR m.academic_year = $4)
+     GROUP BY s.id
+   ),
+   ranked AS (
+     SELECT id,
+            RANK() OVER (ORDER BY average_score DESC) AS class_position,
+            COUNT(*) OVER () AS class_size
+     FROM student_totals
+   )
+   SELECT class_position, class_size
+   FROM ranked
+   WHERE id = $5`,
+  [
+    sid,
+    result.rows[0].class_name,
+    term,
+    academicYear,
+    studentId
+  ]
+);
 
-  res.json({
-    student: result.rows[0],
-    marks: marks.rows
-  });
+const classPosition = positionResult.rows[0] || null;
+res.json({
+  student: result.rows[0],
+  marks: marks.rows,
+  classPosition: classPosition
+});
 }));
 app.post('/api/marks', requireRole('ADMIN', 'TEACHER'), asyncRoute(async (req, res) => {
   const b = req.body || {};
