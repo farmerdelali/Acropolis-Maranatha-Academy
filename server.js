@@ -888,6 +888,7 @@ app.post(
     }
 
     const importType = String(req.body.importType || '');
+    const academicYear = String(req.body.academicYear || '').trim();
 const role = req.session.user.role;
 
 const allowedImportRoles = {
@@ -1164,9 +1165,8 @@ if (!allowedImportRoles[importType]?.includes(role)) {
     }
   }
 
-  const markKey =
-    `${student.id}|${finalSubject.toLowerCase()}|${term.toLowerCase()}`;
-
+ const markKey =
+  `${student.id}|${finalSubject.toLowerCase()}|${term.toLowerCase()}|${academicYear}`;
   if (seenMarks.has(markKey)) {
     errors.push(
       'This student, subject and term appear more than once in the file.'
@@ -1175,16 +1175,16 @@ if (!allowedImportRoles[importType]?.includes(role)) {
     seenMarks.add(markKey);
   }
 
-          const existingMark = await q(
-            `SELECT id FROM marks
-             WHERE school_id = $1
-               AND student_id = $2
-               AND lower(subject) = lower($3)
-               AND lower(term) = lower($4)
-             LIMIT 1`,
-            [sid, student.id, finalSubject, term]
-          );
-
+       const existingMark = await q(
+  `SELECT id FROM marks
+   WHERE school_id = $1
+     AND student_id = $2
+     AND lower(subject) = lower($3)
+     AND lower(term) = lower($4)
+     AND academic_year = $5
+   LIMIT 1`,
+  [sid, student.id, finalSubject, term, academicYear]
+);
           if (existingMark.rowCount) {
             errors.push(
               'A mark already exists for this student, subject and term. It will not be overwritten.'
@@ -1200,6 +1200,7 @@ if (!allowedImportRoles[importType]?.includes(role)) {
             className: student?.class_name || '',
             subject: finalSubject,
             term,
+            academicYear,
             classScore,
             examScore,
             totalScore: classScore + examScore
@@ -1234,6 +1235,9 @@ app.post(
     }
 
     const importType = String(req.body.importType || '');
+    const importType = String(req.body.importType || '');
+const academicYear = String(req.body.academicYear || '').trim();
+const role = req.session.user.role;
 const role = req.session.user.role;
 
 const allowedImportRoles = {
@@ -1526,8 +1530,7 @@ if (req.session.user.role === 'TEACHER') {
 
 const studentId = student.id;
           const markKey =
-            `${studentId}|${subject.toLowerCase()}|${term.toLowerCase()}`;
-
+  `${studentId}|${subject.toLowerCase()}|${term.toLowerCase()}|${academicYear}`;
           if (seenMarks.has(markKey)) {
             errors.push(
               `Row ${row._rowNumber}: duplicate student, subject and term in this file.`
@@ -1537,16 +1540,16 @@ const studentId = student.id;
 
           seenMarks.add(markKey);
 
-          const existingMark = await client.query(
-            `SELECT id FROM marks
-             WHERE school_id = $1
-               AND student_id = $2
-               AND lower(subject) = lower($3)
-               AND lower(term) = lower($4)
-             LIMIT 1`,
-            [sid, studentId, subject, term]
-          );
-
+       const existingMark = await client.query(
+  `SELECT id FROM marks
+   WHERE school_id = $1
+     AND student_id = $2
+     AND lower(subject) = lower($3)
+     AND lower(term) = lower($4)
+     AND academic_year = $5
+   LIMIT 1`,
+  [sid, studentId, subject, term, academicYear]
+);  
           if (existingMark.rowCount) {
             errors.push(
               `Row ${row._rowNumber}: a mark already exists for this student, subject and term. Nothing will be overwritten.`
@@ -1559,6 +1562,7 @@ const studentId = student.id;
             studentId,
             subject,
             term,
+            academicYear,
             classScore,
             examScore,
             totalScore: classScore + examScore
@@ -1615,6 +1619,7 @@ const studentId = student.id;
               record.studentId,
               record.subject,
               record.term,
+              record.academicYear,
               record.totalScore,
               record.classScore,
               record.examScore
