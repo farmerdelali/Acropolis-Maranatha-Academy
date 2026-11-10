@@ -4097,16 +4097,6 @@ if (!result.rowCount) return res.status(404).json({ error: 'Pickup person not fo
 await audit(req, 'pickup_person_deleted', 'pickup_person', req.params.id);
 res.json({ ok: true, message: 'Pickup person deleted.' });
 }));
-
-app.delete('/api/marks/:id', requireRole('ADMIN'), asyncRoute(async (req, res) => {
-const result = await q(
-'DELETE FROM marks WHERE id=$1 AND school_id=$2 RETURNING id',
-[req.params.id, schoolId(req)]
-);
-if (!result.rowCount) return res.status(404).json({ error: 'Mark record not found.' });
-await audit(req, 'mark_deleted', 'mark', req.params.id);
-res.json({ ok: true, message: 'Mark record deleted.' });
-}));
 app.delete('/api/marks/bulk-delete-all', requireRole('ADMIN'), asyncRoute(async (req, res) => {
   const result = await q(
     'DELETE FROM marks WHERE school_id = $1 RETURNING id',
@@ -4120,6 +4110,16 @@ app.delete('/api/marks/bulk-delete-all', requireRole('ADMIN'), asyncRoute(async 
     deleted: result.rowCount,
     message: `${result.rowCount} examination marks deleted successfully.`
   });
+}));
+
+app.delete('/api/marks/:id', requireRole('ADMIN'), asyncRoute(async (req, res) => {
+const result = await q(
+'DELETE FROM marks WHERE id=$1 AND school_id=$2 RETURNING id',
+[req.params.id, schoolId(req)]
+);
+if (!result.rowCount) return res.status(404).json({ error: 'Mark record not found.' });
+await audit(req, 'mark_deleted', 'mark', req.params.id);
+res.json({ ok: true, message: 'Mark record deleted.' });
 }));
 app.delete('/api/class-activations/:id', requireRole('ADMIN'), asyncRoute(async (req, res) => {
 const result = await q(
