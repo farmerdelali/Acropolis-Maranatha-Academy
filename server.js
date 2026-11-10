@@ -4107,7 +4107,20 @@ if (!result.rowCount) return res.status(404).json({ error: 'Mark record not foun
 await audit(req, 'mark_deleted', 'mark', req.params.id);
 res.json({ ok: true, message: 'Mark record deleted.' });
 }));
+app.delete('/api/marks/bulk-delete-all', requireRole('ADMIN'), asyncRoute(async (req, res) => {
+  const result = await q(
+    'DELETE FROM marks WHERE school_id = $1 RETURNING id',
+    [schoolId(req)]
+  );
 
+  await audit(req, 'all_marks_deleted', 'marks', null);
+
+  res.json({
+    ok: true,
+    deleted: result.rowCount,
+    message: `${result.rowCount} examination marks deleted successfully.`
+  });
+}));
 app.delete('/api/class-activations/:id', requireRole('ADMIN'), asyncRoute(async (req, res) => {
 const result = await q(
 'DELETE FROM class_activations WHERE id=$1 AND school_id=$2 RETURNING id',
