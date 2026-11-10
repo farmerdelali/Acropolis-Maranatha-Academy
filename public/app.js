@@ -1122,16 +1122,15 @@ const studentMarks = (
   )
 ).filter(mark => mark.term === selectedTerm);
 const reportRows = studentMarks.map(mark => {
-  const score = Number(mark.score) || 0;
-  const performanceGrade = score >= 80 ? 4 : score >= 70 ? 3 : score >= 60 ? 2 : 1;
-  const performanceDescription = score >= 80
-    ? 'Excellent'
-    : score >= 70
-      ? 'Very Good'
-      : score >= 60
-        ? 'Good'
-        : 'Needs Improvement';
-
+ const score = Number(mark.score) || 0;
+const performanceGrade = score >= 80 ? 'A (1)' : score >= 70 ? 'B (2)' : score >= 60 ? 'C (3)' : 'D (4)';
+const performanceDescription = score >= 80
+  ? 'Excellent'
+  : score >= 70
+    ? 'Very Good'
+    : score >= 60
+      ? 'Good'
+      : 'Needs Improvement';
   return `
     <tr>
       <td>${esc(mark.subject || '')}</td>
@@ -1159,6 +1158,16 @@ const reportRows = studentMarks.map(mark => {
         </div>
 
         <p><strong>Student:</strong> ${esc(reportStudent.full_name || '')}</p>
+        <p><strong>Class Position:</strong> ${
+  (() => {
+    const position = Number(state.selectedTerminalReport?.classPosition?.class_position);
+    if (!position) return 'Not ranked';
+    const suffix = position % 100 >= 11 && position % 100 <= 13
+      ? 'th'
+      : ({1:'st', 2:'nd', 3:'rd'}[position % 10] || 'th');
+    return `${position}${suffix} out of ${state.selectedTerminalReport?.classPosition?.class_size || 0}`;
+  })()
+}</p>
         <p><strong>Student ID:</strong> ${esc(reportStudent.student_code || '—')}</p>
         <p><strong>Class:</strong> ${esc(reportStudent.class_name || '—')}</p>
      
@@ -1177,7 +1186,7 @@ const reportRows = studentMarks.map(mark => {
               </tr>
             </thead>
             <tbody>
-              ${reportRows || '<tr><td colspan="5">No subject scores recorded.</td></tr>'}
+              ${reportRows || '<tr><td colspan="8">No subject scores recorded.</td></tr>'}
             </tbody>
           </table>
         </div>
