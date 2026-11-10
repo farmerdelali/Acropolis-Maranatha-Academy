@@ -1612,7 +1612,7 @@ const studentId = student.id;
           const inserted = await client.query(
             `INSERT INTO marks
              (school_id, student_id, subject, term, academic_year, score, class_score, exam_score)
-             VALUES ($1,$2,$3,$4,$5,$6,$7)
+             VALUES ($1,$2,$3,$4,$5,$6,$7,$8)
              RETURNING id`,
             [
               sid,
