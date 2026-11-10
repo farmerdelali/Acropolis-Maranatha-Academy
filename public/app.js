@@ -1121,16 +1121,16 @@ const studentMarks = (
     String(mark.student_id) === String(reportStudent.id)
   )
 ).filter(mark => mark.term === selectedTerm);
-    const reportRows = studentMarks.map(mark => `
-      <tr>
-        <td>${esc(mark.subject || '')}</td>
-        <td>${esc(mark.class_score ?? '—')}</td>
-        <td>${esc(mark.exam_score ?? '—')}</td>
-        <td>${esc(mark.score ?? '—')}</td>
-        <td>${esc(mark.term || '—')}</td>
-      </tr>
-    `).join('');
-
+   const reportRows = studentMarks.map(mark => `
+  <tr>
+    <td>${esc(mark.subject || '')}</td>
+    <td>${esc(mark.class_score ?? '—')}</td>
+    <td>${esc(mark.exam_score ?? '—')}</td>
+    <td>${esc(mark.score ?? '—')}</td>
+    <td><strong>${grade(Number(mark.score) || 0)}</strong></td>
+    <td>${esc(mark.term || '—')}</td>
+  </tr>
+`).join('');
     html = pageHead(
       'Individual Report Card',
       'Student academic performance.'
