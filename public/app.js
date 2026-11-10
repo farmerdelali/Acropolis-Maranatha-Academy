@@ -3455,6 +3455,11 @@ function markForm() {
           <option>Term 3</option>
         </select>
       </label>
+      <label class="field">Academic Year
+  <input name="academicYear" required
+    value="${esc(state.data.school?.academicYear || '')}"
+    placeholder="2026/2027">
+</label>
       <label class="field">Class Score (out of 30)
         <input name="classScore" type="number" min="0" max="30" step="0.01" required inputmode="decimal">
       </label>
@@ -3485,7 +3490,11 @@ function bulkClassMarksForm() {
           ${classOptions}
         </select>
       </label>
-
+<label class="field">Academic Year
+  <input name="academicYear" required
+    value="${esc(state.data.school?.academicYear || '')}"
+    placeholder="2026/2027">
+</label>
       <label class="field">Term
         <select name="term" required>
           <option value="Term 1">Term 1</option>
@@ -4001,6 +4010,7 @@ document.addEventListener('submit', async e => {
 if (form.id === 'bulkClassMarksForm') {
   const className = form.elements.namedItem('className').value;
   const term = form.elements.namedItem('term').value;
+  const academicYear = form.elements.namedItem('academicYear').value.trim();
   const fileInput = form.querySelector('input[name="file"]');
   const file = fileInput.files[0];
   const uploadButton = form.querySelector('button[type="submit"]');
@@ -4027,6 +4037,7 @@ if (form.id === 'bulkClassMarksForm') {
     const uploadData = new FormData();
     uploadData.append('className', className);
     uploadData.append('term', term);
+    uploadData.append('academicYear', academicYear);
     uploadData.append('file', file);
 
     const response = await fetch('/api/marks/class-upload', {
