@@ -947,6 +947,7 @@ panel('Upload and save records',`
        <select name="importType" required>
          <option value="students">Student records</option>
          <option value="marks">Examination marks</option>
+        </select> 
      <label class="field">Academic Year
   <input name="academicYear" required
     value="${esc(state.data.school?.academicYear || '')}"
