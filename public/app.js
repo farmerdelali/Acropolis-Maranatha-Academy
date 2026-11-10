@@ -947,9 +947,11 @@ panel('Upload and save records',`
        <select name="importType" required>
          <option value="students">Student records</option>
          <option value="marks">Examination marks</option>
-       </select>
-     </label>
-
+     <label class="field">Academic Year
+  <input name="academicYear" required
+    value="${esc(state.data.school?.academicYear || '')}"
+    placeholder="2026/2027">
+</label>
      
      <label class="field import-file-field">Choose a file to upload
        <span class="import-file-hint">Browse your device or any storage locations available in the file picker.</span>
