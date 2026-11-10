@@ -1121,16 +1121,30 @@ const studentMarks = (
     String(mark.student_id) === String(reportStudent.id)
   )
 ).filter(mark => mark.term === selectedTerm);
-   const reportRows = studentMarks.map(mark => `
-  <tr>
-    <td>${esc(mark.subject || '')}</td>
-    <td>${esc(mark.class_score ?? '—')}</td>
-    <td>${esc(mark.exam_score ?? '—')}</td>
-    <td>${esc(mark.score ?? '—')}</td>
-    <td><strong>${grade(Number(mark.score) || 0)}</strong></td>
-    <td>${esc(mark.term || '—')}</td>
-  </tr>
-`).join('');
+const reportRows = studentMarks.map(mark => {
+  const score = Number(mark.score) || 0;
+  const performanceGrade = score >= 80 ? 4 : score >= 70 ? 3 : score >= 60 ? 2 : 1;
+  const performanceDescription = score >= 80
+    ? 'Excellent'
+    : score >= 70
+      ? 'Very Good'
+      : score >= 60
+        ? 'Good'
+        : 'Needs Improvement';
+
+  return `
+    <tr>
+      <td>${esc(mark.subject || '')}</td>
+      <td>${esc(mark.class_score ?? '—')}</td>
+      <td>${esc(mark.exam_score ?? '—')}</td>
+      <td>${esc(mark.score ?? '—')}</td>
+      <td>${grade(score)}</td>
+      <td><strong>${performanceGrade}</strong></td>
+      <td>${performanceDescription}</td>
+      <td>${esc(mark.term || '—')}</td>
+    </tr>
+  `;
+}).join('');
     html = pageHead(
       'Individual Report Card',
       'Student academic performance.'
@@ -1153,10 +1167,13 @@ const studentMarks = (
             <thead>
               <tr>
                 <th>Subject</th>
-                <th>Class Score /30</th>
-                <th>Exam Score /70</th>
-                <th>Total</th>
-                <th>Term</th>
+<th>Class Score /30</th>
+<th>Exam Score /70</th>
+<th>Total</th>
+<th>A-F Grade</th>
+<th>Performance Grade</th>
+<th>Performance</th>
+<th>Term</th>
               </tr>
             </thead>
             <tbody>
