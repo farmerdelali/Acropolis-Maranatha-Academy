@@ -2392,21 +2392,21 @@ const saved = await q(
      (school_id, student_id, academic_year, term,
       teacher_remarks, conduct, attitude, headmaster_remarks, created_by)
    VALUES ($1, $2, $3, $4,
-     CASE WHEN $5 = 'TEACHER' THEN $6 ELSE '' END,
-     CASE WHEN $5 = 'TEACHER' THEN $7 ELSE '' END,
-     CASE WHEN $5 = 'TEACHER' THEN $8 ELSE '' END,
+     CASE WHEN $5 IN ('ADMIN', 'HEADMASTER', 'TEACHER') THEN $6 ELSE '' END,
+     CASE WHEN $5 IN ('ADMIN', 'HEADMASTER', 'TEACHER') THEN $7 ELSE '' END,
+     CASE WHEN $5 IN ('ADMIN', 'HEADMASTER', 'TEACHER') THEN $8 ELSE '' END,
      CASE WHEN $5 IN ('ADMIN', 'HEADMASTER') THEN $9 ELSE '' END,
      $10)
    ON CONFLICT (school_id, student_id, academic_year, term)
    DO UPDATE SET
      teacher_remarks = CASE
-       WHEN $5 = 'TEACHER' THEN EXCLUDED.teacher_remarks
+       WHEN $5 IN ('ADMIN', 'HEADMASTER', 'TEACHER') THEN EXCLUDED.teacher_remarks
        ELSE terminal_reports.teacher_remarks END,
      conduct = CASE
-       WHEN $5 = 'TEACHER' THEN EXCLUDED.conduct
+       WHEN $5 IN ('ADMIN', 'HEADMASTER', 'TEACHER') THEN EXCLUDED.conduct
        ELSE terminal_reports.conduct END,
      attitude = CASE
-       WHEN $5 = 'TEACHER' THEN EXCLUDED.attitude
+       WHEN $5 IN ('ADMIN', 'HEADMASTER', 'TEACHER') THEN EXCLUDED.attitude
        ELSE terminal_reports.attitude END,
      headmaster_remarks = CASE
        WHEN $5 IN ('ADMIN', 'HEADMASTER') THEN EXCLUDED.headmaster_remarks
@@ -2420,6 +2420,7 @@ const saved = await q(
     req.session.user.id
   ]
 );
+
   await audit(req, 'terminal_report_saved', 'student', studentId);
 
   res.json({ ok: true, report: saved.rows[0] });
