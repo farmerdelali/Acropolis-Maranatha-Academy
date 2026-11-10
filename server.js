@@ -1235,10 +1235,9 @@ app.post(
     }
 
     const importType = String(req.body.importType || '');
-    const importType = String(req.body.importType || '');
 const academicYear = String(req.body.academicYear || '').trim();
 const role = req.session.user.role;
-const role = req.session.user.role;
+
 
 const allowedImportRoles = {
   students: ['ADMIN', 'HEADMASTER'],
