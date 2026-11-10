@@ -2066,7 +2066,7 @@ app.post(
   asyncRoute(async (req, res) => {
     const className = String(req.body.className || '').trim();
     const term = String(req.body.term || '').trim();
-
+const academicYear = String(req.body.academicYear || '').trim();
     if (!CLASS_MARK_SUBJECTS[className]) {
       return res.status(400).json({
         error: 'Choose a supported class.'
@@ -2247,22 +2247,23 @@ app.post(
       await client.query('BEGIN');
 
       for (const mark of pendingMarks) {
-        const existing = await client.query(
-          `SELECT id
-           FROM marks
-           WHERE school_id = $1
-             AND student_id = $2
-             AND lower(subject) = lower($3)
-             AND term = $4
-           LIMIT 1`,
-          [
-            schoolId(req),
-            mark.studentId,
-            mark.subject,
-            term
-          ]
-        );
-
+       const existing = await client.query(
+  `SELECT id
+   FROM marks
+   WHERE school_id = $1
+     AND student_id = $2
+     AND lower(subject) = lower($3)
+     AND term = $4
+     AND academic_year = $5
+   LIMIT 1`,
+  [
+    schoolId(req),
+    mark.studentId,
+    mark.subject,
+    term,
+    academicYear
+  ]
+); 
         if (existing.rowCount) {
           await client.query('ROLLBACK');
 
@@ -2273,23 +2274,23 @@ app.post(
       }
 
       for (const mark of pendingMarks) {
-        const saved = await client.query(
-          `INSERT INTO marks
-            (school_id, student_id, subject, term,
-             score, class_score, exam_score)
-           VALUES ($1, $2, $3, $4, $5, $6, $7)
-           RETURNING id`,
-          [
-            schoolId(req),
-            mark.studentId,
-            mark.subject,
-            term,
-            mark.score,
-            mark.classScore,
-            mark.examScore
-          ]
-        );
-
+    const saved = await client.query(
+  `INSERT INTO marks
+    (school_id, student_id, subject, term, academic_year,
+     score, class_score, exam_score)
+   VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+   RETURNING id`,
+  [
+    schoolId(req),
+    mark.studentId,
+    mark.subject,
+    term,
+    academicYear,
+    mark.score,
+    mark.classScore,
+    mark.examScore
+  ]
+); 
         await client.query(
           `INSERT INTO audit_logs
             (school_id, user_id, action, entity_type, entity_id)
@@ -2570,28 +2571,31 @@ app.post('/api/marks', requireRole('ADMIN', 'TEACHER'), asyncRoute(async (req, r
       });
     }
   }
-  const term = validText(b.term, 40) ? b.term.trim() : 'Term 1';
+ const term = validText(b.term, 40) ? b.term.trim() : 'Term 1';
+const academicYear = validText(b.academicYear, 20)
+  ? b.academicYear.trim()
+  : '';
 
-  const r = await q(`
-    INSERT INTO marks
-      (school_id, student_id, subject, term, score, class_score, exam_score)
-    VALUES ($1, $2, $3, $4, $5, $6, $7)
-    ON CONFLICT (school_id, student_id, subject, term)
-    DO UPDATE SET
-      score = EXCLUDED.score,
-      class_score = EXCLUDED.class_score,
-      exam_score = EXCLUDED.exam_score
-    RETURNING *
-  `, [
-    schoolId(req),
-    b.studentId,
-    b.subject.trim(),
-    term,
-    totalScore,
-    classScore,
-    examScore
-  ]);
-
+const r = await q(`
+  INSERT INTO marks
+    (school_id, student_id, subject, term, academic_year, score, class_score, exam_score)
+  VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+  ON CONFLICT (school_id, student_id, subject, term, academic_year)
+  DO UPDATE SET
+    score = EXCLUDED.score,
+    class_score = EXCLUDED.class_score,
+    exam_score = EXCLUDED.exam_score
+  RETURNING *
+`, [
+  schoolId(req),
+  b.studentId,
+  b.subject.trim(),
+  term,
+  academicYear,
+  totalScore,
+  classScore,
+  examScore
+]);
   await audit(req, 'mark_saved', 'mark', r.rows[0].id);
   res.status(201).json({ mark: r.rows[0] });
 }));
