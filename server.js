@@ -4097,6 +4097,33 @@ if (!result.rowCount) return res.status(404).json({ error: 'Pickup person not fo
 await audit(req, 'pickup_person_deleted', 'pickup_person', req.params.id);
 res.json({ ok: true, message: 'Pickup person deleted.' });
 }));
+app.post('/api/marks/bulk-delete-selected', requireRole('ADMIN'), asyncRoute(async (req, res) => {
+  const ids = req.body?.ids;
+
+  if (!Array.isArray(ids) || !ids.length) {
+    return res.status(400).json({ error: 'Select at least one mark to delete.' });
+  }
+
+  const markIds = [...new Set(ids.map(Number))];
+
+  if (markIds.some(id => !Number.isSafeInteger(id) || id <= 0)) {
+    return res.status(400).json({ error: 'Invalid mark selection.' });
+  }
+
+  const result = await q(
+    'DELETE FROM marks WHERE school_id = $1 AND id = ANY($2::int[]) RETURNING id',
+    [schoolId(req), markIds]
+  );
+
+  await audit(req, 'selected_marks_deleted', 'marks', null);
+
+  res.json({
+    ok: true,
+    deleted: result.rowCount,
+    message: `${result.rowCount} selected marks deleted successfully.`
+  });
+}));
+
 app.delete('/api/marks/bulk-delete-all', requireRole('ADMIN'), asyncRoute(async (req, res) => {
   const result = await q(
     'DELETE FROM marks WHERE school_id = $1 RETURNING id',
@@ -4108,10 +4135,9 @@ app.delete('/api/marks/bulk-delete-all', requireRole('ADMIN'), asyncRoute(async 
   res.json({
     ok: true,
     deleted: result.rowCount,
-    message: `${result.rowCount} examination marks deleted successfully.`
+    message: `All ${result.rowCount} examination marks deleted successfully.`
   });
 }));
-
 app.delete('/api/marks/:id', requireRole('ADMIN'), asyncRoute(async (req, res) => {
 const result = await q(
 'DELETE FROM marks WHERE id=$1 AND school_id=$2 RETURNING id',
