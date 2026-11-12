@@ -2933,7 +2933,9 @@ ${(state.data.employees || [])
 }
 
 const mainContent = $('#mainContent');
- if (
+mainContent.innerHTML = html;
+
+if (
   state.view === 'Attendance Register' &&
   state.attendanceTab === 'students'
 ) {
@@ -2942,9 +2944,8 @@ const mainContent = $('#mainContent');
   if (classSelect) {
     classSelect.dispatchEvent(new Event('change', { bubbles: true }));
   }
-}                 
-mainContent.innerHTML = html;
-// AMA: SIX-SECOND COUNTERS WHEN A SECTION OPENS
+}
+                  // AMA: SIX-SECOND COUNTERS WHEN A SECTION OPENS
 if (state.animateCountersOnNextRender) {
   state.animateCountersOnNextRender = false;
 
