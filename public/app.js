@@ -294,6 +294,16 @@ if (state.user && ['ADMIN', 'HEADMASTER'].includes(state.user.role)) {
     console.warn('Staff attendance records could not be loaded:', error);
   }
 }
+  let attendanceHistoryRegisters = [];
+
+if (state.user && ['ADMIN', 'HEADMASTER', 'TEACHER'].includes(state.user.role)) {
+  try {
+    const historyResult = await api('/api/attendance/registers');
+    attendanceHistoryRegisters = historyResult.registers || [];
+  } catch (error) {
+    console.warn('Attendance history could not be loaded:', error);
+  }
+}
 let attendanceRegisters = [];
 let attendanceRecorded = false;
 
@@ -355,6 +365,7 @@ state.data = {
   classActivationClasses,
     classrooms,
   attendanceRegisters,
+  attendanceHistoryRegisters, 
 attendanceRecorded,
   teacherAssignments: teacherAssignments.assignments || []
 };
@@ -548,6 +559,35 @@ if(state.view==='Dashboard'){
   const studentsOnTime = [...studentAttendance.values()].filter(s => s === 'PRESENT').length;
   const studentsPresent = studentsOnTime + studentsLate;
   const studentsAbsent = [...studentAttendance.values()].filter(s => s === 'ABSENT').length;
+    const classAttendanceSummary = new Map();
+
+  (d.attendanceRegisters || []).forEach(register => {
+    const className = String(register.class_name || 'Unassigned');
+
+    if (!classAttendanceSummary.has(className)) {
+      classAttendanceSummary.set(className, new Map());
+    }
+
+    (register.entries || []).forEach(entry => {
+      const id = String(entry.studentId);
+      if (!id || id === 'undefined') return;
+
+      const status = String(entry.status || '').toUpperCase();
+      const classStudents = classAttendanceSummary.get(className);
+      const previous = classStudents.get(id);
+
+      if (
+        status === 'PRESENT' ||
+        status === 'LATE' ||
+        (!previous && (status === 'ABSENT' || status === 'EXCUSED'))
+      ) {
+        classStudents.set(id, status);
+      }
+    });
+  });
+
+  const classAttendanceRows = [...classAttendanceSummary.entries()]
+    .sort((a, b) => a[0].localeCompare(b[0]));
 const staffAttendanceEntries = (d.staffAttendanceRegisters || [])
   .flatMap(register => register.entries || []);
 
@@ -649,6 +689,24 @@ const staffExcused = staffAttendanceEntries.filter(
     Record attendance to see your school's attendance summary.
   </p>`
           }
+          ${classAttendanceRows.length ? `
+  <div class="ama-class-attendance-summary">
+    <h4>Today's Attendance by Class</h4>
+    ${classAttendanceRows.map(([className, students]) => {
+      const statuses = [...students.values()];
+      const present = statuses.filter(s => s === 'PRESENT' || s === 'LATE').length;
+      const absent = statuses.filter(s => s === 'ABSENT').length;
+
+      return `
+        <div class="ama-class-attendance-row">
+          <strong>${esc(className)}</strong>
+          <span>Present: <b>${present}</b></span>
+          <span>Absent: <b>${absent}</b></span>
+        </div>
+      `;
+    }).join('')}
+  </div>
+` : ''}
                     ${staffAttendanceEntries.length ? `
             <div class="ama-staff-attendance-summary">
               <h4>Staff Attendance</h4>
@@ -2016,13 +2074,21 @@ const attendanceClasses = [
   );
 
 
-  const today = new Date();
-  const todayString = [
-    today.getFullYear(),
-    String(today.getMonth() + 1).padStart(2, '0'),
-    String(today.getDate()).padStart(2, '0')
-  ].join('-');
+const todayParts = new Intl.DateTimeFormat('en-CA', {
+  timeZone: 'Africa/Accra',
+  year: 'numeric',
+  month: '2-digit',
+  day: '2-digit'
+}).formatToParts(new Date());
 
+const todayString = `${todayParts.find(p => p.type === 'year').value}-${todayParts.find(p => p.type === 'month').value}-${todayParts.find(p => p.type === 'day').value}`;
+
+const attendanceDates = [...new Set([
+  todayString,
+  ...(d.attendanceHistoryRegisters || []).map(r =>
+    String(r.attendanceDate || r.attendance_date || '').slice(0, 10)
+  ).filter(Boolean)
+])].sort().reverse();
   html = pageHead(
     'Attendance Register',
     'Record daily attendance for each student in the selected class.'
@@ -2058,9 +2124,14 @@ html += `
 
         <label class="field">
           Attendance date
-          <input type="date" name="attendanceDate"
-            value="${todayString}" required>
-        </label>
+        <select name="attendanceDate" id="attendanceDate" required>
+  ${attendanceDates.map(date => `
+    <option value="${date}" ${date === todayString ? 'selected' : ''}>
+      ${new Date(date + 'T12:00:00').toLocaleDateString('en-GB')}
+    </option>
+  `).join('')}
+</select>
+                </label>
 
         <label class="field">
           Session
@@ -2862,6 +2933,16 @@ ${(state.data.employees || [])
 }
 
 const mainContent = $('#mainContent');
+ if (
+  state.view === 'Attendance Register' &&
+  state.attendanceTab === 'students'
+) {
+  const classSelect = mainContent.querySelector('#attendanceClass');
+
+  if (classSelect) {
+    classSelect.dispatchEvent(new Event('change', { bubbles: true }));
+  }
+}                 
 mainContent.innerHTML = html;
 // AMA: SIX-SECOND COUNTERS WHEN A SECTION OPENS
 if (state.animateCountersOnNextRender) {
@@ -3819,51 +3900,107 @@ if (
       row.dataset.reportStudent !== selectedStudent;
   });
 }
-  if (e.target.id === 'attendanceClass') {
-const selectedClass = e.target.value;
-const rows = document.getElementById('attendanceStudentRows');
-const count = document.getElementById('attendanceStudentCount');
-const saveButton = document.querySelector(
-'#attendanceRegisterForm button[type="submit"]'
-);
-
-if (!rows) return;
-
-const students = (state.data.students || []).filter(s =>
-  !s.archived &&
-  String(s.class_name || s.class || s.className || '').trim() === selectedClass
-);
-
-rows.innerHTML = students.map(s => `
-  <tr data-attendance-student
-      data-class-name="${esc(s.class_name || s.class || s.className || '')}">
-
-    <td>${esc(s.student_code || '—')}</td>
-    <td><strong>${esc(s.full_name || 'Unnamed student')}</strong></td>
-    <td>
-      <select name="status_${esc(s.id)}"
-              data-attendance-status="${esc(s.id)}" required>
-        <option value="PRESENT">Present</option>
-        <option value="ABSENT">Absent</option>
-        <option value="LATE">Late</option>
-        <option value="EXCUSED">Excused</option>
-      </select>
-    </td>
-    <td>
-      <input name="reason_${esc(s.id)}"
-             data-attendance-reason="${esc(s.id)}"
-             maxlength="250" placeholder="Optional note">
-    </td>
-  </tr>
-`).join('');
-
-if (count) count.textContent = students.length;
-if (saveButton) saveButton.disabled = students.length === 0;
-
-return;
-
-}
   
+ 
+  const attendanceForm = e.target.closest('#attendanceRegisterForm');
+
+  if (
+    attendanceForm &&
+    (
+      e.target.id === 'attendanceClass' ||
+      e.target.id === 'attendanceDate' ||
+      e.target.name === 'sessionName'
+    )
+  ) {
+    const selectedClass =
+      attendanceForm.querySelector('#attendanceClass')?.value || '';
+
+    const selectedDate =
+      attendanceForm.querySelector('#attendanceDate')?.value || '';
+
+    const selectedSession =
+      attendanceForm.querySelector('[name="sessionName"]')?.value || 'Morning';
+
+    const rows = document.getElementById('attendanceStudentRows');
+    const count = document.getElementById('attendanceStudentCount');
+
+    const saveButton = attendanceForm.querySelector(
+      'button[type="submit"]'
+    );
+
+    const markAllButton = attendanceForm.querySelector(
+      '[data-action="attendance-mark-all"]'
+    );
+
+    if (!rows) return;
+
+    const savedRegister = (state.data.attendanceHistoryRegisters || [])
+      .find(register =>
+        String(register.class_name || '').trim() === selectedClass &&
+        String(register.attendance_date || '').slice(0, 10) === selectedDate &&
+        String(register.session_name || 'Morning') === selectedSession
+      );
+
+    const savedEntries = new Map(
+      (savedRegister?.entries || []).map(entry => [
+        String(entry.studentId),
+        entry
+      ])
+    );
+
+    const isLocked = savedRegister?.status === 'SUBMITTED';
+
+    const students = (state.data.students || []).filter(s =>
+      !s.archived &&
+      String(s.class_name || s.class || s.className || '').trim() === selectedClass
+    );
+
+    rows.innerHTML = students.map(s => {
+      const saved = savedEntries.get(String(s.id));
+      const status = saved?.status || 'PRESENT';
+      const reason = saved?.reason || '';
+
+      return `
+        <tr data-attendance-student
+            data-class-name="${esc(s.class_name || s.class || s.className || '')}">
+          <td>${esc(s.student_code || '—')}</td>
+          <td><strong>${esc(s.full_name || 'Unnamed student')}</strong></td>
+          <td>
+            <select name="status_${esc(s.id)}"
+                    data-attendance-status="${esc(s.id)}"
+                    required ${isLocked ? 'disabled' : ''}>
+              <option value="PRESENT" ${status === 'PRESENT' ? 'selected' : ''}>Present</option>
+              <option value="ABSENT" ${status === 'ABSENT' ? 'selected' : ''}>Absent</option>
+              <option value="LATE" ${status === 'LATE' ? 'selected' : ''}>Late</option>
+              <option value="EXCUSED" ${status === 'EXCUSED' ? 'selected' : ''}>Excused</option>
+            </select>
+          </td>
+          <td>
+            <input name="reason_${esc(s.id)}"
+                   data-attendance-reason="${esc(s.id)}"
+                   value="${esc(reason)}"
+                   maxlength="250"
+                   placeholder="Optional note"
+                   ${isLocked ? 'disabled' : ''}>
+          </td>
+        </tr>
+      `;
+    }).join('');
+
+    if (count) count.textContent = students.length;
+
+    if (saveButton) {
+      saveButton.disabled = students.length === 0 || isLocked;
+      saveButton.textContent = isLocked
+        ? 'Attendance submitted and locked'
+        : 'Save attendance draft';
+    }
+
+    if (markAllButton) markAllButton.disabled = isLocked;
+
+    return;
+  }
+ 
 if (e.target.closest('[data-action="calendar-prev"]')) {
   state.calendarMonth--;
   if (state.calendarMonth < 0) {
