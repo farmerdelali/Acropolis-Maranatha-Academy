@@ -8366,3 +8366,69 @@ body.dark-mode #marksSheetGrid td input {
   color: #fff;
   border-color: #50677e;
 }
+/* CLEAN FULL-SCREEN SPREADSHEET VIEW */
+
+#modalHost .marks-spreadsheet-modal .modal-head {
+  display: none !important;
+}
+
+#modalHost .marks-spreadsheet-modal .modal-body {
+  padding: 10px !important;
+  overflow: hidden !important;
+}
+
+#marksSpreadsheetForm {
+  height: 100%;
+  width: 100%;
+  gap: 8px !important;
+}
+
+#marksSpreadsheetForm > label.field {
+  display: inline-flex;
+  flex: 0 1 190px;
+  min-width: 130px;
+  margin: 0;
+}
+
+#marksSpreadsheetForm > .form-row {
+  display: flex;
+  flex: 1 1 260px;
+  min-width: 220px;
+  gap: 8px;
+  margin: 0;
+}
+
+#marksSpreadsheetForm > .form-row input {
+  flex: 1;
+  min-width: 100px;
+}
+
+#marksSpreadsheetForm > label.field,
+#marksSpreadsheetForm > .form-row {
+  align-self: flex-start;
+}
+
+#marksSheetGrid {
+  flex: 1 1 0 !important;
+  min-height: 0 !important;
+  height: 100%;
+}
+
+#marksSpreadsheetForm .form-actions {
+  flex: 0 0 auto;
+  margin: 0;
+  padding: 8px 0 !important;
+}
+
+@media (max-width: 600px) {
+  #marksSpreadsheetForm > label.field,
+  #marksSpreadsheetForm > .form-row {
+    flex: 1 1 100%;
+    width: 100%;
+  }
+
+  #marksSpreadsheetForm .form-actions {
+    display: flex;
+    gap: 8px;
+  }
+}
