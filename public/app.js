@@ -4724,7 +4724,7 @@ toast(parentId ? 'Parent updated successfully.' : 'Parent registered successfull
       }
 
       if (!marksToSave.length) {
-        throw new Error('Enter at least one student's marks before saving.');
+       throw new Error("Enter at least one student's marks before saving.");
       }
 
       for (const mark of marksToSave) {
