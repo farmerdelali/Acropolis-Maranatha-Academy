@@ -8216,3 +8216,153 @@ body:not(.dark-mode) .topbar .topbrand small {
     animation: none !important;
   }
 }
+/* FULL-SCREEN EXCEL-STYLE MARKS SPREADSHEET */
+
+#modalHost .modal-back.marks-spreadsheet-backdrop {
+  padding: 0 !important;
+  display: flex !important;
+  align-items: stretch !important;
+  justify-content: stretch !important;
+}
+
+#modalHost .modal.marks-spreadsheet-modal {
+  width: 100% !important;
+  max-width: none !important;
+  height: 100dvh !important;
+  max-height: 100dvh !important;
+  margin: 0 !important;
+  border-radius: 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  overflow: hidden !important;
+}
+
+#modalHost .marks-spreadsheet-modal .modal-body {
+  flex: 1 1 auto !important;
+  min-height: 0 !important;
+  overflow: auto !important;
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+#marksSpreadsheetForm {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+#marksSheetGrid {
+  flex: 1 1 auto;
+  min-height: 300px;
+  width: 100%;
+  overflow: auto !important;
+  border: 1px solid #b9c9d8;
+  border-radius: 10px;
+  background: #fff;
+}
+
+#marksSheetGrid table {
+  width: max-content;
+  min-width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  table-layout: auto;
+}
+
+#marksSheetGrid th,
+#marksSheetGrid td {
+  min-width: 105px;
+  padding: 8px;
+  border-right: 1px solid #d2dce6;
+  border-bottom: 1px solid #d2dce6;
+  text-align: center;
+  white-space: nowrap;
+}
+
+#marksSheetGrid thead th {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  background: #183b60;
+  color: #fff;
+  font-weight: 700;
+}
+
+#marksSheetGrid thead tr:nth-child(2) th {
+  top: 38px;
+  background: #28577e;
+}
+
+#marksSheetGrid th:first-child,
+#marksSheetGrid td:first-child {
+  position: sticky;
+  left: 0;
+  min-width: 220px;
+  text-align: left;
+  background: #eaf1f7;
+  color: #17324d;
+  font-weight: 700;
+  z-index: 6;
+}
+
+#marksSheetGrid thead th:first-child {
+  z-index: 8;
+  background: #102b49;
+  color: #fff;
+}
+
+#marksSheetGrid td input {
+  width: 90px;
+  min-width: 75px;
+  padding: 8px 5px;
+  text-align: center;
+  border: 1px solid #c2cfdb;
+  border-radius: 5px;
+  background: #fff;
+  color: #172b40;
+}
+
+#marksSheetGrid tbody tr:nth-child(even) td:not(:first-child) {
+  background: #f2f6fa;
+}
+
+#marksSheetGrid tbody tr:hover td {
+  background-color: #e1edf7;
+}
+
+#marksSpreadsheetForm .form-actions {
+  position: sticky;
+  bottom: 0;
+  z-index: 10;
+  padding: 12px 0;
+  background: var(--panel, #fff);
+}
+
+body.dark-mode #marksSheetGrid {
+  background: #172638;
+  border-color: #40566d;
+}
+
+body.dark-mode #marksSheetGrid th,
+body.dark-mode #marksSheetGrid td {
+  border-color: #40566d;
+}
+
+body.dark-mode #marksSheetGrid thead th {
+  background: #183b60;
+  color: #fff;
+}
+
+body.dark-mode #marksSheetGrid th:first-child,
+body.dark-mode #marksSheetGrid td:first-child {
+  background: #263b50;
+  color: #edf3f8;
+}
+
+body.dark-mode #marksSheetGrid td input {
+  background: #172638;
+  color: #fff;
+  border-color: #50677e;
+}
