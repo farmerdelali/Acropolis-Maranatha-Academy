@@ -8568,7 +8568,7 @@ body.dark-mode #marksSheetGrid td input {
     break-inside: avoid !important;
     page-break-inside: avoid !important;
   }
-
+}
 /* ACROPOLIS MINIMAL NAVY AND WHITE REPORT CARD */
 
 .report-card {
@@ -8769,7 +8769,8 @@ body.dark-mode #marksSheetGrid td input {
 
   .report-card {
     zoom: 0.78 !important;
-    width: 128.2% !important;
+width: 100% !important;
+box-sizing: border-box !important;
     max-width: none !important;
     margin: 0 !important;
     padding: 0 !important;
