@@ -3643,7 +3643,8 @@ function marksSpreadsheet() {
   `);
 
   renderGrid();
-
+  document.querySelector('#modalHost .modal')?.classList.add('marks-spreadsheet-modal');
+  document.querySelector('#modalHost .modal-back')?.classList.add('marks-spreadsheet-backdrop');
   document.getElementById('marksSheetClass').addEventListener('change', renderGrid);
 
   document.getElementById('marksSheetAddSubject').addEventListener('click', () => {
