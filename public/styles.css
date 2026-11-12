@@ -8366,7 +8366,8 @@ body.dark-mode #marksSheetGrid td input {
   color: #fff;
   border-color: #50677e;
 }
-/* CLEAN FULL-SCREEN SPREADSHEET VIEW */
+
+/* CLEAN FULL-SCREEN EXCEL SPREADSHEET */
 
 #modalHost .marks-spreadsheet-modal .modal-head {
   display: none !important;
@@ -8375,60 +8376,101 @@ body.dark-mode #marksSheetGrid td input {
 #modalHost .marks-spreadsheet-modal .modal-body {
   padding: 10px !important;
   overflow: hidden !important;
+  display: flex !important;
+  flex-direction: column !important;
+  min-height: 0 !important;
 }
 
 #marksSpreadsheetForm {
-  height: 100%;
+  display: grid !important;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) minmax(220px, 1.4fr);
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  height: 100% !important;
   width: 100%;
-  gap: 8px !important;
+  min-height: 0;
+  gap: 10px !important;
 }
 
 #marksSpreadsheetForm > label.field {
-  display: inline-flex;
-  flex: 0 1 190px;
-  min-width: 130px;
+  display: flex !important;
+  flex-direction: column;
+  flex: none !important;
+  width: 100%;
+  min-width: 0;
   margin: 0;
+  gap: 4px;
+}
+
+#marksSpreadsheetForm > label.field select,
+#marksSpreadsheetForm > label.field input {
+  width: 100%;
+  min-width: 0;
+  height: 42px !important;
+  min-height: 42px !important;
 }
 
 #marksSpreadsheetForm > .form-row {
   display: flex;
-  flex: 1 1 260px;
-  min-width: 220px;
-  gap: 8px;
+  flex: none !important;
+  align-self: end;
+  width: 100%;
+  min-width: 0;
   margin: 0;
+  gap: 8px;
 }
 
 #marksSpreadsheetForm > .form-row input {
   flex: 1;
-  min-width: 100px;
+  width: 100%;
+  min-width: 0;
+  height: 42px;
 }
 
-#marksSpreadsheetForm > label.field,
-#marksSpreadsheetForm > .form-row {
-  align-self: flex-start;
+#marksSpreadsheetForm > .form-row button {
+  white-space: nowrap;
 }
 
 #marksSheetGrid {
-  flex: 1 1 0 !important;
-  min-height: 0 !important;
+  grid-column: 1 / -1;
+  grid-row: 2;
+  width: 100%;
   height: 100%;
+  min-height: 0 !important;
+  overflow: auto !important;
 }
 
 #marksSpreadsheetForm .form-actions {
-  flex: 0 0 auto;
+  grid-column: 1 / -1;
+  grid-row: 3;
+  display: flex;
+  justify-content: flex-end;
+  flex: none;
   margin: 0;
   padding: 8px 0 !important;
 }
 
 @media (max-width: 600px) {
+  #marksSpreadsheetForm {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-rows: auto auto minmax(0, 1fr) auto;
+    gap: 8px !important;
+  }
+
   #marksSpreadsheetForm > label.field,
   #marksSpreadsheetForm > .form-row {
-    flex: 1 1 100%;
     width: 100%;
+    min-width: 0;
+  }
+
+  #marksSpreadsheetForm > .form-row {
+    grid-column: 1 / -1;
+  }
+
+  #marksSheetGrid {
+    grid-row: 3;
   }
 
   #marksSpreadsheetForm .form-actions {
-    display: flex;
-    gap: 8px;
+    grid-row: 4;
   }
 }
