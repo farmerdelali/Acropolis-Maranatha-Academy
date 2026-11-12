@@ -1121,7 +1121,7 @@ const markRows = d.marks.length ? `
 html = pageHead(
   'Examinations & marks',
   'Record subject scores and review students’ results.',
-  `${state.user.role === 'ADMIN' ? '<button class="btn danger" data-action="delete-selected-marks">Delete Selected</button><button class="btn danger" data-action="delete-all-marks">Delete All Marks</button>' : ''}${['ADMIN','TEACHER'].includes(state.user.role) ? '<button class="btn primary" data-action="add-mark">+ Enter mark</button><button class="btn soft" data-action="bulk-class-marks">Bulk Class Marks</button>' : ''}`
+    `${state.user.role === 'ADMIN' ? '<button class="btn danger" data-action="delete-selected-marks">Delete Selected</button><button class="btn danger" data-action="delete-all-marks">Delete All Marks</button>' : ''}${['ADMIN','TEACHER'].includes(state.user.role) ? '<button class="btn primary" data-action="marks-spreadsheet">Open Marks Spreadsheet</button><button class="btn soft" data-action="add-mark">+ Enter mark</button><button class="btn soft" data-action="bulk-class-marks">Bulk Class Marks</button>' : ''}`
 ) + panel(
   'Recorded results',
   `<div class="form-grid">${markClassDropdown}${markStudentDropdown}</div>` + markRows
@@ -3545,7 +3545,121 @@ const MARK_SUBJECTS_BY_CLASS = {
   'JHS 2': ['Social Studies', 'English', 'Maths', 'Creative Arts & Design', 'Integrated Science', 'French', 'R.M.E', 'Twi', 'Computing', 'Career Technology'],
   'JHS 3': ['Social Studies', 'English', 'Maths', 'Creative Arts & Design', 'Integrated Science', 'French', 'R.M.E', 'Twi', 'Computing', 'Career Technology']
 };
+function marksSpreadsheet() {
+  const students = (state.data.students || []).filter(s => !s.archived);
 
+  if (!students.length) {
+    return toast('Register students before entering marks.', true);
+  }
+
+  const classes = [...new Set(students.map(s => s.class_name).filter(Boolean))].sort();
+  const initialClass = classes[0] || '';
+  const subjects = [...(MARK_SUBJECTS_BY_CLASS[initialClass] || [])];
+
+  const classOptions = classes.map(c =>
+    `<option value="${esc(c)}">${esc(c)}</option>`
+  ).join('');
+
+  const renderGrid = () => {
+    const selectedClass = document.getElementById('marksSheetClass')?.value || initialClass;
+    const classStudents = students.filter(s => s.class_name === selectedClass);
+
+    const headers = subjects.map(subject =>
+      `<th colspan="2">${esc(subject)}</th>`
+    ).join('');
+
+    const scoreHeaders = subjects.map(() =>
+      '<th>Class /30</th><th>Exam /70</th>'
+    ).join('');
+
+    const rows = classStudents.map(student => `
+      <tr>
+        <td>${esc(student.full_name)}</td>
+        ${subjects.map(subject => {
+          const mark = (state.data.marks || []).find(m =>
+            String(m.student_id) === String(student.id) &&
+            m.subject === subject
+          );
+          return `
+            <td><input type="number" min="0" max="30" step="0.01"
+              data-sheet-student="${esc(student.id)}"
+              data-sheet-subject="${esc(subject)}"
+              data-sheet-type="class"
+              value="${mark?.class_score ?? ''}"></td>
+            <td><input type="number" min="0" max="70" step="0.01"
+              data-sheet-student="${esc(student.id)}"
+              data-sheet-subject="${esc(subject)}"
+              data-sheet-type="exam"
+              value="${mark?.exam_score ?? ''}"></td>
+          `;
+        }).join('')}
+      </tr>
+    `).join('');
+
+    document.getElementById('marksSheetGrid').innerHTML = `
+      <table class="data-table">
+        <thead>
+          <tr><th rowspan="2">Student</th>${headers}</tr>
+          <tr>${scoreHeaders}</tr>
+        </thead>
+        <tbody>${rows}</tbody>
+      </table>`;
+  };
+
+  openModal('Marks Spreadsheet', `
+    <form id="marksSpreadsheetForm">
+      <label class="field">Class
+        <select id="marksSheetClass" name="className" required>
+          ${classOptions}
+        </select>
+      </label>
+
+      <label class="field">Term
+        <select name="term" required>
+          <option>Term 1</option>
+          <option>Term 2</option>
+          <option>Term 3</option>
+        </select>
+      </label>
+
+      <label class="field">Academic Year
+        <input name="academicYear" required
+          value="${esc(state.data.school?.academicYear || '')}"
+          placeholder="2026/2027">
+      </label>
+
+      <div class="form-row">
+        <input id="marksSheetNewSubject" placeholder="Type a subject to add">
+        <button type="button" class="btn soft" id="marksSheetAddSubject">Add Subject</button>
+      </div>
+
+      <div style="overflow:auto;max-width:100%" id="marksSheetGrid"></div>
+
+      <div class="form-actions">
+        <button type="button" class="btn soft" data-action="close-modal">Cancel</button>
+        <button type="submit" class="btn primary">Save Spreadsheet</button>
+      </div>
+    </form>
+  `);
+
+  renderGrid();
+
+  document.getElementById('marksSheetClass').addEventListener('change', renderGrid);
+
+  document.getElementById('marksSheetAddSubject').addEventListener('click', () => {
+    const input = document.getElementById('marksSheetNewSubject');
+    const subject = input.value.trim();
+
+    if (!subject) return;
+    if (subjects.some(s => s.toLowerCase() === subject.toLowerCase())) {
+      return toast('That subject is already on the spreadsheet.', true);
+    }
+
+    subjects.push(subject);
+    input.value = '';
+    renderGrid();
+  });
+}
 function markForm() {
   const students = state.data.students.filter(s => !s.archived);
   if (!students.length) {
@@ -4136,6 +4250,7 @@ document.addEventListener('submit', async e => {
     'paymentForm','dropOffDenialForm',
 'pickupPersonForm',
 'markForm',
+'marksSpreadsheetForm',
 'bulkClassMarksForm',
     'employeeForm',
     'userForm',
@@ -4551,7 +4666,78 @@ toast(parentId ? 'Parent updated successfully.' : 'Parent registered successfull
       state.view = 'Marks';
       render();
       toast('Mark saved successfully.');
-  
+      } else if (form.id === 'marksSpreadsheetForm') {
+      const className = form.elements.className.value;
+      const term = form.elements.term.value;
+      const academicYear = form.elements.academicYear.value.trim();
+      const inputs = form.querySelectorAll('input[data-sheet-student]');
+      const entries = new Map();
+
+      inputs.forEach(input => {
+        const key = `${input.dataset.sheetStudent}|${input.dataset.sheetSubject}`;
+        if (!entries.has(key)) {
+          entries.set(key, {
+            studentId: Number(input.dataset.sheetStudent),
+            subject: input.dataset.sheetSubject,
+            classScore: '',
+            examScore: ''
+          });
+        }
+
+        const entry = entries.get(key);
+        if (input.dataset.sheetType === 'class') {
+          entry.classScore = input.value;
+        } else {
+          entry.examScore = input.value;
+        }
+      });
+
+      const marksToSave = [];
+
+      for (const entry of entries.values()) {
+        if (entry.classScore === '' && entry.examScore === '') continue;
+
+        if (entry.classScore === '' || entry.examScore === '') {
+          throw new Error(`Enter both scores for ${entry.subject}, or leave both blank.`);
+        }
+
+        const classScore = Number(entry.classScore);
+        const examScore = Number(entry.examScore);
+
+        if (!Number.isFinite(classScore) || classScore < 0 || classScore > 30) {
+          throw new Error(`Class score for ${entry.subject} must be between 0 and 30.`);
+        }
+
+        if (!Number.isFinite(examScore) || examScore < 0 || examScore > 70) {
+          throw new Error(`Exam score for ${entry.subject} must be between 0 and 70.`);
+        }
+
+        marksToSave.push({
+          studentId: entry.studentId,
+          subject: entry.subject,
+          className,
+          term,
+          academicYear,
+          classScore,
+          examScore
+        });
+      }
+
+      if (!marksToSave.length) {
+        throw new Error('Enter at least one student's marks before saving.');
+      }
+
+      for (const mark of marksToSave) {
+        await api('/api/marks', {
+          method: 'POST',
+          body: JSON.stringify(mark)
+        });
+      }
+
+      await refresh();
+      state.view = 'Marks';
+      render();
+      toast('Spreadsheet marks saved successfully.');
     } else if (form.id === 'parentAccountForm') {
       await api('/api/parent-accounts', {
         method: 'POST',
@@ -5222,7 +5408,9 @@ case 'add-pickup-person':
       case 'add-payment':
         paymentForm();
         break;
-
+case 'marks-spreadsheet':
+  marksSpreadsheet();
+  break;
    
       case 'add-mark':
         markForm();
