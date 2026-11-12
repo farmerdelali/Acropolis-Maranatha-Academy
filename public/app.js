@@ -1255,8 +1255,13 @@ const performanceDescription = score >= 80
       'Individual Report Card',
       'Student academic performance.'
     ) + panel('Report Card', `
+      <button type="button" class="btn primary no-print"
+        data-action="download-terminal-report">
+        Download PDF
+      </button>
+
       <div class="report-card">
-        <div style="text-align:center;">
+      <div style="text-align:center;">
           <img src="/school-logo.png" alt="School logo"
             style="width:90px;height:90px;object-fit:contain;">
           <h2>${esc(d.school?.name || 'Acropolis Maranatha Academy')}</h2>
@@ -4399,6 +4404,10 @@ if (e.target.closest('[data-action="calendar-next"]')) {
 document.addEventListener('click', async e => {
 const button = e.target.closest('button');
   if (!button) return;
+    if (button.dataset.action === 'download-terminal-report') {
+    window.print();
+    return;
+  }
 if (button.dataset.action === 'open-terminal-report') {
   state.selectedReportStudentId = button.dataset.id;
 
