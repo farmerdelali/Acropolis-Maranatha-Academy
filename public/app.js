@@ -3554,23 +3554,175 @@ function marksSpreadsheet() {
 
   const classes = [...new Set(students.map(s => s.class_name).filter(Boolean))].sort();
   const initialClass = classes[0] || '';
-  const subjects = [...(MARK_SUBJECTS_BY_CLASS[initialClass] || [])];
+
+  const subjectsByClass = {};
+  Object.keys(MARK_SUBJECTS_BY_CLASS || {}).forEach(className => {
+    subjectsByClass[className] = [...MARK_SUBJECTS_BY_CLASS[className]];
+  });
+
+  if (!subjectsByClass[initialClass]) {
+    subjectsByClass[initialClass] = [];
+  }
+
+  let subjects = subjectsByClass[initialClass];
 
   const classOptions = classes.map(c =>
     `<option value="${esc(c)}">${esc(c)}</option>`
   ).join('');
 
+  const formatScore = value =>
+    Number.isInteger(value) ? String(value) : value.toFixed(2);
+
+  const getOrdinal = number => {
+    const remainder = number % 100;
+    if (remainder >= 11 && remainder <= 13) return `${number}th`;
+
+    switch (number % 10) {
+      case 1: return `${number}st`;
+      case 2: return `${number}nd`;
+      case 3: return `${number}rd`;
+      default: return `${number}th`;
+    }
+  };
+
+  const updateCalculations = () => {
+    const grid = document.getElementById('marksSheetGrid');
+    if (!grid) return;
+
+    const entries = new Map();
+
+    grid.querySelectorAll('input[data-sheet-student]').forEach(input => {
+      const studentId = input.dataset.sheetStudent;
+      const subject = input.dataset.sheetSubject;
+      const key = `${studentId}|${subject}`;
+
+      if (!entries.has(key)) {
+        entries.set(key, {
+          studentId,
+          subject,
+          classScore: '',
+          examScore: ''
+        });
+      }
+
+      const entry = entries.get(key);
+
+      if (input.dataset.sheetType === 'class') {
+        entry.classScore = input.value;
+      } else {
+        entry.examScore = input.value;
+      }
+    });
+
+    const totals = new Map();
+
+    entries.forEach(entry => {
+      if (!totals.has(entry.studentId)) {
+        totals.set(entry.studentId, {
+          total: 0,
+          count: 0
+        });
+      }
+
+      if (entry.classScore !== '' && entry.examScore !== '') {
+        const raw = Number(entry.classScore) + Number(entry.examScore);
+        const result = totals.get(entry.studentId);
+
+        result.total += raw;
+        result.count += 1;
+
+        const rawCell = [...grid.querySelectorAll('[data-sheet-raw]')].find(cell =>
+          cell.dataset.sheetRawStudent === entry.studentId &&
+          cell.dataset.sheetRawSubject === entry.subject
+        );
+
+        if (rawCell) {
+          rawCell.textContent = formatScore(raw);
+        }
+      } else {
+        const rawCell = [...grid.querySelectorAll('[data-sheet-raw]')].find(cell =>
+          cell.dataset.sheetRawStudent === entry.studentId &&
+          cell.dataset.sheetRawSubject === entry.subject
+        );
+
+        if (rawCell) rawCell.textContent = '';
+      }
+    });
+
+    const rankedStudents = [];
+
+    totals.forEach((result, studentId) => {
+      const totalCell = grid.querySelector(
+        `[data-sheet-total="${studentId}"]`
+      );
+      const averageCell = grid.querySelector(
+        `[data-sheet-average="${studentId}"]`
+      );
+      const positionCell = grid.querySelector(
+        `[data-sheet-position="${studentId}"]`
+      );
+
+      if (result.count > 0) {
+        const average = result.total / result.count;
+
+        if (totalCell) totalCell.textContent = formatScore(result.total);
+        if (averageCell) averageCell.textContent = formatScore(average);
+
+        rankedStudents.push({
+          studentId,
+          average: Number(average.toFixed(2))
+        });
+      } else {
+        if (totalCell) totalCell.textContent = '';
+        if (averageCell) averageCell.textContent = '';
+        if (positionCell) positionCell.textContent = '';
+      }
+    });
+
+    rankedStudents.sort((a, b) => b.average - a.average);
+
+    let previousAverage = null;
+    let currentPosition = 0;
+
+    rankedStudents.forEach((student, index) => {
+      if (student.average !== previousAverage) {
+        currentPosition = index + 1;
+        previousAverage = student.average;
+      }
+
+      const positionCell = grid.querySelector(
+        `[data-sheet-position="${student.studentId}"]`
+      );
+
+      if (positionCell) {
+        positionCell.textContent = getOrdinal(currentPosition);
+      }
+    });
+  };
+
   const renderGrid = () => {
-    const selectedClass = document.getElementById('marksSheetClass')?.value || initialClass;
+    const selectedClass =
+      document.getElementById('marksSheetClass')?.value || initialClass;
+    const selectedTerm =
+      document.getElementById('marksSheetTerm')?.value || 'Term 1';
+    const academicYear =
+      document.getElementById('marksSheetAcademicYear')?.value.trim() || '';
+
     const classStudents = students.filter(s => s.class_name === selectedClass);
 
     const headers = subjects.map(subject =>
-      `<th colspan="2">${esc(subject)}</th>`
+      `<th colspan="3">${esc(subject)}</th>`
     ).join('');
 
     const scoreHeaders = subjects.map(() =>
-      '<th>Class /30</th><th>Exam /70</th>'
+      '<th>Class /30</th><th>Exam /70</th><th>Raw /100</th>'
     ).join('');
+
+    const summaryHeaders = `
+      <th rowspan="2">Total</th>
+      <th rowspan="2">Average</th>
+      <th rowspan="2">Position</th>
+    `;
 
     const rows = classStudents.map(student => `
       <tr>
@@ -3578,32 +3730,62 @@ function marksSpreadsheet() {
         ${subjects.map(subject => {
           const mark = (state.data.marks || []).find(m =>
             String(m.student_id) === String(student.id) &&
-            m.subject === subject
+            m.subject === subject &&
+            m.term === selectedTerm &&
+            String(m.academic_year || '') === academicYear
           );
+
+          const hasScores =
+            mark &&
+            mark.class_score !== null &&
+            mark.class_score !== undefined &&
+            mark.exam_score !== null &&
+            mark.exam_score !== undefined;
+
+          const rawScore = hasScores
+            ? Number(mark.class_score) + Number(mark.exam_score)
+            : '';
+
           return `
-            <td><input type="number" min="0" max="30" step="0.01"
-              data-sheet-student="${esc(student.id)}"
-              data-sheet-subject="${esc(subject)}"
-              data-sheet-type="class"
-              value="${mark?.class_score ?? ''}"></td>
-            <td><input type="number" min="0" max="70" step="0.01"
-              data-sheet-student="${esc(student.id)}"
-              data-sheet-subject="${esc(subject)}"
-              data-sheet-type="exam"
-              value="${mark?.exam_score ?? ''}"></td>
+            <td>
+              <input type="number" min="0" max="30" step="0.01"
+                data-sheet-student="${esc(student.id)}"
+                data-sheet-subject="${esc(subject)}"
+                data-sheet-type="class"
+                value="${mark?.class_score ?? ''}">
+            </td>
+            <td>
+              <input type="number" min="0" max="70" step="0.01"
+                data-sheet-student="${esc(student.id)}"
+                data-sheet-subject="${esc(subject)}"
+                data-sheet-type="exam"
+                value="${mark?.exam_score ?? ''}">
+            </td>
+            <td data-sheet-raw
+              data-sheet-raw-student="${esc(student.id)}"
+              data-sheet-raw-subject="${esc(subject)}">${rawScore === '' ? '' : formatScore(rawScore)}</td>
           `;
         }).join('')}
+        <td data-sheet-total="${esc(student.id)}"></td>
+        <td data-sheet-average="${esc(student.id)}"></td>
+        <td data-sheet-position="${esc(student.id)}"></td>
       </tr>
     `).join('');
 
     document.getElementById('marksSheetGrid').innerHTML = `
       <table class="data-table">
         <thead>
-          <tr><th rowspan="2">Student</th>${headers}</tr>
+          <tr>
+            <th rowspan="2">Student</th>
+            ${headers}
+            ${summaryHeaders}
+          </tr>
           <tr>${scoreHeaders}</tr>
         </thead>
         <tbody>${rows}</tbody>
       </table>`;
+
+    updateCalculations();
   };
 
   openModal('Marks Spreadsheet', `
@@ -3615,7 +3797,7 @@ function marksSpreadsheet() {
       </label>
 
       <label class="field">Term
-        <select name="term" required>
+        <select id="marksSheetTerm" name="term" required>
           <option>Term 1</option>
           <option>Term 2</option>
           <option>Term 3</option>
@@ -3623,7 +3805,7 @@ function marksSpreadsheet() {
       </label>
 
       <label class="field">Academic Year
-        <input name="academicYear" required
+        <input id="marksSheetAcademicYear" name="academicYear" required
           value="${esc(state.data.school?.academicYear || '')}"
           placeholder="2026/2027">
       </label>
@@ -3642,16 +3824,43 @@ function marksSpreadsheet() {
     </form>
   `);
 
+  document.querySelector('#modalHost .modal')
+    ?.classList.add('marks-spreadsheet-modal');
+
+  document.querySelector('#modalHost .modal-back')
+    ?.classList.add('marks-spreadsheet-backdrop');
+
   renderGrid();
-  document.querySelector('#modalHost .modal')?.classList.add('marks-spreadsheet-modal');
-  document.querySelector('#modalHost .modal-back')?.classList.add('marks-spreadsheet-backdrop');
-  document.getElementById('marksSheetClass').addEventListener('change', renderGrid);
+
+  document.getElementById('marksSheetGrid')
+    .addEventListener('input', updateCalculations);
+
+  document.getElementById('marksSheetClass')
+    .addEventListener('change', () => {
+      const selectedClass = document.getElementById('marksSheetClass').value;
+
+      if (!subjectsByClass[selectedClass]) {
+        subjectsByClass[selectedClass] = [
+          ...(MARK_SUBJECTS_BY_CLASS[selectedClass] || [])
+        ];
+      }
+
+      subjects = subjectsByClass[selectedClass];
+      renderGrid();
+    });
+
+  document.getElementById('marksSheetTerm')
+    .addEventListener('change', renderGrid);
+
+  document.getElementById('marksSheetAcademicYear')
+    .addEventListener('change', renderGrid);
 
   document.getElementById('marksSheetAddSubject').addEventListener('click', () => {
     const input = document.getElementById('marksSheetNewSubject');
     const subject = input.value.trim();
 
     if (!subject) return;
+
     if (subjects.some(s => s.toLowerCase() === subject.toLowerCase())) {
       return toast('That subject is already on the spreadsheet.', true);
     }
