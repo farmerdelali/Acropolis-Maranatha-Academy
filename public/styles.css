@@ -8759,3 +8759,58 @@ body.dark-mode #marksSheetGrid td input {
     min-width: 0 !important;
   }
 }
+/* FORCE TERMINAL REPORT TO ONE PRINTED PAGE */
+
+@media print {
+  @page {
+    size: A4 landscape;
+    margin: 5mm;
+  }
+
+  .report-card {
+    zoom: 0.78 !important;
+    width: 128.2% !important;
+    max-width: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+    page-break-after: avoid !important;
+  }
+
+  .report-card > div:first-child {
+    padding: 8px !important;
+  }
+
+  .report-card > div:first-child img {
+    width: 55px !important;
+    height: 55px !important;
+  }
+
+  .report-card > p {
+    min-height: 25px !important;
+    margin-top: 5px !important;
+    padding: 5px 8px !important;
+  }
+
+  .report-card .table-wrap {
+    margin: 8px !important;
+  }
+
+  .report-card th,
+  .report-card td {
+    padding: 3px 5px !important;
+    font-size: 8pt !important;
+  }
+
+  .report-card .report-remarks {
+    margin: 8px !important;
+    padding: 8px !important;
+  }
+
+  .report-card tr,
+  .report-card .report-remarks {
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+  }
+}
