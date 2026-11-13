@@ -5366,18 +5366,18 @@ app.post(
         }
       }
 
-      const userFields = [
-        'user_id',
-        'recorded_by',
-        'created_by',
-        'updated_by',
-        'assigned_by',
-        'activated_by',
-        'uploaded_by',
-        'submitted_by',
-        'assigned_teacher_id'
-      ];
-
+     const userFields = [
+  'user_id',
+  'recorded_by',
+  'created_by',
+  'updated_by',
+  'assigned_by',
+  'activated_by',
+  'uploaded_by',
+  'submitted_by',
+  'assigned_teacher_id',
+  'teacher_id'
+];
       const insertRows = async (table, rows) => {
         for (const original of rows) {
           if (!original || typeof original !== 'object' || Array.isArray(original)) {
@@ -5524,15 +5524,14 @@ app.post(
         message: 'School backup restored successfully. Existing user accounts and passwords were preserved.'
       });
 
-    } catch (error) {
+      } catch (error) {
       if (client) {
-        await client.query('ROLLBACK');
+        await client.query('ROLLBACK').catch(() => {});
       }
 
       res.status(400).json({
         error: error.message || 'Backup restoration failed. No records were restored.'
       });
-
     } finally {
       if (client) client.release();
 
