@@ -1,6 +1,8 @@
 require('dotenv').config();
 const fs = require('fs');
 const path = require('path');
+const os = require('os');
+const crypto = require('crypto');
 const express = require('express');
 const helmet = require('helmet');
 const session = require('express-session');
@@ -71,6 +73,30 @@ const documentUpload = multer({
       return cb(new Error(
         'Supported document formats: PDF, JPG, PNG, DOC, and DOCX.'
       ));
+    }
+
+    cb(null, true);
+  }
+});
+const backupUpload = multer({
+  storage: multer.diskStorage({
+    destination(req, file, cb) {
+      const dir = path.join(os.tmpdir(), 'ama-backup-uploads');
+      fs.mkdir(dir, { recursive: true }, error => cb(error, dir));
+    },
+    filename(req, file, cb) {
+      cb(null, `${crypto.randomUUID()}.json`);
+    }
+  }),
+  limits: {
+    fileSize: 100 * 1024 * 1024,
+    files: 1
+  },
+  fileFilter(req, file, cb) {
+    const ext = path.extname(file.originalname || '').toLowerCase();
+
+    if (ext !== '.json') {
+      return cb(new Error('Please upload a valid JSON school backup file.'));
     }
 
     cb(null, true);
@@ -5183,7 +5209,339 @@ app.get('/api/export', requireRole('ADMIN'), asyncRoute(async (req, res) => {
 
   res.json(backup);
 }));
+app.post(
+  '/api/restore',
+  requireRole('ADMIN'),
+  (req, res, next) => {
+    backupUpload.single('backupFile')(req, res, error => {
+      if (error) {
+        return res.status(400).json({
+          error: 'Backup upload failed. Please check the file and try again.'
+        });
+      }
+      next();
+    });
+  },
+  asyncRoute(async (req, res) => {
+    let client;
 
+    try {
+      if (!req.file) {
+        return res.status(400).json({ error: 'Please select a backup file.' });
+      }
+
+      const backupText = await fs.promises.readFile(req.file.path, 'utf8');
+      let backup;
+
+      try {
+        backup = JSON.parse(backupText);
+      } catch {
+        return res.status(400).json({ error: 'The backup file is not valid JSON.' });
+      }
+
+      if (
+        backup.backupVersion !== 1 ||
+        !backup.school ||
+        !backup.school.name ||
+        !backup.data ||
+        typeof backup.data !== 'object'
+      ) {
+        return res.status(400).json({ error: 'This backup file is invalid or unsupported.' });
+      }
+
+      const tables = [
+        'students',
+        'parents',
+        'employees',
+        'marks',
+        'terminalReports',
+        'payments',
+        'dropOffDenials',
+        'pickupPersons',
+        'graduationRecords',
+        'classActivations',
+        'classrooms',
+        'feedingSettings',
+        'studentFeeding',
+        'feedingPayments',
+        'studentDocuments',
+        'schoolNotices',
+        'schoolEvents',
+        'teacherSubjectAssignments',
+        'schoolSystemSettings',
+        'attendanceRegisters',
+        'attendanceEntries',
+        'staffAttendanceRegisters',
+        'staffAttendanceEntries',
+        'parentStudents',
+        'auditLogs'
+      ];
+
+      for (const key of tables) {
+        if (!Array.isArray(backup.data[key])) {
+          return res.status(400).json({
+            error: `The backup is missing or has invalid data for ${key}.`
+          });
+        }
+      }
+
+      client = await pool.connect();
+      await client.query('BEGIN');
+
+      const sid = schoolId(req);
+
+      const schoolResult = await client.query(
+        'SELECT id, name FROM schools WHERE id = $1 FOR UPDATE',
+        [sid]
+      );
+
+      const currentSchool = schoolResult.rows[0];
+
+      if (
+        !currentSchool ||
+        currentSchool.name.trim().toLowerCase() !==
+          backup.school.name.trim().toLowerCase()
+      ) {
+        throw new Error('This backup belongs to a different school.');
+      }
+
+      const protectedTables = [
+        'students',
+        'parents',
+        'employees',
+        'marks',
+        'payments',
+        'drop_off_denials',
+        'pickup_persons',
+        'graduation_records',
+        'class_activations',
+        'classrooms',
+        'feeding_settings',
+        'student_feeding',
+        'feeding_payments',
+        'student_documents',
+        'school_notices',
+        'school_events',
+        'teacher_subject_assignments',
+        'school_system_settings',
+        'attendance_registers',
+        'attendance_entries',
+        'staff_attendance_registers',
+        'staff_attendance_entries',
+        'parent_students',
+        'terminal_reports'
+      ];
+
+      for (const table of protectedTables) {
+        const result = await client.query(
+          `SELECT EXISTS (
+            SELECT 1 FROM ${table} WHERE school_id = $1
+          ) AS has_records`,
+          [sid]
+        );
+
+        if (result.rows[0].has_records) {
+          throw new Error(
+            'Restore stopped because this school already contains records. No existing data has been changed.'
+          );
+        }
+      }
+
+      const currentUsers = await client.query(
+        'SELECT id, username, role FROM users WHERE school_id = $1',
+        [sid]
+      );
+
+      const userMap = new Map();
+
+      for (const oldUser of backup.data.users || []) {
+        const matchingUser = currentUsers.rows.find(
+          user =>
+            user.username.toLowerCase() === String(oldUser.username).toLowerCase() &&
+            user.role === oldUser.role
+        );
+
+        if (matchingUser) {
+          userMap.set(String(oldUser.id), matchingUser.id);
+        }
+      }
+
+      const userFields = [
+        'user_id',
+        'recorded_by',
+        'created_by',
+        'updated_by',
+        'assigned_by',
+        'activated_by',
+        'uploaded_by',
+        'submitted_by',
+        'assigned_teacher_id'
+      ];
+
+      const insertRows = async (table, rows) => {
+        for (const original of rows) {
+          if (!original || typeof original !== 'object' || Array.isArray(original)) {
+            throw new Error(`Invalid record found in ${table}.`);
+          }
+
+          const row = { ...original };
+
+          if (
+            table === 'teacher_subject_assignments' &&
+            !userMap.has(String(row.teacher_id))
+          ) {
+            continue;
+          }
+
+          const entries = [];
+
+          for (const [key, originalValue] of Object.entries(row)) {
+            if (!/^[a-z_][a-z0-9_]*$/i.test(key)) {
+              throw new Error(`Invalid field in ${table}.`);
+            }
+
+            if (key === 'file_data_base64') {
+              if (
+                typeof originalValue !== 'string' ||
+                !/^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/.test(originalValue)
+              ) {
+                throw new Error('A student document in the backup is invalid.');
+              }
+
+              entries.push({
+                key: 'file_data',
+                value: originalValue,
+                expression: 'decode($PLACEHOLDER, \'base64\')'
+              });
+              continue;
+            }
+
+            let value = originalValue;
+
+            if (key === 'school_id') {
+              value = sid;
+            } else if (userFields.includes(key) && value != null) {
+              value = userMap.get(String(value)) ?? null;
+            }
+
+            entries.push({ key, value });
+          }
+
+          if (!entries.length) continue;
+
+          const values = entries.map(entry => entry.value);
+          const columns = entries.map(entry => `"${entry.key}"`);
+
+          const placeholders = entries.map((entry, index) => {
+            const number = index + 1;
+
+            return entry.expression
+              ? entry.expression.replace('$PLACEHOLDER', `$${number}`)
+              : `$${number}`;
+          });
+
+          await client.query(
+            `INSERT INTO ${table} (${columns.join(', ')})
+             VALUES (${placeholders.join(', ')})`,
+            values
+          );
+        }
+      };
+
+      const restoreOrder = [
+        ['students', 'students'],
+        ['parents', 'parents'],
+        ['employees', 'employees'],
+        ['classrooms', 'classrooms'],
+        ['class_activations', 'classActivations'],
+        ['feeding_settings', 'feedingSettings'],
+        ['school_system_settings', 'schoolSystemSettings'],
+        ['parent_students', 'parentStudents'],
+        ['marks', 'marks'],
+        ['terminal_reports', 'terminalReports'],
+        ['student_feeding', 'studentFeeding'],
+        ['payments', 'payments'],
+        ['feeding_payments', 'feedingPayments'],
+        ['drop_off_denials', 'dropOffDenials'],
+        ['pickup_persons', 'pickupPersons'],
+        ['graduation_records', 'graduationRecords'],
+        ['student_documents', 'studentDocuments'],
+        ['school_notices', 'schoolNotices'],
+        ['school_events', 'schoolEvents'],
+        ['teacher_subject_assignments', 'teacherSubjectAssignments'],
+        ['attendance_registers', 'attendanceRegisters'],
+        ['staff_attendance_registers', 'staffAttendanceRegisters'],
+        ['attendance_entries', 'attendanceEntries'],
+        ['staff_attendance_entries', 'staffAttendanceEntries'],
+        ['audit_logs', 'auditLogs']
+      ];
+
+      for (const [table, key] of restoreOrder) {
+        await insertRows(table, backup.data[key]);
+      }
+
+      const sequenceTables = [
+        'students',
+        'parents',
+        'employees',
+        'classrooms',
+        'class_activations',
+        'marks',
+        'terminal_reports',
+        'payments',
+        'feeding_settings',
+        'student_feeding',
+        'feeding_payments',
+        'drop_off_denials',
+        'pickup_persons',
+        'graduation_records',
+        'student_documents',
+        'school_notices',
+        'school_events',
+        'teacher_subject_assignments',
+        'attendance_registers',
+        'attendance_entries',
+        'staff_attendance_registers',
+        'staff_attendance_entries',
+        'audit_logs'
+      ];
+
+      for (const table of sequenceTables) {
+        await client.query(
+          `SELECT setval(
+            pg_get_serial_sequence($1, 'id'),
+            COALESCE((SELECT MAX(id) FROM ${table}), 1),
+            EXISTS (SELECT 1 FROM ${table})
+          )`,
+          [table]
+        );
+      }
+
+      await client.query('COMMIT');
+
+      res.json({
+        ok: true,
+        message: 'School backup restored successfully. Existing user accounts and passwords were preserved.'
+      });
+
+    } catch (error) {
+      if (client) {
+        await client.query('ROLLBACK');
+      }
+
+      res.status(400).json({
+        error: error.message || 'Backup restoration failed. No records were restored.'
+      });
+
+    } finally {
+      if (client) client.release();
+
+      if (req.file?.path) {
+        await fs.promises.unlink(req.file.path).catch(() => {});
+      }
+    }
+  })
+);
 app.use('/api', (err, req, res, next) => { console.error(err); if(res.headersSent)return next(err); if(err.code==='23505')return res.status(409).json({error:'A record with these details already exists.'}); res.status(500).json({error:'Something went wrong. Please try again.'}); });
 app.get('*', (_req,res)=>res.sendFile(path.join(__dirname,'public','index.html')));
 const port=Number(process.env.PORT||3000);
