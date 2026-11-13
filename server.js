@@ -5065,7 +5065,107 @@ app.delete('/api/reports/activity', requireRole('ADMIN'), asyncRoute(async (req,
     message: 'Recent activity cleared successfully.'
   });
 }));
-app.get('/api/export', requireRole('ADMIN'), asyncRoute(async(req,res)=>{const sid=schoolId(req);const [students,payments,marks]=await Promise.all([q('SELECT * FROM students WHERE school_id=$1 ORDER BY id',[sid]),q('SELECT * FROM payments WHERE school_id=$1 ORDER BY id',[sid]),q('SELECT * FROM marks WHERE school_id=$1 ORDER BY id',[sid])]);res.setHeader('Content-Disposition','attachment; filename="acropolis-school-backup.json"');res.json({exportedAt:new Date().toISOString(),school:req.session.user.schoolName,students:students.rows,payments:payments.rows,marks:marks.rows});}));
+
+app.get('/api/export', requireRole('ADMIN'), asyncRoute(async (req, res) => {
+  const sid = schoolId(req);
+
+  const exportRows = async (sql) => {
+    const result = await q(sql, [sid]);
+    return result.rows;
+  };
+
+  const [
+    school,
+    users,
+    students,
+    parents,
+    parentStudents,
+    employees,
+    marks,
+    terminalReports,
+    payments,
+    auditLogs,
+    dropOffDenials,
+    pickupPersons,
+    graduationRecords,
+    classActivations,
+    classrooms,
+    feedingSettings,
+    studentFeeding,
+    feedingPayments,
+    studentDocuments,
+    schoolNotices,
+    schoolEvents
+  ] = await Promise.all([
+    exportRows('SELECT * FROM schools WHERE id = $1'),
+    exportRows(`
+      SELECT id, school_id, username, role, created_at
+      FROM users WHERE school_id = $1 ORDER BY id
+    `),
+    exportRows('SELECT * FROM students WHERE school_id = $1 ORDER BY id'),
+    exportRows('SELECT * FROM parents WHERE school_id = $1 ORDER BY id'),
+    exportRows('SELECT * FROM parent_students WHERE school_id = $1 ORDER BY parent_id, student_id'),
+    exportRows('SELECT * FROM employees WHERE school_id = $1 ORDER BY id'),
+    exportRows('SELECT * FROM marks WHERE school_id = $1 ORDER BY id'),
+    exportRows('SELECT * FROM terminal_reports WHERE school_id = $1 ORDER BY id'),
+    exportRows('SELECT * FROM payments WHERE school_id = $1 ORDER BY id'),
+    exportRows('SELECT * FROM audit_logs WHERE school_id = $1 ORDER BY id'),
+    exportRows('SELECT * FROM drop_off_denials WHERE school_id = $1 ORDER BY id'),
+    exportRows('SELECT * FROM pickup_persons WHERE school_id = $1 ORDER BY id'),
+    exportRows('SELECT * FROM graduation_records WHERE school_id = $1 ORDER BY id'),
+    exportRows('SELECT * FROM class_activations WHERE school_id = $1 ORDER BY id'),
+    exportRows('SELECT * FROM classrooms WHERE school_id = $1 ORDER BY id'),
+    exportRows('SELECT * FROM feeding_settings WHERE school_id = $1 ORDER BY id'),
+    exportRows('SELECT * FROM student_feeding WHERE school_id = $1 ORDER BY id'),
+    exportRows('SELECT * FROM feeding_payments WHERE school_id = $1 ORDER BY id'),
+    exportRows(`
+      SELECT id, school_id, student_id, original_name,
+             encode(file_data, 'base64') AS file_data_base64,
+             mime_type, size_bytes, uploaded_by, created_at
+      FROM student_documents
+      WHERE school_id = $1 ORDER BY id
+    `),
+    exportRows('SELECT * FROM school_notices WHERE school_id = $1 ORDER BY id'),
+    exportRows('SELECT * FROM school_events WHERE school_id = $1 ORDER BY id')
+  ]);
+
+  const backup = {
+    backupVersion: 1,
+    exportedAt: new Date().toISOString(),
+    school: school[0] || null,
+    data: {
+      users,
+      students,
+      parents,
+      parentStudents,
+      employees,
+      marks,
+      terminalReports,
+      payments,
+      auditLogs,
+      dropOffDenials,
+      pickupPersons,
+      graduationRecords,
+      classActivations,
+      classrooms,
+      feedingSettings,
+      studentFeeding,
+      feedingPayments,
+      studentDocuments,
+      schoolNotices,
+      schoolEvents
+    }
+  };
+
+  res.setHeader(
+    'Content-Disposition',
+    'attachment; filename="acropolis-school-backup.json"'
+  );
+  res.setHeader('Content-Type', 'application/json; charset=utf-8');
+
+  res.json(backup);
+}));
+
 app.use('/api', (err, req, res, next) => { console.error(err); if(res.headersSent)return next(err); if(err.code==='23505')return res.status(409).json({error:'A record with these details already exists.'}); res.status(500).json({error:'Something went wrong. Please try again.'}); });
 app.get('*', (_req,res)=>res.sendFile(path.join(__dirname,'public','index.html')));
 const port=Number(process.env.PORT||3000);
