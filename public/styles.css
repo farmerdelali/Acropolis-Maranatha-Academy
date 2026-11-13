@@ -8759,59 +8759,98 @@ body.dark-mode #marksSheetGrid td input {
     min-width: 0 !important;
   }
 }
-/* FORCE TERMINAL REPORT TO ONE PRINTED PAGE */
+
+/* LARGE, READABLE TERMINAL REPORT PRINT LAYOUT */
 
 @media print {
   @page {
     size: A4 landscape;
-    margin: 5mm;
+    margin: 6mm;
   }
 
   .report-card {
-    zoom: 0.78 !important;
-width: 100% !important;
-box-sizing: border-box !important;
+    zoom: 1 !important;
+    width: 100% !important;
     max-width: none !important;
+    box-sizing: border-box !important;
     margin: 0 !important;
-    padding: 0 !important;
-    break-inside: avoid !important;
-    page-break-inside: avoid !important;
-    page-break-after: avoid !important;
+    padding: 0 0 8px !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    break-inside: auto !important;
+    page-break-inside: auto !important;
   }
 
   .report-card > div:first-child {
-    padding: 8px !important;
+    padding: 10px 12px !important;
   }
 
   .report-card > div:first-child img {
-    width: 55px !important;
-    height: 55px !important;
+    width: 62px !important;
+    height: 62px !important;
+    margin-bottom: 5px !important;
+  }
+
+  .report-card > div:first-child h2 {
+    font-size: 20px !important;
+    margin: 5px 0 !important;
+  }
+
+  .report-card > div:first-child p {
+    margin: 3px 0 6px !important;
+  }
+
+  .report-card > div:first-child h3 {
+    font-size: 14px !important;
+    padding: 6px 18px !important;
+    margin-top: 4px !important;
   }
 
   .report-card > p {
-    min-height: 25px !important;
-    margin-top: 5px !important;
-    padding: 5px 8px !important;
+    min-height: 30px !important;
+    margin: 6px 8px 0 !important;
+    padding: 6px 9px !important;
+    font-size: 9pt !important;
   }
 
   .report-card .table-wrap {
-    margin: 8px !important;
+    width: auto !important;
+    margin: 10px 8px !important;
+    overflow: visible !important;
+  }
+
+  .report-card table {
+    width: 100% !important;
+    table-layout: auto !important;
+    font-size: 9pt !important;
   }
 
   .report-card th,
   .report-card td {
-    padding: 3px 5px !important;
-    font-size: 8pt !important;
+    padding: 5px 5px !important;
+    font-size: 8.5pt !important;
+    line-height: 1.25 !important;
+    white-space: normal !important;
   }
 
-  .report-card .report-remarks {
-    margin: 8px !important;
-    padding: 8px !important;
-  }
-
-  .report-card tr,
-  .report-card .report-remarks {
+  .report-card tr {
     break-inside: avoid !important;
     page-break-inside: avoid !important;
+  }
+
+  .report-card .report-remarks {
+    margin: 10px 8px !important;
+    padding: 9px 12px !important;
+    font-size: 9pt !important;
+    break-inside: auto !important;
+    page-break-inside: auto !important;
+  }
+
+  .report-card .report-remarks p {
+    margin: 5px 0 !important;
+    padding-bottom: 5px !important;
+    line-height: 1.35 !important;
+    font-size: 9pt !important;
   }
 }
