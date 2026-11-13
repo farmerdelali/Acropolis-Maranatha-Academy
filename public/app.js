@@ -4475,7 +4475,7 @@ const button = e.target.closest('button');
           @media print {
             @page {
               size: A4 landscape;
-              margin: 7mm;
+              margin: 6mm;
             }
 
             body {
@@ -4495,7 +4495,6 @@ const button = e.target.closest('button');
             .report-card {
               width: 100% !important;
               max-width: none !important;
-              zoom: 1 !important;
               margin: 0 !important;
               box-shadow: none !important;
             }
