@@ -1255,11 +1255,17 @@ const performanceDescription = score >= 80
       'Individual Report Card',
       'Student academic performance.'
     ) + panel('Report Card', `
-      <button type="button" class="btn primary no-print"
-        data-action="download-terminal-report">
-        Download PDF
-      </button>
+     <div class="report-actions no-print">
+  <button type="button" class="btn primary"
+    data-action="download-terminal-report">
+    Download PDF
+  </button>
 
+  <button type="button" class="btn soft"
+    data-action="print-terminal-report">
+    Print Report
+  </button>
+</div>
       <div class="report-card">
       <div style="text-align:center;">
           <img src="/school-logo.png" alt="School logo"
@@ -4404,10 +4410,125 @@ if (e.target.closest('[data-action="calendar-next"]')) {
 document.addEventListener('click', async e => {
 const button = e.target.closest('button');
   if (!button) return;
-    if (button.dataset.action === 'download-terminal-report') {
-    window.print();
+   if (button.dataset.action === 'print-terminal-report') {
+  const reportCard = document.querySelector('.report-card');
+
+  if (!reportCard) {
+    toast('Report card not found.', true);
     return;
   }
+
+  const printWindow = window.open('', '_blank');
+
+  if (!printWindow) {
+    toast('Please allow pop-ups to open the print preview.', true);
+    return;
+  }
+
+  const reportCopy = reportCard.cloneNode(true);
+  reportCopy.querySelector('#terminalReportForm')?.remove();
+
+  const stylesheets = [...document.querySelectorAll('link[rel="stylesheet"]')]
+    .map(link => `<link rel="stylesheet" href="${link.href}">`)
+    .join('');
+
+  printWindow.document.open();
+  printWindow.document.write(`
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>Student Terminal Report</title>
+        ${stylesheets}
+        <style>
+          body {
+            margin: 0;
+            padding: 20px;
+            background: #edf1f6;
+          }
+
+          .print-toolbar {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            padding: 15px;
+            margin: 0 auto 20px;
+          }
+
+          .print-toolbar button {
+            padding: 12px 24px;
+            border: 0;
+            border-radius: 6px;
+            background: #10264a;
+            color: white;
+            font-size: 15px;
+            cursor: pointer;
+          }
+
+          .print-preview-shell {
+            max-width: 1120px;
+            margin: auto;
+            background: white;
+          }
+
+          @media print {
+            @page {
+              size: A4 landscape;
+              margin: 7mm;
+            }
+
+            body {
+              padding: 0 !important;
+              background: white !important;
+            }
+
+            .print-toolbar {
+              display: none !important;
+            }
+
+            .print-preview-shell {
+              max-width: none !important;
+              margin: 0 !important;
+            }
+
+            .report-card {
+              width: 100% !important;
+              max-width: none !important;
+              zoom: 1 !important;
+              margin: 0 !important;
+              box-shadow: none !important;
+            }
+          }
+        </style>
+      </head>
+      <body>
+        <div class="print-toolbar">
+          <button id="printReportNow">Print Report</button>
+          <button id="closeReportPreview">Close Preview</button>
+        </div>
+
+        <div class="print-preview-shell">
+          ${reportCopy.outerHTML}
+        </div>
+      </body>
+    </html>
+  `);
+  printWindow.document.close();
+
+  printWindow.document.getElementById('printReportNow')
+    .addEventListener('click', () => printWindow.print());
+
+  printWindow.document.getElementById('closeReportPreview')
+    .addEventListener('click', () => printWindow.close());
+
+  return;
+}
+
+if (button.dataset.action === 'download-terminal-report') {
+  window.print();
+  return;
+}
 if (button.dataset.action === 'open-terminal-report') {
   state.selectedReportStudentId = button.dataset.id;
 
