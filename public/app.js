@@ -1742,7 +1742,7 @@ ${['ADMIN', 'HEADMASTER', 'TEACHER'].includes(d.session?.role) ? `
 
 
 }else if(state.view==='Reports'){
- html=pageHead('Reports & data','Review school totals, recent activity and export a backup.',`<button class="btn danger" data-action="clear-activity">Clear Recent Activity</button><button class="btn primary" data-action="export">Export backup</button><button class="btn soft" data-action="csv">Export student CSV</button>`)+`<div class="cards">${stat('Active students',students.length,'Enrolment')}${stat('Total fees',money(expected),'Expected')}${stat('Payments',money(paid),'Collected')}${stat('Balance',money(Math.max(0,expected-paid)),'Expected less collected')}</div>`;
+ html=pageHead('Reports & data','Review school totals, recent activity and export a backup.',`<button class="btn danger" data-action="clear-activity">Clear Recent Activity</button><button class="btn primary" data-action="export">Export backup</button>${state.user.role === 'ADMIN' ? '<button class="btn soft" data-action="restore">Restore backup</button>' : ''}<button class="btn soft" data-action="csv">Export student CSV</button>`)+`<div class="cards">${stat('Active students',students.length,'Enrolment')}${stat('Total fees',money(expected),'Expected')}${stat('Payments',money(paid),'Collected')}${stat('Balance',money(Math.max(0,expected-paid)),'Expected less collected')}</div>`;
   const classCounts=students.reduce((counts,s)=>{const name=String(s.class_name||'Unassigned').trim()||'Unassigned';counts[name]=(counts[name]||0)+1;return counts;},{});
 const maxClassCount=Math.max(0,...Object.values(classCounts));
 html+=panel('Student enrolment by class',students.length?`<div style="display:grid;gap:16px;padding:8px 0">${Object.entries(classCounts).sort((a,b)=>b[1]-a[1]).map(([name,count])=>`<div><div style="display:flex;justify-content:space-between;gap:12px;margin-bottom:7px"><span>${esc(name)}</span><b>${count}</b></div><div style="height:10px;background:var(--bg);border-radius:8px;overflow:hidden"><div style="height:100%;width:${count/maxClassCount*100}%;background:var(--gold);border-radius:8px;transition:width .5s ease"></div></div></div>`).join('')}</div>`:'<div class="empty">No student records available to chart yet.</div>');
@@ -4751,7 +4751,61 @@ if (form.id === 'noticeForm') {
 
   return;
 }
+if (form.id === 'restoreBackupForm') {
+  if (state.user.role !== 'ADMIN') {
+    toast('Only administrators can restore backups.', true);
+    return;
+  }
 
+  const fileInput = form.querySelector('input[name="backupFile"]');
+  const file = fileInput.files[0];
+
+  if (!file) {
+    toast('Please select a backup file.', true);
+    return;
+  }
+
+  if (!confirm('Are you sure you want to restore this school backup? Continue only if this school database is empty.')) {
+    return;
+  }
+
+  const submit = form.querySelector('button[type="submit"]');
+  submit.disabled = true;
+  submit.textContent = 'Restoring backup…';
+
+  try {
+    const uploadData = new FormData();
+    uploadData.append('backupFile', file);
+
+    const response = await fetch('/api/restore', {
+      method: 'POST',
+      credentials: 'same-origin',
+      body: uploadData
+    });
+
+    let result = {};
+    try {
+      result = await response.json();
+    } catch {}
+
+    if (!response.ok) {
+      throw new Error(result.error || 'Backup restoration failed.');
+    }
+
+    await refresh();
+    $('#modalHost').innerHTML = '';
+    state.view = 'Reports';
+    render();
+    toast('School backup restored successfully.');
+  } catch (error) {
+    toast(error.message || 'Backup restoration failed.', true);
+  } finally {
+    submit.disabled = false;
+    submit.textContent = 'Restore backup';
+  }
+
+  return;
+}
 if (!allowedForms.includes(form.id)) return;
   const fd = new FormData(form);
   const v = Object.fromEntries(fd.entries());
@@ -6061,7 +6115,28 @@ case 'delete-all-marks': {
         await download('/api/export', 'acropolis-school-backup.json');
         toast('Backup exported successfully.');
         break;
+      case 'restore':
+        if (state.user.role !== 'ADMIN') {
+          toast('Only administrators can restore backups.', true);
+          break;
+        }
 
+        openModal('Restore school backup', `
+          <form id="restoreBackupForm">
+            <p class="muted">Select a previously exported Acropolis school backup in JSON format.</p>
+            <div class="notice warning">
+              <b>Important:</b> Restoring is intended for a school database that has no existing records. Do not use this to merge records into an active school.
+            </div>
+            <label class="field">Backup file
+              <input type="file" name="backupFile" accept=".json,application/json" required>
+            </label>
+            <div class="form-actions">
+              <button type="button" class="btn soft" data-action="close-modal">Cancel</button>
+              <button type="submit" class="btn danger">Restore backup</button>
+            </div>
+          </form>
+        `);
+        break;
       case 'csv': {
         const rows = [
           ['Student ID', 'Full name', 'Class', 'Guardian', 'Phone', 'Total fees', 'Paid'],
