@@ -5093,9 +5093,15 @@ app.get('/api/export', requireRole('ADMIN'), asyncRoute(async (req, res) => {
     feedingSettings,
     studentFeeding,
     feedingPayments,
-    studentDocuments,
+       studentDocuments,
     schoolNotices,
-    schoolEvents
+    schoolEvents,
+    teacherSubjectAssignments,
+    schoolSystemSettings,
+    attendanceRegisters,
+    attendanceEntries,
+    staffAttendanceRegisters,
+    staffAttendanceEntries
   ] = await Promise.all([
     exportRows('SELECT * FROM schools WHERE id = $1'),
     exportRows(`
@@ -5126,7 +5132,13 @@ app.get('/api/export', requireRole('ADMIN'), asyncRoute(async (req, res) => {
       WHERE school_id = $1 ORDER BY id
     `),
     exportRows('SELECT * FROM school_notices WHERE school_id = $1 ORDER BY id'),
-    exportRows('SELECT * FROM school_events WHERE school_id = $1 ORDER BY id')
+       exportRows('SELECT * FROM school_events WHERE school_id = $1 ORDER BY id'),
+    exportRows('SELECT * FROM teacher_subject_assignments WHERE school_id = $1 ORDER BY id'),
+    exportRows('SELECT * FROM school_system_settings WHERE school_id = $1'),
+    exportRows('SELECT * FROM attendance_registers WHERE school_id = $1 ORDER BY id'),
+    exportRows('SELECT * FROM attendance_entries WHERE school_id = $1 ORDER BY id'),
+    exportRows('SELECT * FROM staff_attendance_registers WHERE school_id = $1 ORDER BY id'),
+    exportRows('SELECT * FROM staff_attendance_entries WHERE school_id = $1 ORDER BY id')
   ]);
 
   const backup = {
@@ -5152,8 +5164,14 @@ app.get('/api/export', requireRole('ADMIN'), asyncRoute(async (req, res) => {
       studentFeeding,
       feedingPayments,
       studentDocuments,
-      schoolNotices,
-      schoolEvents
+           schoolNotices,
+      schoolEvents,
+      teacherSubjectAssignments,
+      schoolSystemSettings,
+      attendanceRegisters,
+      attendanceEntries,
+      staffAttendanceRegisters,
+      staffAttendanceEntries
     }
   };
 
