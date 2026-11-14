@@ -5250,6 +5250,7 @@ app.post(
       }
 
       const tables = [
+       'users',
         'students',
         'parents',
         'employees',
