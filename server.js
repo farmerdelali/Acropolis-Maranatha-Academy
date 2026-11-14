@@ -5323,7 +5323,6 @@ app.post(
         'school_notices',
         'school_events',
         'teacher_subject_assignments',
-        'school_system_settings',
         'attendance_registers',
         'attendance_entries',
         'staff_attendance_registers',
@@ -5440,14 +5439,18 @@ app.post(
               : `$${number}`;
           });
 
+                    const conflictClause = table === 'school_system_settings'
+            ? ` ON CONFLICT (school_id) DO UPDATE SET
+                 settings = EXCLUDED.settings,
+                 updated_by = EXCLUDED.updated_by,
+                 updated_at = EXCLUDED.updated_at`
+            : '';
+
           await client.query(
             `INSERT INTO ${table} (${columns.join(', ')})
-             VALUES (${placeholders.join(', ')})`,
+             VALUES (${placeholders.join(', ')})${conflictClause}`,
             values
           );
-        }
-      };
-
       const restoreOrder = [
         ['students', 'students'],
         ['parents', 'parents'],
@@ -5475,8 +5478,7 @@ app.post(
         ['staff_attendance_entries', 'staffAttendanceEntries'],
         ['audit_logs', 'auditLogs']
       ];
-
-      for (const [table, key] of restoreOrder) {
+           for (const [table, key] of restoreOrder) {
         await insertRows(table, backup.data[key]);
       }
 
