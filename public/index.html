@@ -98,7 +98,37 @@
       </p>
     </div>
   </section>
+<section id="passwordChangeScreen" class="auth-shell hidden">
+  <div class="auth-card">
+    <div class="brand">
+      <img src="/school-logo.png" alt="Acropolis Maranatha Academy logo">
+      <h1>ACROPOLIS MARANATHA ACADEMY</h1>
+      <p>Always praising God, Jehovah.</p>
+    </div>
 
+    <form id="changePasswordForm" class="auth-form">
+      <h2>Change your temporary password</h2>
+      <p class="muted">You must create a new password before accessing your school workspace.</p>
+
+      <label>New password
+        <input name="newPassword" type="password" required minlength="10"
+          maxlength="200" autocomplete="new-password"
+          placeholder="Enter your new password">
+      </label>
+
+      <label>Confirm new password
+        <input name="confirmPassword" type="password" required minlength="10"
+          maxlength="200" autocomplete="new-password"
+          placeholder="Confirm your new password">
+      </label>
+
+      <button class="btn primary full" type="submit">
+        Save new password
+      </button>
+      <p class="form-error" id="changePasswordError" role="alert"></p>
+    </form>
+  </div>
+</section>
   <section id="appScreen" class="app-shell hidden">
     <header class="topbar">
       <button id="menuToggle" class="menu-toggle"
