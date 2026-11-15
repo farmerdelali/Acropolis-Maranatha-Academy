@@ -8876,3 +8876,24 @@ body.dark-mode #marksSheetGrid td input {
     gap: 14px !important;
   }
 }
+/* AMA — DASHBOARD LAYOUT REFINEMENT: STEP 2 */
+
+.ama-reference-dashboard .ama-dashboard-bottom {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 20px !important;
+  align-items: stretch !important;
+  width: 100%;
+}
+
+.ama-reference-dashboard .ama-dashboard-bottom > * {
+  width: 100%;
+  min-width: 0;
+}
+
+@media (max-width: 700px) {
+  .ama-reference-dashboard .ama-dashboard-bottom {
+    grid-template-columns: minmax(0, 1fr) !important;
+    gap: 14px !important;
+  }
+}
