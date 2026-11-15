@@ -440,9 +440,14 @@ async function initDb() {
       UNIQUE (register_id, employee_id)
     )
   `);
+  await q(`
+    ALTER TABLE users
+    ADD COLUMN IF NOT EXISTS must_change_password
+    BOOLEAN NOT NULL DEFAULT FALSE
+  `);
+
 }
-
-
+  
 
 app.get('/api/health', asyncRoute(async (_req, res) => { await q('SELECT 1'); res.json({ ok: true, service: 'Acropolis School Management API' }); }));
 app.get('/api/session', (req, res) => res.json({ user: req.session.user || null }));
