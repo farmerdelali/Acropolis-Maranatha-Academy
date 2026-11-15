@@ -474,14 +474,54 @@ app.post('/api/register', authLimit, asyncRoute(async (req, res) => {
 app.post('/api/login', authLimit, asyncRoute(async (req, res) => {
   const { schoolName, username, password } = req.body || {};
   if (!validText(username, 60) || typeof password !== 'string') return res.status(400).json({ error: 'Enter your username and password.' });
-  const result = await q(`SELECT u.id,u.username,u.password_hash,u.role,u.school_id,s.name AS school_name,s.motto FROM users u JOIN schools s ON s.id=u.school_id WHERE lower(u.username)=lower($1) AND ($2::text IS NULL OR lower(s.name)=lower($2)) LIMIT 1`, [username.trim(), validText(schoolName,120) ? schoolName.trim() : null]);
+   const result = await q(`SELECT u.id,u.username,u.password_hash,u.role,u.school_id,u.must_change_password,s.name AS school_name,s.motto FROM users u JOIN schools s ON s.id=u.school_id WHERE lower(u.username)=lower($1) AND ($2::text IS NULL OR lower(s.name)=lower($2)) LIMIT 1`, [username.trim(), validText(schoolName,120) ? schoolName.trim() : null]);
   const u = result.rows[0];
   if (!u || !(await bcrypt.compare(password, u.password_hash))) return res.status(401).json({ error: 'School, username or password is incorrect.' });
-  req.session.regenerate(err => { if (err) return res.status(500).json({ error: 'Unable to start a secure session. Please try again.' }); req.session.user = { id: u.id, username: u.username, role: u.role, schoolId: u.school_id, schoolName: u.school_name, motto: u.motto }; req.session.save(e => e ? res.status(500).json({ error: 'Unable to save your session.' }) : res.json({ user: req.session.user })); });
+  req.session.regenerate(err => { if (err) return res.status(500).json({ error: 'Unable to start a secure session. Please try again.' });req.session.user = { id: u.id, username: u.username, role: u.role, schoolId: u.school_id, schoolName: u.school_name, motto: u.motto, mustChangePassword: u.must_change_password }; req.session.save(e => e ? res.status(500).json({ error: 'Unable to save your session.' }) : res.json({ user: req.session.user })); });
+}));
+app.post('/api/change-password', requireAuth, asyncRoute(async (req, res) => {
+  const { newPassword } = req.body || {};
+  const user = req.session.user;
+
+  if (!['HEADMASTER', 'TEACHER', 'BURSAR'].includes(user.role)) {
+    return res.status(403).json({ error: 'This action is only available to staff accounts.' });
+  }
+
+  if (user.mustChangePassword !== true) {
+    return res.status(400).json({ error: 'A password change is not required.' });
+  }
+
+  if (typeof newPassword !== 'string' ||
+      newPassword.length < 10 ||
+      newPassword.length > 200) {
+    return res.status(400).json({
+      error: 'Your new password must be at least 10 characters.'
+    });
+  }
+
+  const passwordHash = await bcrypt.hash(newPassword, 12);
+
+  await q(
+    `UPDATE users
+     SET password_hash = $1, must_change_password = FALSE
+     WHERE id = $2 AND school_id = $3`,
+    [passwordHash, user.id, user.schoolId]
+  );
+
+  user.mustChangePassword = false;
+
+  await audit(req, 'password_changed', 'user', user.id);
+
+  res.json({ ok: true, message: 'Password changed successfully.' });
 }));
 app.post('/api/logout', (req, res) => req.session.destroy(() => { res.clearCookie('ama.sid'); res.json({ ok: true }); }));
 
 app.use('/api', (req, res, next) => {
+    if (req.session.user?.mustChangePassword === true) {
+    return res.status(403).json({
+      error: 'You must change your temporary password before continuing.'
+    });
+  }
   if (req.session.user?.role !== 'PARENT') {
     return next();
   }
