@@ -93,9 +93,23 @@ document.querySelectorAll('[data-auth-tab]').forEach(tab => {
     setAuthTab(tab.getAttribute('data-auth-tab'));
   });
 });
-function showAuth(){state.user=null;$('#appScreen').classList.add('hidden');$('#authScreen').classList.remove('hidden');setAuthTab('login');}
+function showAuth() {
+  state.user = null;
+  $('#appScreen').classList.add('hidden');
+  $('#passwordChangeScreen').classList.add('hidden');
+  $('#authScreen').classList.remove('hidden');
+  setAuthTab('login');
+}
 function showApp(user) {
   state.user = user;
+    if (user.mustChangePassword === true) {
+    $('#authScreen').classList.add('hidden');
+    $('#appScreen').classList.add('hidden');
+    $('#passwordChangeScreen').classList.remove('hidden');
+    return;
+  }
+
+  $('#passwordChangeScreen').classList.add('hidden');
   $('#authScreen').classList.add('hidden');
   $('#appScreen').classList.remove('hidden');
 
@@ -4583,6 +4597,7 @@ document.addEventListener('submit', async e => {
    'importDataForm', 
   'registerForm',
   'loginForm',
+    'changePasswordForm',
     'parentForm',
   'parentAccountForm',
   'studentForm',
@@ -4817,6 +4832,21 @@ if (!allowedForms.includes(form.id)) return;
   }
 
   try {
+      if (form.id === 'changePasswordForm') {
+    if (v.newPassword !== v.confirmPassword) {
+      throw new Error('The passwords do not match.');
+    }
+
+    await api('/api/change-password', {
+      method: 'POST',
+      body: JSON.stringify({ newPassword: v.newPassword })
+    });
+
+    state.user.mustChangePassword = false;
+    form.reset();
+    showApp(state.user);
+    toast('Your password has been changed successfully.');
+  } else
  if (form.id === 'terminalReportForm') {
   await api('/api/terminal-reports', {
     method: 'POST',
