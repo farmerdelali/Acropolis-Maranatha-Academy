@@ -5219,18 +5219,12 @@ app.post(
         [sid]
       );
 
-           const userMap = new Map();
+             const userMap = new Map();
       const createdStaffAccounts = [];
-      const processedStaffUsers = new Set(
-        currentUsers.rows.map(user =>
-          `${user.username.toLowerCase()}|${user.role}`
-        )
-      );
 
       for (const oldUser of backup.data.users || []) {
         const username = String(oldUser.username || '').trim();
         const role = oldUser.role;
-        const userKey = `${username.toLowerCase()}|${role}`;
 
         const matchingUser = currentUsers.rows.find(
           user =>
@@ -5240,32 +5234,62 @@ app.post(
 
         if (matchingUser) {
           userMap.set(String(oldUser.id), matchingUser.id);
-        } else if (
-          ['HEADMASTER', 'TEACHER', 'BURSAR'].includes(role) &&
-          !processedStaffUsers.has(userKey)
-        ) {
-          const temporaryPassword = crypto.randomBytes(18).toString('hex');
-          const passwordHash = await bcrypt.hash(temporaryPassword, 12);
+          continue;
+        }
 
-          const createdUser = await client.query(
-            `INSERT INTO users
-             (school_id, username, password_hash, role, must_change_password)
-             VALUES ($1, $2, $3, $4, TRUE)
-             RETURNING id`,
-            [sid, username, passwordHash, role]
+        if (!['HEADMASTER', 'TEACHER', 'BURSAR'].includes(role)) {
+          continue;
+        }
+
+        const usernameConflict = currentUsers.rows.find(
+          user =>
+            user.username.toLowerCase() === username.toLowerCase()
+        );
+
+        if (usernameConflict) {
+          throw new Error(
+            `Cannot restore staff account "${username}" because that username is already assigned to a different role.`
+          );
+        }
+
+        if (role === 'HEADMASTER') {
+          const existingHeadmaster = currentUsers.rows.find(
+            user => user.role === 'HEADMASTER'
           );
 
-          userMap.set(String(oldUser.id), createdUser.rows[0].id);
-          processedStaffUsers.add(userKey);
-
-          createdStaffAccounts.push({
-            username,
-            role,
-            temporaryPassword
-          });
+          if (existingHeadmaster) {
+            userMap.set(String(oldUser.id), existingHeadmaster.id);
+            continue;
+          }
         }
-      }
-     const userFields = [
+
+        const temporaryPassword = crypto.randomBytes(18).toString('hex');
+        const passwordHash = await bcrypt.hash(temporaryPassword, 12);
+
+        const createdUser = await client.query(
+          `INSERT INTO users
+           (school_id, username, password_hash, role, must_change_password)
+           VALUES ($1, $2, $3, $4, TRUE)
+           RETURNING id`,
+          [sid, username, passwordHash, role]
+        );
+
+        const newUser = {
+          id: createdUser.rows[0].id,
+          username,
+          role
+        };
+
+        currentUsers.rows.push(newUser);
+        userMap.set(String(oldUser.id), newUser.id);
+
+        createdStaffAccounts.push({
+          username,
+          role,
+          temporaryPassword
+        });
+      }    
+      const userFields = [
   'user_id',
   'recorded_by',
   'created_by',
