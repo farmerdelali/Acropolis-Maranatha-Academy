@@ -5219,20 +5219,52 @@ app.post(
         [sid]
       );
 
-      const userMap = new Map();
+           const userMap = new Map();
+      const createdStaffAccounts = [];
+      const processedStaffUsers = new Set(
+        currentUsers.rows.map(user =>
+          `${user.username.toLowerCase()}|${user.role}`
+        )
+      );
 
       for (const oldUser of backup.data.users || []) {
+        const username = String(oldUser.username || '').trim();
+        const role = oldUser.role;
+        const userKey = `${username.toLowerCase()}|${role}`;
+
         const matchingUser = currentUsers.rows.find(
           user =>
-            user.username.toLowerCase() === String(oldUser.username).toLowerCase() &&
-            user.role === oldUser.role
+            user.username.toLowerCase() === username.toLowerCase() &&
+            user.role === role
         );
 
         if (matchingUser) {
           userMap.set(String(oldUser.id), matchingUser.id);
+        } else if (
+          ['HEADMASTER', 'TEACHER', 'BURSAR'].includes(role) &&
+          !processedStaffUsers.has(userKey)
+        ) {
+          const temporaryPassword = crypto.randomBytes(18).toString('hex');
+          const passwordHash = await bcrypt.hash(temporaryPassword, 12);
+
+          const createdUser = await client.query(
+            `INSERT INTO users
+             (school_id, username, password_hash, role, must_change_password)
+             VALUES ($1, $2, $3, $4, TRUE)
+             RETURNING id`,
+            [sid, username, passwordHash, role]
+          );
+
+          userMap.set(String(oldUser.id), createdUser.rows[0].id);
+          processedStaffUsers.add(userKey);
+
+          createdStaffAccounts.push({
+            username,
+            role,
+            temporaryPassword
+          });
         }
       }
-
      const userFields = [
   'user_id',
   'recorded_by',
@@ -5391,11 +5423,12 @@ app.post(
 
       await client.query('COMMIT');
 
-      res.json({
+           res.json({
         ok: true,
-        message: 'School backup restored successfully. Existing user accounts and passwords were preserved.'
+        message: 'School backup restored successfully. Existing user accounts and passwords were preserved.',
+        createdStaffAccounts
       });
-
+      
       } catch (error) {
       if (client) {
         await client.query('ROLLBACK').catch(() => {});
