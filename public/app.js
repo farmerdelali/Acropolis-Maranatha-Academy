@@ -4807,11 +4807,26 @@ if (form.id === 'restoreBackupForm') {
       throw new Error(result.error || 'Backup restoration failed.');
     }
 
-    await refresh();
-    $('#modalHost').innerHTML = '';
-    state.view = 'Reports';
-    render();
-    toast('School backup restored successfully.');
+  const createdStaffAccounts = Array.isArray(result.createdStaffAccounts)
+  ? result.createdStaffAccounts
+  : [];
+
+if (createdStaffAccounts.length) {
+  const credentials = createdStaffAccounts.map(account =>
+    `${account.role} — ${account.username}\nTemporary password: ${account.temporaryPassword}`
+  ).join('\n\n');
+
+  window.alert(
+    'New staff accounts were created. Copy these temporary passwords now. They will not be shown again.\n\n' +
+    credentials
+  );
+}
+
+await refresh();
+$('#modalHost').innerHTML = '';
+state.view = 'Reports';
+render();
+toast('School backup restored successfully.');
   } catch (error) {
     toast(error.message || 'Backup restoration failed.', true);
   } finally {
