@@ -8976,3 +8976,86 @@ body.dark-mode #marksSheetGrid td input {
   }
 
 }
+
+/* AMA — ATTENDANCE PANEL READABILITY REFINEMENT */
+
+.ama-reference-dashboard .ama-attendance-content {
+  justify-content: space-evenly !important;
+  align-items: center !important;
+  gap: 18px !important;
+  padding: 16px 20px 20px !important;
+  flex-wrap: wrap;
+}
+
+.ama-reference-dashboard .ama-attendance-legend {
+  flex: 1 1 115px;
+  max-width: 230px;
+  gap: 15px !important;
+}
+
+.ama-reference-dashboard .ama-attendance-legend p {
+  grid-template-columns: 10px minmax(0, 1fr) auto !important;
+  gap: 10px !important;
+  font-size: 12px !important;
+}
+
+.ama-reference-dashboard .ama-attendance-legend strong {
+  font-size: 14px !important;
+  font-weight: 800 !important;
+}
+
+.ama-reference-dashboard .ama-donut {
+  flex: 0 0 136px !important;
+  width: 136px !important;
+  height: 136px !important;
+}
+
+.ama-reference-dashboard .ama-donut > div {
+  width: 84px !important;
+  height: 84px !important;
+}
+
+.ama-reference-dashboard .ama-donut strong {
+  font-size: 20px !important;
+  font-weight: 800 !important;
+}
+
+.ama-reference-dashboard .ama-donut span {
+  font-size: 11px !important;
+}
+
+@media (min-width: 701px) and (max-width: 900px) {
+  .ama-reference-dashboard .ama-attendance-content {
+    gap: 40px !important;
+  }
+
+  .ama-reference-dashboard .ama-donut {
+    flex-basis: 156px !important;
+    width: 156px !important;
+    height: 156px !important;
+  }
+
+  .ama-reference-dashboard .ama-donut > div {
+    width: 96px !important;
+    height: 96px !important;
+  }
+}
+
+@media (max-width: 700px) {
+  .ama-reference-dashboard .ama-attendance-content {
+    justify-content: space-around !important;
+    gap: 14px !important;
+    padding: 14px 15px 18px !important;
+  }
+
+  .ama-reference-dashboard .ama-donut {
+    flex-basis: 112px !important;
+    width: 112px !important;
+    height: 112px !important;
+  }
+
+  .ama-reference-dashboard .ama-donut > div {
+    width: 70px !important;
+    height: 70px !important;
+  }
+}
