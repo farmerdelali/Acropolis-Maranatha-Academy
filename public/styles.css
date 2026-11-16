@@ -8942,3 +8942,37 @@ body.dark-mode #marksSheetGrid td input {
   min-width: 0;
   width: 100%;
 }
+
+/* AMA — TABLET DASHBOARD TOP SECTION REFINEMENT */
+
+@media (min-width: 701px) and (max-width: 900px) {
+
+  .ama-reference-dashboard .ama-dashboard-top {
+    display: grid !important;
+    grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr) !important;
+    gap: 18px !important;
+    align-items: stretch !important;
+  }
+
+  .ama-reference-dashboard .ama-profile-card {
+    grid-column: 1;
+    grid-row: 1;
+    width: 100%;
+    min-width: 0;
+  }
+
+  .ama-reference-dashboard .ama-stat-grid {
+    grid-column: 2;
+    grid-row: 1;
+    width: 100%;
+    min-width: 0;
+    height: 100%;
+  }
+
+  .ama-reference-dashboard .ama-attendance-panel {
+    grid-column: 1 / -1;
+    width: 100%;
+    min-width: 0;
+  }
+
+}
