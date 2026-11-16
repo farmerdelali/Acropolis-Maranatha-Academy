@@ -9059,3 +9059,96 @@ body.dark-mode #marksSheetGrid td input {
     height: 70px !important;
   }
 }
+/* AMA — PREMIUM 3D DASHBOARD STAT CARDS */
+
+.ama-reference-dashboard .ama-mini-stat {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  min-height: 148px;
+  padding: 22px !important;
+  border: 1px solid rgba(80, 91, 130, .20) !important;
+  border-radius: 20px !important;
+  box-shadow:
+    0 5px 0 rgba(35, 43, 75, .10),
+    0 12px 22px rgba(25, 35, 70, .12),
+    inset 0 1px 0 rgba(255, 255, 255, .65) !important;
+  transform: translateY(0);
+  transition: transform .2s ease, box-shadow .2s ease;
+}
+
+.ama-reference-dashboard .ama-mini-stat:hover {
+  transform: translateY(-3px);
+  box-shadow:
+    0 7px 0 rgba(35, 43, 75, .10),
+    0 17px 28px rgba(25, 35, 70, .16),
+    inset 0 1px 0 rgba(255, 255, 255, .65) !important;
+}
+
+.ama-reference-dashboard .ama-mini-stat span {
+  font-size: 13px !important;
+  font-weight: 750 !important;
+  line-height: 1.4;
+}
+
+.ama-reference-dashboard .ama-mini-stat strong {
+  font-size: clamp(24px, 2.2vw, 32px) !important;
+  font-weight: 850 !important;
+  line-height: 1.15;
+}
+
+.ama-reference-dashboard .ama-mini-stat small {
+  font-size: 11px !important;
+  font-weight: 600;
+  line-height: 1.45;
+}
+
+.ama-reference-dashboard .ama-mini-stat.purple {
+  border-color: rgba(117, 91, 205, .30) !important;
+  box-shadow: 0 5px 0 rgba(91, 67, 166, .16),
+    0 12px 22px rgba(91, 67, 166, .13),
+    inset 0 1px 0 rgba(255, 255, 255, .65) !important;
+}
+
+.ama-reference-dashboard .ama-mini-stat.green {
+  border-color: rgba(46, 151, 105, .30) !important;
+  box-shadow: 0 5px 0 rgba(35, 119, 82, .16),
+    0 12px 22px rgba(35, 119, 82, .13),
+    inset 0 1px 0 rgba(255, 255, 255, .65) !important;
+}
+
+.ama-reference-dashboard .ama-mini-stat.blue {
+  border-color: rgba(57, 119, 190, .30) !important;
+  box-shadow: 0 5px 0 rgba(42, 91, 151, .16),
+    0 12px 22px rgba(42, 91, 151, .13),
+    inset 0 1px 0 rgba(255, 255, 255, .65) !important;
+}
+
+.ama-reference-dashboard .ama-mini-stat.rose {
+  border-color: rgba(194, 91, 119, .30) !important;
+  box-shadow: 0 5px 0 rgba(151, 64, 91, .16),
+    0 12px 22px rgba(151, 64, 91, .13),
+    inset 0 1px 0 rgba(255, 255, 255, .65) !important;
+}
+
+@media (max-width: 700px) {
+  .ama-reference-dashboard .ama-mini-stat {
+    min-height: 120px;
+    padding: 16px !important;
+    border-radius: 16px !important;
+  }
+
+  .ama-reference-dashboard .ama-mini-stat strong {
+    font-size: 23px !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ama-reference-dashboard .ama-mini-stat {
+    transition: none !important;
+  }
+
+  .ama-reference-dashboard .ama-mini-stat:hover {
+    transform: none !important;
+  }
+}
