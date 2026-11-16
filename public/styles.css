@@ -8928,3 +8928,17 @@ body.dark-mode #marksSheetGrid td input {
     padding: 15px !important;
   }
 }
+
+/* AMA — GIVE DASHBOARD ANALYTICS FULL WIDTH */
+
+.ama-reference-dashboard .ama-dashboard-bottom > .ama-analytics-grid {
+  grid-column: 1 / -1 !important;
+  width: 100%;
+  min-width: 0;
+  margin: 0 !important;
+}
+
+.ama-reference-dashboard .ama-analytics-grid > .ama-chart-card {
+  min-width: 0;
+  width: 100%;
+}
