@@ -9152,3 +9152,100 @@ body.dark-mode #marksSheetGrid td input {
     transform: none !important;
   }
 }
+/* AMA — PREMIUM SCHOOL PROFILE CARD REFINEMENT */
+
+.ama-reference-dashboard .ama-profile-card {
+  position: relative !important;
+  isolation: isolate;
+  overflow: hidden !important;
+  min-height: 220px;
+  padding: 26px !important;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 12px !important;
+  background: linear-gradient(145deg, #243f66 0%, #172d4b 58%, #101f36 100%) !important;
+  border: 1px solid rgba(212, 182, 93, .75) !important;
+  border-radius: 24px !important;
+  box-shadow:
+    0 6px 0 #0b192b,
+    0 16px 30px rgba(5, 15, 32, .32),
+    inset 0 1px 0 rgba(255, 255, 255, .12) !important;
+  transition: transform .2s ease, box-shadow .2s ease;
+}
+
+.ama-reference-dashboard .ama-profile-card:hover {
+  transform: translateY(-3px);
+  box-shadow:
+    0 8px 0 #0b192b,
+    0 21px 34px rgba(5, 15, 32, .38),
+    inset 0 1px 0 rgba(255, 255, 255, .12) !important;
+}
+
+.ama-reference-dashboard .ama-profile-orb {
+  width: 58px !important;
+  height: 58px !important;
+  display: grid;
+  place-items: center;
+  border: 3px solid #d4b65d !important;
+  background: #172d4b !important;
+  color: #ffffff !important;
+  font-size: 23px !important;
+  font-weight: 850 !important;
+  box-shadow: 0 5px 12px rgba(0, 0, 0, .28) !important;
+}
+
+.ama-reference-dashboard .ama-profile-card .ama-demo-label {
+  color: #e8cb7d !important;
+  font-size: 11px !important;
+  font-weight: 850 !important;
+  letter-spacing: 1.5px !important;
+}
+
+.ama-reference-dashboard .ama-profile-card h2 {
+  color: #ffffff !important;
+  font-size: clamp(21px, 2vw, 28px) !important;
+  font-weight: 850 !important;
+  line-height: 1.2 !important;
+  letter-spacing: -.5px !important;
+  margin: 0 !important;
+}
+
+.ama-reference-dashboard .ama-profile-card p {
+  color: #e4d5b1 !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  margin: 0 !important;
+}
+
+.ama-reference-dashboard .ama-profile-role {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  padding: 7px 13px !important;
+  border: 1px solid rgba(212, 182, 93, .5);
+  border-radius: 30px;
+  background: rgba(8, 20, 38, .45);
+  color: #f4dfa4 !important;
+  font-size: 11px !important;
+  font-weight: 750 !important;
+}
+
+@media (max-width: 700px) {
+  .ama-reference-dashboard .ama-profile-card {
+    min-height: 190px;
+    padding: 20px !important;
+    border-radius: 19px !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ama-reference-dashboard .ama-profile-card {
+    transition: none !important;
+  }
+
+  .ama-reference-dashboard .ama-profile-card:hover {
+    transform: none !important;
+  }
+}
