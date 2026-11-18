@@ -9249,3 +9249,156 @@ body.dark-mode #marksSheetGrid td input {
     transform: none !important;
   }
 }
+/* AMA — PREMIUM NOTICE BOARD AND EVENTS PANELS */
+
+.ama-reference-dashboard .ama-board-panel,
+.ama-reference-dashboard .ama-events-panel {
+  position: relative;
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid #405a7a !important;
+  border-radius: 20px !important;
+  background: linear-gradient(145deg, #1d3049, #14243a) !important;
+  box-shadow:
+    0 5px 0 #0b192b,
+    0 13px 25px rgba(5, 15, 32, .28) !important;
+}
+
+.ama-reference-dashboard .ama-board-panel .panel-head,
+.ama-reference-dashboard .ama-events-panel .panel-head {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 19px 20px !important;
+  border-bottom: 1px solid rgba(150, 180, 215, .18) !important;
+}
+
+.ama-reference-dashboard .ama-board-panel .panel-head h3,
+.ama-reference-dashboard .ama-events-panel .panel-head h3 {
+  color: #ffffff !important;
+  font-size: 16px !important;
+  font-weight: 850 !important;
+  letter-spacing: .1px;
+  margin: 0 !important;
+}
+
+.ama-reference-dashboard .ama-board-panel .panel-body,
+.ama-reference-dashboard .ama-events-panel .panel-body {
+  padding: 17px 19px !important;
+}
+
+.ama-reference-dashboard .ama-notice-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 13px !important;
+  padding: 15px !important;
+  margin-bottom: 11px;
+  border: 1px solid #405b7c !important;
+  border-left: 4px solid #8c75d2 !important;
+  border-radius: 13px !important;
+  background: #263c57 !important;
+  box-shadow: 0 3px 0 rgba(5, 15, 32, .3) !important;
+}
+
+.ama-reference-dashboard .ama-notice-item:last-child {
+  margin-bottom: 0;
+}
+
+.ama-reference-dashboard .ama-notice-avatar {
+  flex: 0 0 40px;
+  width: 40px !important;
+  height: 40px !important;
+  border-radius: 12px !important;
+  background: linear-gradient(145deg, #8060bd, #513b83) !important;
+  border: 1px solid #ad91e0 !important;
+  color: #ffffff !important;
+  font-size: 16px !important;
+  font-weight: 850 !important;
+}
+
+.ama-reference-dashboard .ama-notice-item strong,
+.ama-reference-dashboard .ama-event-item strong {
+  color: #ffffff !important;
+  font-size: 13px !important;
+  font-weight: 800 !important;
+  line-height: 1.4;
+}
+
+.ama-reference-dashboard .ama-notice-item p,
+.ama-reference-dashboard .ama-event-item p {
+  color: #d5e1ef !important;
+  font-size: 12px !important;
+  line-height: 1.6 !important;
+  margin: 5px 0 !important;
+}
+
+.ama-reference-dashboard .ama-notice-item small,
+.ama-reference-dashboard .ama-event-item small {
+  color: #a9bfd9 !important;
+  font-size: 10px !important;
+}
+
+.ama-reference-dashboard .ama-event-item {
+  padding: 16px !important;
+  margin-bottom: 11px;
+  border: 1px solid #405b7c !important;
+  border-left: 4px solid #4e9bd2 !important;
+  border-radius: 13px !important;
+  background: #263c57 !important;
+  box-shadow: 0 3px 0 rgba(5, 15, 32, .3) !important;
+}
+
+.ama-reference-dashboard .ama-event-item.event-1 {
+  border-left-color: #45b58b !important;
+}
+
+.ama-reference-dashboard .ama-event-item.event-2 {
+  border-left-color: #d69b51 !important;
+}
+
+.ama-reference-dashboard .ama-event-item.event-3 {
+  border-left-color: #c47bc1 !important;
+}
+
+.ama-reference-dashboard .ama-board-panel .ama-empty-state,
+.ama-reference-dashboard .ama-events-panel .ama-empty-state {
+  padding: 22px 14px !important;
+  border: 1px dashed #526b89 !important;
+  border-radius: 12px !important;
+  background: #1a2d45 !important;
+  text-align: center;
+}
+
+.ama-reference-dashboard .ama-board-panel .ama-empty-state p,
+.ama-reference-dashboard .ama-events-panel .ama-empty-state p {
+  color: #ffffff !important;
+  font-weight: 750 !important;
+}
+
+.ama-reference-dashboard .ama-board-panel .ama-empty-state small,
+.ama-reference-dashboard .ama-events-panel .ama-empty-state small {
+  color: #b5c6da !important;
+}
+
+@media (max-width: 700px) {
+  .ama-reference-dashboard .ama-board-panel,
+  .ama-reference-dashboard .ama-events-panel {
+    border-radius: 16px !important;
+  }
+
+  .ama-reference-dashboard .ama-board-panel .panel-head,
+  .ama-reference-dashboard .ama-events-panel .panel-head {
+    padding: 15px !important;
+  }
+
+  .ama-reference-dashboard .ama-board-panel .panel-body,
+  .ama-reference-dashboard .ama-events-panel .panel-body {
+    padding: 13px !important;
+  }
+
+  .ama-reference-dashboard .ama-notice-item,
+  .ama-reference-dashboard .ama-event-item {
+    padding: 12px !important;
+  }
+}
