@@ -4863,7 +4863,30 @@ if (!allowedForms.includes(form.id)) return;
   const fd = new FormData(form);
   const v = Object.fromEntries(fd.entries());
   const submit = form.querySelector('button[type="submit"]');
+  if (form.id === 'studentForm') {
+    if (!v.fullName || !v.fullName.trim()) {
+      toast('Please enter the student’s full name.', true);
+      return;
+    }
 
+    if (!v.className || !v.className.trim()) {
+      toast('Please select the student’s class.', true);
+      return;
+    }
+
+    if (v.totalFees === '' || !Number.isFinite(Number(v.totalFees)) || Number(v.totalFees) < 0) {
+      toast('Please enter a valid total fee amount of zero or more.', true);
+      return;
+    }
+
+    if (
+      state.data.registrationRules?.requireGuardianPhone &&
+      (!v.guardianPhone || !v.guardianPhone.trim())
+    ) {
+      toast('Please enter the required parent or guardian phone number.', true);
+      return;
+    }
+  }
   if (submit) {
     submit.disabled = true;
     submit.textContent = 'Please wait…';
