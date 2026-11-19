@@ -3256,13 +3256,18 @@ function studentForm(s = null) {
 
         
        
-        <label class="field">Total fees (GHS) *
-         
-<select name="totalFees" required>
-  ${Array.from({length: 2501}, (_, i) => i + 500).map(amount => `<option value="${amount}" ${Number(s?.total_fees || 0) === amount ? 'selected' : ''}>GH₵${amount.toLocaleString('en-GH')}</option>`).join('')}
-</select>
-
-        </label>
+    <label class="field">Total fees (GHS) *
+  <input
+    name="totalFees"
+    type="number"
+    min="0"
+    step="0.01"
+    required
+    inputmode="decimal"
+    value="${Number(s?.total_fees || 0)}"
+    placeholder="Enter the student's total fees"
+  >
+</label>
 
       </div>
 
