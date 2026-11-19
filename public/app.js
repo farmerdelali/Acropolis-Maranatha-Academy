@@ -4860,6 +4860,12 @@ toast('School backup restored successfully.');
   return;
 }
 if (!allowedForms.includes(form.id)) return;
+  if (
+    form.id === 'studentForm' &&
+    form.dataset.submitting === 'true'
+  ) {
+    return;
+  }  
   const fd = new FormData(form);
   const v = Object.fromEntries(fd.entries());
   const submit = form.querySelector('button[type="submit"]');
@@ -4893,6 +4899,9 @@ if (!allowedForms.includes(form.id)) return;
   }
 
   try {
+      if (form.id === 'studentForm') {
+    form.dataset.submitting = 'true';
+  }
       if (form.id === 'changePasswordForm') {
     if (v.newPassword !== v.confirmPassword) {
       throw new Error('The passwords do not match.');
@@ -5597,6 +5606,9 @@ toast(parentId ? 'Parent updated successfully.' : 'Parent registered successfull
 
  
   } finally {
+        if (form.id === 'studentForm') {
+      form.dataset.submitting = 'false';
+    }
     if (submit) {
       submit.disabled = false;
 
