@@ -1943,7 +1943,10 @@ app.post('/api/students', requireAuth, asyncRoute(async (req,res)=>{
 
   const totalFees=Number(b.totalFees||0); if(!Number.isFinite(totalFees)||totalFees<0) return res.status(400).json({error:'Fees must be zero or more.'});
   const code=validText(b.studentCode,40)?b.studentCode.trim():`AMA-${Date.now().toString().slice(-8)}`;
-    const r = await q(
+  let r;
+
+try {
+  r = await q(
     `INSERT INTO students
     (school_id, student_code, full_name, class_name, gender,
      guardian_name, guardian_phone, guardian2_name, guardian2_phone, total_fees)
@@ -1962,6 +1965,15 @@ app.post('/api/students', requireAuth, asyncRoute(async (req,res)=>{
       totalFees
     ]
   );
+} catch (error) {
+  if (error.code === '23505') {
+    return res.status(409).json({
+      error: 'This student ID is already in use. Please enter a different ID.'
+    });
+  }
+
+  throw error;
+} 
   await audit(req, 'student_created', 'student', r.rows[0].id);
   res.status(201).json({ student: r.rows[0] });
 }));
