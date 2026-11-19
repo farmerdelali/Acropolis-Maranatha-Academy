@@ -3230,12 +3230,15 @@ function studentForm(s = null) {
         </label>
 
         <label class="field">Parent / guardian 1 phone${!s && state.data.registrationRules?.requireGuardianPhone ? ' *' : ''}
-          <input name="guardianPhone" type="tel" maxlength="40"
-            inputmode="tel"
-            ${!s && state.data.registrationRules?.requireGuardianPhone ? 'required' : ''}
-            value="${esc(s?.guardian_phone || '')}"
-            placeholder="e.g. 024 000 0000">
-        </label>
+          <input name="guardianPhone" type="tel" maxlength="16"
+  inputmode="tel"
+  autocomplete="tel"
+pattern="(?:\\+233|0)[ -]?(?:2[0-9]|3[0-9]|5[0-9])[ -]?[0-9]{3}[ -]?[0-9]{4}"
+  title="Enter a valid Ghanaian number, e.g. 0241234567 or +233241234567"
+  ${!s && state.data.registrationRules?.requireGuardianPhone ? 'required' : ''}
+  value="${esc(s?.guardian_phone || '')}"
+  placeholder="e.g. 024 123 4567">
+                  </label>
 
         <div class="field-section">
           <h3>Parent / Guardian 2</h3>
@@ -3248,11 +3251,14 @@ function studentForm(s = null) {
         </label>
 
         <label class="field">Parent / guardian 2 phone
-          <input name="guardian2Phone" type="tel" maxlength="40"
-            inputmode="tel"
-            value="${esc(s?.guardian2_phone || '')}"
-            placeholder="e.g. 020 000 0000">
-        </label>
+         <input name="guardian2Phone" type="tel" maxlength="16"
+  inputmode="tel"
+  autocomplete="tel"
+ pattern="(?:\\+233|0)[ -]?(?:2[0-9]|3[0-9]|5[0-9])[ -]?[0-9]{3}[ -]?[0-9]{4}"
+   title="Enter a valid Ghanaian number, e.g. 0201234567 or +233201234567"
+  value="${esc(s?.guardian2_phone || '')}"
+  placeholder="e.g. 020 123 4567">
+                 </label>
 
         
        
