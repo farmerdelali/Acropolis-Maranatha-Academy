@@ -5006,7 +5006,19 @@ toast(parentId ? 'Parent updated successfully.' : 'Parent registered successfull
    
 } else if (form.id === 'studentForm') {
   const studentId = form.dataset.id;
+  const enteredStudentCode = String(v.studentCode || '').trim();
 
+  if (enteredStudentCode) {
+    const duplicateStudent = (state.data.students || []).find(s =>
+      String(s.student_code || '').trim() === enteredStudentCode &&
+      String(s.id) !== String(studentId || '')
+    );
+
+    if (duplicateStudent) {
+      toast('This Student ID is already in use. Please enter a different ID.', true);
+      return;
+    }
+  }
   await api(
     studentId
       ? '/api/students/' + encodeURIComponent(studentId)
