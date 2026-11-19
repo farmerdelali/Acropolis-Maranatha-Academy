@@ -968,12 +968,24 @@ const staffExcused = staffAttendanceEntries.filter(
     students.filter(s => !s.archived).map(s => s.class_name).filter(Boolean)
   )].sort();
 
+  const searchTerm = (state.search || '').trim().toLowerCase();
+
   const filteredStudents = students.filter(s =>
     (!state.studentClassFilter || s.class_name === state.studentClassFilter) &&
-    [s.full_name, s.student_code, s.class_name, s.guardian_name, s.guardian_phone]
-      .join(' ').toLowerCase().includes((state.search || '').toLowerCase())
+    [
+      s.full_name,
+      s.student_code,
+      s.class_name,
+      s.guardian_name,
+      s.guardian_phone,
+      s.guardian2_name,
+      s.guardian2_phone
+    ]
+      .filter(Boolean)
+      .join(' ')
+      .toLowerCase()
+      .includes(searchTerm)
   );
-
   html=pageHead('Student records','Register, search and maintain student information.',`<button class="btn primary" data-action="add-student">+ Register student</button><button class="btn soft" data-action="student-documents">📁 Student Documents</button>`)+`
   <section class="panel">
     <div class="panel-body">
