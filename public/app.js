@@ -3556,10 +3556,16 @@ function pickupPersonForm() {
 }
 
 function paymentForm(){const students=state.data.students.filter(s=>!s.archived);if(!students.length)return toast('Register a student before recording payments.',true);openModal('Record payment',`<form id="paymentForm"><label class="field">Student<select name="studentId" required>${students.map(s=>`<option value="${s.id}">${esc(s.full_name)} · ${esc(s.student_code)}</option>`).join('')}</select></label>
-<label class="field">Amount (GHS)
-<select name="amount" required>
-  ${Array.from({length: 2501}, (_, i) => i + 500).map(amount => `<option value="${amount}">GH₵${amount.toLocaleString('en-GH')}</option>`).join('')}
-</select>
+<label class="field">Amount (GHS) *
+  <input
+    name="amount"
+    type="number"
+    min="0.01"
+    step="0.01"
+    required
+    inputmode="decimal"
+    placeholder="Enter payment amount"
+  >
 </label>
 <label class="field">Payment method
 <select name="note" required>
