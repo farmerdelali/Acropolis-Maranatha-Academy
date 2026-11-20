@@ -5903,16 +5903,30 @@ case 'add-pickup-person':
         break;
       }
 
-      case 'archive-student':
-        if (confirm('Archive this student record?')) {
-          await api('/api/students/' + button.dataset.id, {
-            method: 'DELETE'
-          });
-          await refresh();
-          toast('Student archived successfully.');
-        }
-        break;
+          case 'archive-student': {
+        const student = state.data.students.find(
+          s => String(s.id) === String(button.dataset.id)
+        );
 
+        if (!student) {
+          toast('Student record not found. Please refresh and try again.', true);
+          break;
+        }
+
+        const confirmed = confirm(
+          `You are about to archive ${student.full_name} (Student ID: ${student.student_code}).\n\nThe student will be removed from active lists, but the record will be retained in the school database for history.\n\nDo you want to continue?`
+        );
+
+        if (!confirmed) break;
+
+        await api('/api/students/' + button.dataset.id, {
+          method: 'DELETE'
+        });
+
+        await refresh();
+        toast('Student archived successfully.');
+        break;
+      }
       case 'add-payment':
         paymentForm();
         break;
