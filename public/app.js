@@ -4885,11 +4885,12 @@ if (!allowedForms.includes(form.id)) return;
       return;
     }
 
-    if (
+      if (
+      !form.dataset.id &&
       state.data.registrationRules?.requireGuardianPhone &&
       (!v.guardianPhone || !v.guardianPhone.trim())
-    ) {
-      toast('Please enter the required parent or guardian phone number.', true);
+    ) { 
+    toast('Please enter the required parent or guardian phone number.', true);
       return;
     }
   }
