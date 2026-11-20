@@ -5063,6 +5063,22 @@ toast(parentId ? 'Parent updated successfully.' : 'Parent registered successfull
       return;
     }
   }
+     if (studentId) {
+    const currentStudent = (state.data.students || []).find(
+      s => String(s.id) === String(studentId)
+    );
+
+    if (!currentStudent) {
+      toast('Student record not found. Please refresh and try again.', true);
+      return;
+    }
+
+    const confirmed = confirm(
+      `You are about to update ${currentStudent.full_name} (Student ID: ${currentStudent.student_code}).\n\nDo you want to save these changes?`
+    );
+
+    if (!confirmed) return;
+  }
   await api(
     studentId
       ? '/api/students/' + encodeURIComponent(studentId)
