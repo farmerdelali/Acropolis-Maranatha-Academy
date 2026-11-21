@@ -134,6 +134,7 @@ function showApp(user) {
       'Attendance Register',
       'Marks',
       'Fees & Payments',
+      'Communications', 
 'Reports',
 'Teacher Subject Assignments'
 ],
@@ -5693,7 +5694,7 @@ HEADMASTER: [
   'Dashboard', 'Students', 'Match Students', 'Parents',
   'Pickup Persons', 'Graduations', 'Class Activations',
   'Classrooms', 'Attendance Register', 'Marks',
-  'Fees & Payments', 'Reports',
+  'Fees & Payments','Communications',  'Reports',
   'Teacher Subject Assignments'
 ],
 TEACHER: [
