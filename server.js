@@ -2985,7 +2985,8 @@ app.delete('/api/teacher-subject-assignments/:id', requireRole('ADMIN', 'HEADMAS
 async function getCommunicationAudience(client, sid, audience, targetClass) {
   if (audience === 'ALL_PARENTS') {
     const result = await client.query(
-      `SELECT id, full_name AS recipient_name, email, phone
+      SELECT id, full_name AS recipient_name, email, phone,
+       email_consent_status, sms_consent_status
        FROM parents
        WHERE school_id = $1
        ORDER BY full_name`,
@@ -2997,7 +2998,8 @@ async function getCommunicationAudience(client, sid, audience, targetClass) {
   if (audience === 'CLASS') {
     const result = await client.query(
       `SELECT DISTINCT p.id, p.full_name AS recipient_name,
-              p.email, p.phone
+              p.email, p.phone,
+p.email_consent_status, p.sms_consent_status
        FROM parents p
        JOIN parent_students ps
          ON ps.parent_id = p.id AND ps.school_id = p.school_id
@@ -3014,8 +3016,8 @@ async function getCommunicationAudience(client, sid, audience, targetClass) {
 
   if (audience === 'ALL_STAFF') {
     const result = await client.query(
-      `SELECT id, full_name AS recipient_name, email, phone
-       FROM employees
+    `SELECT id, full_name AS recipient_name, email, phone,
+        email_consent_status, sms_consent_status 
        WHERE school_id = $1 AND status = 'ACTIVE'
        ORDER BY full_name`,
       [sid]
@@ -3025,7 +3027,69 @@ async function getCommunicationAudience(client, sid, audience, targetClass) {
 
   return [];
 }
+app.put(
+  '/api/communications/consent/:recipientType/:id',
+  requireRole('ADMIN'),
+  asyncRoute(async (req, res) => {
+    const type = req.params.recipientType;
+    const id = Number(req.params.id);
+    const body = req.body || {};
+    const channel = body.channel;
+    const status = body.status;
 
+    const tables = {
+      parent: 'parents',
+      employee: 'employees'
+    };
+
+    if (
+      !tables[type] ||
+      !Number.isSafeInteger(id) ||
+      id <= 0 ||
+      !['EMAIL', 'SMS'].includes(channel) ||
+      !['OPTED_IN', 'OPTED_OUT', 'UNKNOWN'].includes(status)
+    ) {
+      return res.status(400).json({
+        error: 'Invalid consent update.'
+      });
+    }
+
+    const table = tables[type];
+    const statusColumn = channel === 'EMAIL'
+      ? 'email_consent_status'
+      : 'sms_consent_status';
+    const dateColumn = channel === 'EMAIL'
+      ? 'email_consent_at'
+      : 'sms_consent_at';
+
+    const result = await q(
+      `UPDATE ${table}
+       SET ${statusColumn} = $1,
+           ${dateColumn} = CASE
+             WHEN $1 = 'OPTED_IN' THEN NOW()
+             ELSE NULL
+           END
+       WHERE id = $2 AND school_id = $3
+       RETURNING id`,
+      [status, id, schoolId(req)]
+    );
+
+    if (!result.rowCount) {
+      return res.status(404).json({
+        error: 'Recipient not found.'
+      });
+    }
+
+    await audit(
+      req,
+      `communication_${channel.toLowerCase()}_${status.toLowerCase()}`,
+      type,
+      id
+    );
+
+    res.json({ ok: true, status });
+  })
+);
 app.get(
   '/api/communications/campaigns',
   requireRole('ADMIN', 'HEADMASTER'),
@@ -3146,6 +3210,11 @@ app.post(
 
       for (const person of people) {
         for (const channel of channels) {
+         const consentStatus = channel === 'EMAIL'
+    ? person.email_consent_status
+    : person.sms_consent_status;
+
+  if (consentStatus !== 'OPTED_IN') continue; 
           const destination = channel === 'EMAIL'
             ? String(person.email || '').trim().toLowerCase()
             : String(person.phone || '').trim();
