@@ -2984,14 +2984,14 @@ app.delete('/api/teacher-subject-assignments/:id', requireRole('ADMIN', 'HEADMAS
 
 async function getCommunicationAudience(client, sid, audience, targetClass) {
   if (audience === 'ALL_PARENTS') {
-    const result = await client.query(
-      SELECT id, full_name AS recipient_name, email, phone,
-       email_consent_status, sms_consent_status
-       FROM parents
-       WHERE school_id = $1
-       ORDER BY full_name`,
-      [sid]
-    );
+  const result = await client.query(
+  `SELECT id, full_name AS recipient_name, email, phone,
+          email_consent_status, sms_consent_status
+   FROM parents
+   WHERE school_id = $1
+   ORDER BY full_name`,
+  [sid]
+);
     return result.rows;
   }
 
@@ -3015,13 +3015,14 @@ p.email_consent_status, p.sms_consent_status
   }
 
   if (audience === 'ALL_STAFF') {
-    const result = await client.query(
-    `SELECT id, full_name AS recipient_name, email, phone,
-        email_consent_status, sms_consent_status 
-       WHERE school_id = $1 AND status = 'ACTIVE'
-       ORDER BY full_name`,
-      [sid]
-    );
+  const result = await client.query(
+  `SELECT id, full_name AS recipient_name, email, phone,
+          email_consent_status, sms_consent_status
+   FROM employees
+   WHERE school_id = $1 AND status = 'ACTIVE'
+   ORDER BY full_name`,
+  [sid]
+);
     return result.rows;
   }
 
