@@ -393,3 +393,76 @@ ALTER TABLE terminal_reports
 ADD COLUMN IF NOT EXISTS attitude TEXT NOT NULL DEFAULT '';
 CREATE INDEX IF NOT EXISTS terminal_reports_student_idx
 ON terminal_reports(school_id, student_id, academic_year, term);
+-- SCHOOL COMMUNICATIONS SYSTEM
+
+CREATE TABLE IF NOT EXISTS communication_templates (
+  id BIGSERIAL PRIMARY KEY,
+  school_id BIGINT NOT NULL REFERENCES schools(id) ON DELETE CASCADE,
+  name TEXT NOT NULL,
+  subject TEXT NOT NULL DEFAULT '',
+  message TEXT NOT NULL,
+  created_by BIGINT REFERENCES users(id) ON DELETE SET NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  UNIQUE (school_id, name)
+);
+
+CREATE TABLE IF NOT EXISTS communication_campaigns (
+  id BIGSERIAL PRIMARY KEY,
+  school_id BIGINT NOT NULL REFERENCES schools(id) ON DELETE CASCADE,
+  title TEXT NOT NULL,
+  subject TEXT NOT NULL DEFAULT '',
+  message TEXT NOT NULL,
+  audience TEXT NOT NULL CHECK (
+    audience IN ('ALL_PARENTS', 'ALL_STAFF', 'CLASS', 'INDIVIDUAL')
+  ),
+  target_class TEXT NOT NULL DEFAULT '',
+  channels TEXT[] NOT NULL CHECK (
+    cardinality(channels) > 0
+    AND channels <@ ARRAY['EMAIL', 'SMS']::TEXT[]
+  ),
+  status TEXT NOT NULL DEFAULT 'DRAFT' CHECK (
+    status IN (
+      'DRAFT', 'QUEUED', 'SENDING',
+      'COMPLETED', 'PARTIAL', 'FAILED', 'CANCELLED'
+    )
+  ),
+  created_by BIGINT REFERENCES users(id) ON DELETE SET NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS communication_recipients (
+  id BIGSERIAL PRIMARY KEY,
+  school_id BIGINT NOT NULL REFERENCES schools(id) ON DELETE CASCADE,
+  campaign_id BIGINT NOT NULL
+    REFERENCES communication_campaigns(id) ON DELETE CASCADE,
+  parent_id BIGINT REFERENCES parents(id) ON DELETE SET NULL,
+  employee_id BIGINT REFERENCES employees(id) ON DELETE SET NULL,
+  recipient_name TEXT NOT NULL,
+  channel TEXT NOT NULL CHECK (channel IN ('EMAIL', 'SMS')),
+  destination TEXT NOT NULL,
+  status TEXT NOT NULL DEFAULT 'PENDING' CHECK (
+    status IN ('PENDING', 'SENT', 'DELIVERED', 'FAILED', 'SKIPPED')
+  ),
+  provider_message_id TEXT NOT NULL DEFAULT '',
+  error_message TEXT NOT NULL DEFAULT '',
+  attempts INTEGER NOT NULL DEFAULT 0 CHECK (attempts >= 0),
+  sent_at TIMESTAMPTZ,
+  delivered_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  CHECK (
+    (parent_id IS NOT NULL AND employee_id IS NULL)
+    OR (parent_id IS NULL AND employee_id IS NOT NULL)
+  ),
+  UNIQUE (campaign_id, channel, destination)
+);
+
+CREATE INDEX IF NOT EXISTS communication_campaigns_school_idx
+ON communication_campaigns(school_id, created_at DESC);
+
+CREATE INDEX IF NOT EXISTS communication_recipients_campaign_idx
+ON communication_recipients(campaign_id, status);
+
+CREATE INDEX IF NOT EXISTS communication_recipients_school_idx
+ON communication_recipients(school_id, created_at DESC);
