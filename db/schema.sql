@@ -466,3 +466,24 @@ ON communication_recipients(campaign_id, status);
 
 CREATE INDEX IF NOT EXISTS communication_recipients_school_idx
 ON communication_recipients(school_id, created_at DESC);
+-- COMMUNICATION CONSENT AND OPT-OUT CONTROLS
+
+ALTER TABLE parents
+  ADD COLUMN IF NOT EXISTS email_consent_status TEXT NOT NULL DEFAULT 'UNKNOWN'
+    CHECK (email_consent_status IN ('UNKNOWN', 'OPTED_IN', 'OPTED_OUT')),
+  ADD COLUMN IF NOT EXISTS sms_consent_status TEXT NOT NULL DEFAULT 'UNKNOWN'
+    CHECK (sms_consent_status IN ('UNKNOWN', 'OPTED_IN', 'OPTED_OUT')),
+  ADD COLUMN IF NOT EXISTS email_consent_at TIMESTAMPTZ,
+  ADD COLUMN IF NOT EXISTS sms_consent_at TIMESTAMPTZ;
+
+ALTER TABLE employees
+  ADD COLUMN IF NOT EXISTS email_consent_status TEXT NOT NULL DEFAULT 'UNKNOWN'
+    CHECK (email_consent_status IN ('UNKNOWN', 'OPTED_IN', 'OPTED_OUT')),
+  ADD COLUMN IF NOT EXISTS sms_consent_status TEXT NOT NULL DEFAULT 'UNKNOWN'
+    CHECK (sms_consent_status IN ('UNKNOWN', 'OPTED_IN', 'OPTED_OUT')),
+  ADD COLUMN IF NOT EXISTS email_consent_at TIMESTAMPTZ,
+  ADD COLUMN IF NOT EXISTS sms_consent_at TIMESTAMPTZ;
+
+CREATE INDEX IF NOT EXISTS communication_pending_queue_idx
+ON communication_recipients(status, created_at)
+WHERE status = 'PENDING';
