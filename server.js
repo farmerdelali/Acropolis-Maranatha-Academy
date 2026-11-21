@@ -79,6 +79,20 @@ function getSmtpTransporter() {
 
   return smtpTransporter;
 }
+async function sendCommunicationEmail(to, subject, message) {
+  const transporter = getSmtpTransporter();
+
+  const result = await transporter.sendMail({
+    from: process.env.SMTP_FROM,
+    to,
+    subject,
+    text: message
+  });
+
+  return {
+    messageId: result.messageId || ''
+  };
+}
 const importUpload = multer({
   storage: multer.memoryStorage(),
   limits: {
