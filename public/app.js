@@ -4867,7 +4867,7 @@ toast('School backup restored successfully.');
 }
 if (!allowedForms.includes(form.id)) return;
   if (
-    form.id === 'studentForm' &&
+     ['studentForm', 'paymentForm'].includes(form.id) &&
     form.dataset.submitting === 'true'
   ) {
     return;
@@ -4906,8 +4906,9 @@ if (!allowedForms.includes(form.id)) return;
   }
 
   try {
-      if (form.id === 'studentForm') {
+    if (['studentForm', 'paymentForm'].includes(form.id)) {
     form.dataset.submitting = 'true';
+}
   }
       if (form.id === 'changePasswordForm') {
     if (v.newPassword !== v.confirmPassword) {
@@ -5629,9 +5630,10 @@ toast(parentId ? 'Parent updated successfully.' : 'Parent registered successfull
 
  
   } finally {
-        if (form.id === 'studentForm') {
-      form.dataset.submitting = 'false';
-    }
+      if (['studentForm', 'paymentForm'].includes(form.id)) {
+    form.dataset.submitting = 'false';
+}
+  }
     if (submit) {
       submit.disabled = false;
 
