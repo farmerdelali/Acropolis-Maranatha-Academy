@@ -1408,7 +1408,105 @@ ${['ADMIN', 'HEADMASTER', 'TEACHER'].includes(d.session?.role) ? `
         data-action="back-to-terminal-reports">Back to Terminal Reports</button>
     `);
   }
+} else if (state.view === 'Communications') {
+  const classes = [...new Set(
+    students.map(student => student.class_name).filter(Boolean)
+  )].sort();
 
+  const campaigns = state.data.communicationCampaigns || [];
+
+  html = pageHead(
+    'School Communications',
+    'Prepare email and SMS messages for parents and staff.'
+  );
+
+  html += `
+    <section class="panel">
+      <div class="panel-header">
+        <h3>Create a communication</h3>
+      </div>
+      <div class="panel-body">
+        <form id="communicationForm" class="form-grid">
+          <label class="field">
+            Campaign title *
+            <input name="title" maxlength="120" required
+              placeholder="e.g. End of term announcement">
+          </label>
+
+          <label class="field">
+            Recipients *
+            <select name="audience" required>
+              <option value="ALL_PARENTS">All parents and guardians</option>
+              <option value="ALL_STAFF">All active staff</option>
+              <option value="CLASS">Parents of a particular class</option>
+            </select>
+          </label>
+
+          <label class="field" id="communicationClassField" hidden>
+            Select class
+            <select name="targetClass">
+              <option value="">Choose class</option>
+              ${classes.map(name =>
+                `<option value="${esc(name)}">${esc(name)}</option>`
+              ).join('')}
+            </select>
+          </label>
+
+          <label class="field">
+            Email subject
+            <input name="subject" maxlength="200"
+              placeholder="Required when sending email">
+          </label>
+
+          <label class="field" style="grid-column:1/-1">
+            Message *
+            <textarea name="message" rows="6" maxlength="5000"
+              required placeholder="Type your announcement here..."></textarea>
+          </label>
+
+          <div class="field" style="grid-column:1/-1">
+            <strong>Communication channels *</strong>
+            <label>
+              <input type="checkbox" name="channels"
+                value="EMAIL" checked> Email
+            </label>
+            <label>
+              <input type="checkbox" name="channels"
+                value="SMS"> SMS
+            </label>
+          </div>
+
+          <div style="grid-column:1/-1">
+            <button class="btn primary" type="submit">
+              Save communication draft
+            </button>
+          </div>
+        </form>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-header">
+        <h3>Recent communications</h3>
+        <button class="btn soft" type="button"
+          data-action="refresh-communications">
+          Refresh history
+        </button>
+      </div>
+      <div class="panel-body">
+        ${campaigns.length ? campaigns.map(campaign => `
+          <div class="list-row">
+            <strong>${esc(campaign.title)}</strong>
+            <span>${esc(campaign.status)}</span>
+            <small>
+              ${Number(campaign.email_count || 0)} email recipients ·
+              ${Number(campaign.sms_count || 0)} SMS recipients
+            </small>
+          </div>
+        `).join('') : '<p>No communication drafts yet.</p>'}
+      </div>
+    </section>
+  `;
 } else if(state.view==='Fees & Payments') {
   const outstanding = Math.max(0, expected - paid);
 
@@ -4655,6 +4753,7 @@ document.addEventListener('submit', async e => {
 'feedingPlanForm',
 'feedingPaymentForm',
  'terminalReportForm',   
+    'communicationForm',
 ];
 
  e.preventDefault();
@@ -4770,7 +4869,51 @@ if (form.id === 'bulkClassMarksForm') {
 
   return;
 }
-  
+  if (form.id === 'communicationForm') {
+  const submit = form.querySelector('button[type="submit"]');
+  const data = Object.fromEntries(new FormData(form).entries());
+  data.channels = [...new FormData(form).getAll('channels')];
+
+  if (!data.channels.length) {
+    toast('Select Email, SMS, or both.', true);
+    return;
+  }
+
+  if (data.channels.includes('EMAIL') && !data.subject.trim()) {
+    toast('Enter an email subject.', true);
+    return;
+  }
+
+  if (data.audience === 'CLASS' && !data.targetClass) {
+    toast('Select a class.', true);
+    return;
+  }
+
+  submit.disabled = true;
+  submit.textContent = 'Saving draft…';
+
+  try {
+    const result = await api('/api/communications/campaigns', {
+      method: 'POST',
+      body: JSON.stringify(data)
+    });
+
+    toast(
+      `Draft saved: ${result.recipientCounts.EMAIL} email and ${result.recipientCounts.SMS} SMS recipients.`
+    );
+
+    form.reset();
+    await loadCommunicationCampaigns();
+    render();
+  } catch (error) {
+    toast(error.message || 'Could not save communication draft.', true);
+  } finally {
+    submit.disabled = false;
+    submit.textContent = 'Save communication draft';
+  }
+
+  return;
+}
 if (form.id === 'noticeForm') {
   const submit = form.querySelector('button[type="submit"]');
   const data = Object.fromEntries(new FormData(form).entries());
