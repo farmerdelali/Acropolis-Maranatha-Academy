@@ -5628,12 +5628,13 @@ toast(parentId ? 'Parent updated successfully.' : 'Parent registered successfull
     toast(err.message || 'Something went wrong. Please try again.', true);
 
  
+
   } finally {
-      if (['studentForm', 'paymentForm'].includes(form.id)) {
-    form.dataset.submitting = 'false';
-}
-  }
+    if (['studentForm', 'paymentForm'].includes(form.id)) {
+      form.dataset.submitting = 'false';
+    }
     if (submit) {
+
       submit.disabled = false;
 
       const labels = {
