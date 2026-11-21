@@ -47,6 +47,7 @@ const nav = [
     ['Terminal Reports','▤','Student terminal reports'],
   ['Import Data','⇧','Import student and marks files'],
   ['Fees & Payments','₵','Fees and receipts'],
+  ['Communications','✉','Email and SMS campaigns'],
     ['Feeding Management','🍽','Feeding fees and payment plans'],
   ['Reports','▤','Reports and audit'],
   ['Users','⚙','Staff accounts'],
