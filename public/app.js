@@ -4909,7 +4909,6 @@ if (!allowedForms.includes(form.id)) return;
     if (['studentForm', 'paymentForm'].includes(form.id)) {
     form.dataset.submitting = 'true';
 }
-  }
       if (form.id === 'changePasswordForm') {
     if (v.newPassword !== v.confirmPassword) {
       throw new Error('The passwords do not match.');
