@@ -2977,6 +2977,233 @@ app.delete('/api/teacher-subject-assignments/:id', requireRole('ADMIN', 'HEADMAS
   await audit(req, 'teacher_subject_assignment_deleted', 'teacher_subject_assignment', req.params.id);
   res.json({ ok: true });
 }));
+
+// =========================================
+// SCHOOL COMMUNICATIONS API
+// =========================================
+
+async function getCommunicationAudience(client, sid, audience, targetClass) {
+  if (audience === 'ALL_PARENTS') {
+    const result = await client.query(
+      `SELECT id, full_name AS recipient_name, email, phone
+       FROM parents
+       WHERE school_id = $1
+       ORDER BY full_name`,
+      [sid]
+    );
+    return result.rows;
+  }
+
+  if (audience === 'CLASS') {
+    const result = await client.query(
+      `SELECT DISTINCT p.id, p.full_name AS recipient_name,
+              p.email, p.phone
+       FROM parents p
+       JOIN parent_students ps
+         ON ps.parent_id = p.id AND ps.school_id = p.school_id
+       JOIN students s
+         ON s.id = ps.student_id AND s.school_id = p.school_id
+       WHERE p.school_id = $1
+         AND s.class_name = $2
+         AND s.archived = FALSE
+       ORDER BY p.full_name`,
+      [sid, targetClass]
+    );
+    return result.rows;
+  }
+
+  if (audience === 'ALL_STAFF') {
+    const result = await client.query(
+      `SELECT id, full_name AS recipient_name, email, phone
+       FROM employees
+       WHERE school_id = $1 AND status = 'ACTIVE'
+       ORDER BY full_name`,
+      [sid]
+    );
+    return result.rows;
+  }
+
+  return [];
+}
+
+app.get(
+  '/api/communications/campaigns',
+  requireRole('ADMIN', 'HEADMASTER'),
+  asyncRoute(async (req, res) => {
+    const result = await q(
+      `SELECT c.*,
+        COUNT(r.id)::int AS recipient_count,
+        COUNT(r.id) FILTER (WHERE r.channel = 'EMAIL')::int
+          AS email_count,
+        COUNT(r.id) FILTER (WHERE r.channel = 'SMS')::int
+          AS sms_count
+       FROM communication_campaigns c
+       LEFT JOIN communication_recipients r
+         ON r.campaign_id = c.id AND r.school_id = c.school_id
+       WHERE c.school_id = $1
+       GROUP BY c.id
+       ORDER BY c.created_at DESC
+       LIMIT 100`,
+      [schoolId(req)]
+    );
+
+    res.json({ campaigns: result.rows });
+  })
+);
+
+app.get(
+  '/api/communications/campaigns/:id/recipients',
+  requireRole('ADMIN', 'HEADMASTER'),
+  asyncRoute(async (req, res) => {
+    const result = await q(
+      `SELECT r.id, r.recipient_name, r.channel,
+              r.destination, r.status, r.error_message,
+              r.sent_at, r.delivered_at
+       FROM communication_recipients r
+       JOIN communication_campaigns c
+         ON c.id = r.campaign_id AND c.school_id = r.school_id
+       WHERE r.school_id = $1 AND r.campaign_id = $2
+       ORDER BY r.recipient_name, r.channel`,
+      [schoolId(req), req.params.id]
+    );
+
+    res.json({ recipients: result.rows });
+  })
+);
+
+app.post(
+  '/api/communications/campaigns',
+  requireRole('ADMIN', 'HEADMASTER'),
+  asyncRoute(async (req, res) => {
+    const body = req.body || {};
+    const title = String(body.title || '').trim();
+    const subject = String(body.subject || '').trim();
+    const message = String(body.message || '').trim();
+    const audience = body.audience;
+    const targetClass = String(body.targetClass || '').trim();
+    const channels = Array.isArray(body.channels)
+      ? [...new Set(body.channels)]
+      : [];
+
+    if (!validText(title, 120) || !validText(message, 5000)) {
+      return res.status(400).json({
+        error: 'Enter a campaign title and message.'
+      });
+    }
+
+    if (subject.length > 200) {
+      return res.status(400).json({
+        error: 'The email subject is too long.'
+      });
+    }
+
+    if (!['ALL_PARENTS', 'ALL_STAFF', 'CLASS'].includes(audience)) {
+      return res.status(400).json({
+        error: 'Select a valid recipient group.'
+      });
+    }
+
+    if (audience === 'CLASS' && !validText(targetClass, 120)) {
+      return res.status(400).json({
+        error: 'Select the class for this campaign.'
+      });
+    }
+
+    if (
+      channels.length === 0 ||
+      channels.some(channel => !['EMAIL', 'SMS'].includes(channel))
+    ) {
+      return res.status(400).json({
+        error: 'Select email, SMS, or both.'
+      });
+    }
+
+    const client = await pool.connect();
+
+    try {
+      await client.query('BEGIN');
+
+      const sid = schoolId(req);
+      const campaign = await client.query(
+        `INSERT INTO communication_campaigns
+          (school_id, title, subject, message, audience,
+           target_class, channels, status, created_by)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, 'DRAFT', $8)
+         RETURNING id`,
+        [
+          sid, title, subject, message, audience,
+          audience === 'CLASS' ? targetClass : '',
+          channels, req.session.user.id
+        ]
+      );
+
+      const campaignId = campaign.rows[0].id;
+      const people = await getCommunicationAudience(
+        client, sid, audience, targetClass
+      );
+
+      const counts = { EMAIL: 0, SMS: 0 };
+
+      for (const person of people) {
+        for (const channel of channels) {
+          const destination = channel === 'EMAIL'
+            ? String(person.email || '').trim().toLowerCase()
+            : String(person.phone || '').trim();
+
+          if (!destination) continue;
+
+          const result = await client.query(
+            `INSERT INTO communication_recipients
+              (school_id, campaign_id, parent_id, employee_id,
+               recipient_name, channel, destination)
+             VALUES ($1, $2, $3, $4, $5, $6, $7)
+             ON CONFLICT (campaign_id, channel, destination)
+             DO NOTHING`,
+            [
+              sid,
+              campaignId,
+              audience === 'ALL_STAFF' ? null : person.id,
+              audience === 'ALL_STAFF' ? person.id : null,
+              person.recipient_name,
+              channel,
+              destination
+            ]
+          );
+
+          counts[channel] += result.rowCount;
+        }
+      }
+
+      await client.query(
+        `INSERT INTO audit_logs
+          (school_id, user_id, action, entity_type, entity_id)
+         VALUES ($1, $2, $3, $4, $5)`,
+        [
+          sid, req.session.user.id,
+          'communication_draft_created',
+          'communication_campaign',
+          String(campaignId)
+        ]
+      );
+
+      await client.query('COMMIT');
+
+      res.status(201).json({
+        ok: true,
+        campaignId,
+        status: 'DRAFT',
+        recipientCounts: counts,
+        message: 'Communication draft saved. No messages have been sent.'
+      });
+    } catch (error) {
+      await client.query('ROLLBACK');
+      throw error;
+    } finally {
+      client.release();
+    }
+  })
+);
+
 app.get('/api/parents', requireRole('ADMIN', 'HEADMASTER'), asyncRoute(async (req, res) => {
   const result = await q(
     `SELECT p.*,
