@@ -529,7 +529,10 @@ function dashboardCalendar(){
       </div>
     </section>`;
 }
-
+async function loadCommunicationCampaigns() {
+  const result = await api('/api/communications/campaigns');
+  state.data.communicationCampaigns = result.campaigns || [];
+}
 function render(){const d=state.data,students=d.students.filter(s=>!s.archived),paid=d.payments.reduce((n,p)=>n+Number(p.amount||0),0),expected=students.reduce((n,s)=>n+Number(s.total_fees||0),0),owing=students.filter(s=>Number(s.total_fees||0)>Number(s.paid||0)).length;let html='';
 
 
@@ -5875,6 +5878,13 @@ if (!allowedMenus.includes(button.dataset.view) && !canOpenFeeding) {
   return;
 }
     state.view = button.dataset.view;
+    if (state.view === 'Communications') {
+  try {
+    await loadCommunicationCampaigns();
+  } catch (error) {
+    toast(error.message || 'Could not load communication history.', true);
+  }
+    }
     state.search = '';
     state.animateCountersOnNextRender = true;
     render();
@@ -6383,7 +6393,11 @@ case 'delete-all-marks': {
       case 'close-modal':
         $('#modalHost').innerHTML = '';
         break;
-
+case 'refresh-communications':
+  await loadCommunicationCampaigns();
+  render();
+  toast('Communication history refreshed.');
+  break;
       case 'clear-search':
         state.search = '';
         render();
@@ -6476,6 +6490,10 @@ case 'delete-all-marks': {
   }
 });
 document.addEventListener('change', e => {
+    if (e.target.matches('#communicationForm select[name="audience"]')) {
+    const field = document.getElementById('communicationClassField');
+    if (field) field.hidden = e.target.value !== 'CLASS';
+    }
   if (e.target.id === 'studentClassFilter') {
     state.studentClassFilter = e.target.value;
     render();
