@@ -42,7 +42,43 @@ function requireRole(...roles) { return (req, res, next) => { if (!req.session.u
 function schoolId(req) { return req.session.user.schoolId; }
 async function audit(req, action, type = '', id = '') { await q('INSERT INTO audit_logs(school_id,user_id,action,entity_type,entity_id) VALUES($1,$2,$3,$4,$5)', [schoolId(req), req.session.user.id, action, type, String(id)]); }
 function validText(value, max = 120) { return typeof value === 'string' && value.trim().length > 0 && value.trim().length <= max; }
+let smtpTransporter = null;
 
+function getSmtpTransporter() {
+  const host = process.env.SMTP_HOST;
+  const port = Number(process.env.SMTP_PORT);
+  const user = process.env.SMTP_USER;
+  const pass = process.env.SMTP_PASS;
+  const from = process.env.SMTP_FROM;
+
+  if (
+    !host ||
+    !Number.isInteger(port) ||
+    port < 1 ||
+    port > 65535 ||
+    !from ||
+    (user && !pass) ||
+    (!user && pass)
+  ) {
+    throw new Error(
+      'Email delivery is not configured. Check the SMTP settings in Render.'
+    );
+  }
+
+  if (!smtpTransporter) {
+    smtpTransporter = nodemailer.createTransport({
+      host,
+      port,
+      secure: process.env.SMTP_SECURE === 'true',
+      ...(user && pass ? { auth: { user, pass } } : {}),
+      connectionTimeout: 15000,
+      greetingTimeout: 15000,
+      socketTimeout: 30000
+    });
+  }
+
+  return smtpTransporter;
+}
 const importUpload = multer({
   storage: multer.memoryStorage(),
   limits: {
