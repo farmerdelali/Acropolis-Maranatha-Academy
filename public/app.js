@@ -6401,6 +6401,45 @@ case 'delete-all-marks': {
       case 'close-modal':
         $('#modalHost').innerHTML = '';
         break;
+ case 'send-communication': {
+  if (state.user.role !== 'ADMIN') {
+    toast('Only administrators can send campaigns.', true);
+    break;
+  }
+
+  const campaignId = button.dataset.id;
+
+  if (!campaignId) {
+    toast('Campaign ID is missing.', true);
+    break;
+  }
+
+  if (!confirm(
+    'Send this campaign to all eligible, opted-in recipients? This action cannot be undone.'
+  )) {
+    break;
+  }
+
+  button.disabled = true;
+  button.textContent = 'Queuing…';
+
+  try {
+    const result = await api(
+      `/api/communications/campaigns/${encodeURIComponent(campaignId)}/send`,
+      { method: 'POST', body: JSON.stringify({}) }
+    );
+
+    await loadCommunicationCampaigns();
+    render();
+    toast(result.message || 'Campaign queued successfully.');
+  } catch (error) {
+    button.disabled = false;
+    button.textContent = 'Send Campaign';
+    toast(error.message || 'Could not queue campaign.', true);
+  }
+
+  break;
+}       
 case 'refresh-communications':
   await loadCommunicationCampaigns();
   render();
