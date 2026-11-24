@@ -504,3 +504,11 @@ ALTER TABLE communication_recipients
       'SKIPPED'
     )
   );
+-- COMMUNICATION RETRY SCHEDULING
+
+ALTER TABLE communication_recipients
+  ADD COLUMN IF NOT EXISTS next_attempt_at TIMESTAMPTZ
+  NOT NULL DEFAULT NOW();
+
+CREATE INDEX IF NOT EXISTS communication_retry_schedule_idx
+ON communication_recipients(status, next_attempt_at, attempts);
