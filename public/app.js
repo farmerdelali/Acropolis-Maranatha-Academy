@@ -1497,16 +1497,24 @@ ${['ADMIN', 'HEADMASTER', 'TEACHER'].includes(d.session?.role) ? `
         </button>
       </div>
       <div class="panel-body">
-        ${campaigns.length ? campaigns.map(campaign => `
-          <div class="list-row">
-            <strong>${esc(campaign.title)}</strong>
-            <span>${esc(campaign.status)}</span>
-            <small>
-              ${Number(campaign.email_count || 0)} email recipients ·
-              ${Number(campaign.sms_count || 0)} SMS recipients
-            </small>
-          </div>
-        `).join('') : '<p>No communication drafts yet.</p>'}
+      ${campaigns.length ? campaigns.map(campaign => `
+  <div class="list-row">
+    <strong>${esc(campaign.title)}</strong>
+    <span>${esc(campaign.status)}</span>
+    <small>
+      ${Number(campaign.email_count || 0)} email recipients ·
+      ${Number(campaign.sms_count || 0)} SMS recipients
+    </small>
+    ${state.user.role === 'ADMIN' && campaign.status === 'DRAFT' ? `
+      <button class="btn primary" type="button"
+        data-action="send-communication"
+        data-id="${esc(campaign.id)}">
+        Send Campaign
+      </button>
+    ` : ''}
+  </div>
+`).join('') : '<p>No communication drafts yet.</p>'}
+    
       </div>
     </section>
   `;
