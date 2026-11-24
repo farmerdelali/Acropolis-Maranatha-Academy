@@ -3364,7 +3364,136 @@ app.post(
     }
   })
 );
+app.post(
+  '/api/communications/campaigns/:id/send',
+  requireRole('ADMIN'),
+  asyncRoute(async (req, res) => {
+    const campaignId = String(req.params.id || '');
 
+    if (!/^\d+$/.test(campaignId)) {
+      return res.status(400).json({
+        error: 'Invalid campaign ID.'
+      });
+    }
+
+    const client = await pool.connect();
+
+    try {
+      await client.query('BEGIN');
+
+      const sid = schoolId(req);
+
+      const campaignResult = await client.query(
+        `SELECT id, title, channels, status
+         FROM communication_campaigns
+         WHERE id = $1 AND school_id = $2
+         FOR UPDATE`,
+        [campaignId, sid]
+      );
+
+      if (!campaignResult.rowCount) {
+        await client.query('ROLLBACK');
+        return res.status(404).json({
+          error: 'Campaign not found.'
+        });
+      }
+
+      const campaign = campaignResult.rows[0];
+
+      if (campaign.status !== 'DRAFT') {
+        await client.query('ROLLBACK');
+        return res.status(409).json({
+          error: 'Only draft campaigns can be queued.'
+        });
+      }
+
+      const missingSettings = [];
+
+      if (campaign.channels.includes('EMAIL')) {
+        const port = Number(process.env.SMTP_PORT);
+
+        if (
+          !process.env.SMTP_HOST ||
+          !Number.isInteger(port) ||
+          port < 1 ||
+          port > 65535 ||
+          !process.env.SMTP_FROM ||
+          (process.env.SMTP_USER && !process.env.SMTP_PASS) ||
+          (!process.env.SMTP_USER && process.env.SMTP_PASS)
+        ) {
+          missingSettings.push('Email SMTP settings');
+        }
+      }
+
+      if (campaign.channels.includes('SMS')) {
+        if (
+          !process.env.ARKESEL_API_KEY ||
+          !process.env.ARKESEL_SENDER_ID
+        ) {
+          missingSettings.push('Arkesel SMS settings');
+        }
+      }
+
+      if (missingSettings.length) {
+        await client.query('ROLLBACK');
+        return res.status(400).json({
+          error: `Configure ${missingSettings.join(' and ')} in Render first.`
+        });
+      }
+
+      const recipients = await client.query(
+        `SELECT COUNT(*)::int AS total
+         FROM communication_recipients
+         WHERE school_id = $1
+           AND campaign_id = $2
+           AND status = 'PENDING'`,
+        [sid, campaignId]
+      );
+
+      if (recipients.rows[0].total === 0) {
+        await client.query('ROLLBACK');
+        return res.status(400).json({
+          error: 'This campaign has no opted-in recipients to send to.'
+        });
+      }
+
+      await client.query(
+        `UPDATE communication_campaigns
+         SET status = 'QUEUED', updated_at = NOW()
+         WHERE id = $1 AND school_id = $2`,
+        [campaignId, sid]
+      );
+
+      await client.query(
+        `INSERT INTO audit_logs
+          (school_id, user_id, action, entity_type, entity_id)
+         VALUES ($1, $2, $3, $4, $5)`,
+        [
+          sid,
+          req.session.user.id,
+          'communication_campaign_queued',
+          'communication_campaign',
+          campaignId
+        ]
+      );
+
+      await client.query('COMMIT');
+
+      res.json({
+        ok: true,
+        campaignId,
+        status: 'QUEUED',
+        recipientCount: recipients.rows[0].total,
+        message: 'Campaign queued. Delivery will begin when the delivery worker is enabled.'
+      });
+    } catch (error) {
+      await client.query('ROLLBACK');
+      throw error;
+    } finally {
+      client.release();
+    }
+  })
+);
 app.get('/api/parents', requireRole('ADMIN', 'HEADMASTER'), asyncRoute(async (req, res) => {
   const result = await q(
     `SELECT p.*,
