@@ -93,6 +93,46 @@ async function sendCommunicationEmail(to, subject, message) {
     messageId: result.messageId || ''
   };
 }
+async function sendCommunicationSms(to, message) {
+  const apiKey = process.env.ARKESEL_API_KEY;
+  const sender = process.env.ARKESEL_SENDER_ID;
+
+  if (!apiKey || !sender) {
+    throw new Error('Arkesel SMS settings are not configured.');
+  }
+
+  const response = await fetch(
+    'https://sms.arkesel.com/api/v2/sms/send',
+    {
+      method: 'POST',
+      headers: {
+        'api-key': apiKey,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        sender,
+        message,
+        recipients: [to]
+      })
+    }
+  );
+
+  const result = await response.json().catch(() => ({}));
+
+  if (!response.ok || result.status !== 'success') {
+    throw new Error(
+      result.message || 'Arkesel could not accept the SMS.'
+    );
+  }
+
+  const details = Array.isArray(result.data)
+    ? result.data[0]
+    : result.data;
+
+  return {
+    messageId: details?.id || ''
+  };
+}
 const importUpload = multer({
   storage: multer.memoryStorage(),
   limits: {
