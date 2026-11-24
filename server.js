@@ -133,6 +133,180 @@ async function sendCommunicationSms(to, message) {
     messageId: details?.id || ''
   };
 }
+let communicationWorkerRunning = false;
+
+async function processCommunicationQueue() {
+  if (communicationWorkerRunning) return;
+
+  communicationWorkerRunning = true;
+
+  try {
+    for (let batch = 0; batch < 5; batch++) {
+      const client = await pool.connect();
+      let recipient = null;
+
+      try {
+        await client.query('BEGIN');
+
+        const result = await client.query(
+          `SELECT
+             r.id,
+             r.school_id,
+             r.campaign_id,
+             r.channel,
+             r.destination,
+             r.attempts,
+             c.subject AS campaign_subject,
+             c.message AS campaign_message
+           FROM communication_recipients r
+           JOIN communication_campaigns c
+             ON c.id = r.campaign_id
+            AND c.school_id = r.school_id
+           WHERE c.status IN ('QUEUED', 'SENDING')
+             AND (
+               r.status = 'PENDING'
+               OR (r.status = 'FAILED' AND r.attempts < 3)
+             )
+             AND r.next_attempt_at <= NOW()
+           ORDER BY r.next_attempt_at, r.id
+           LIMIT 1
+           FOR UPDATE OF r SKIP LOCKED`
+        );
+
+        if (!result.rowCount) {
+          await client.query('COMMIT');
+          break;
+        }
+
+        recipient = result.rows[0];
+
+        await client.query(
+          `UPDATE communication_recipients
+           SET status = 'SENDING',
+               attempts = attempts + 1,
+               error_message = ''
+           WHERE id = $1 AND school_id = $2`,
+          [recipient.id, recipient.school_id]
+        );
+
+        await client.query(
+          `UPDATE communication_campaigns
+           SET status = 'SENDING', updated_at = NOW()
+           WHERE id = $1 AND school_id = $2`,
+          [recipient.campaign_id, recipient.school_id]
+        );
+
+        await client.query('COMMIT');
+      } catch (error) {
+        await client.query('ROLLBACK').catch(() => {});
+        throw error;
+      } finally {
+        client.release();
+      }
+
+      try {
+        let delivery;
+
+        if (recipient.channel === 'EMAIL') {
+          delivery = await sendCommunicationEmail(
+            recipient.destination,
+            recipient.campaign_subject,
+            recipient.campaign_message
+          );
+        } else {
+          delivery = await sendCommunicationSms(
+            recipient.destination,
+            recipient.campaign_message
+          );
+        }
+
+        await q(
+          `UPDATE communication_recipients
+           SET status = 'SENT',
+               provider_message_id = $1,
+               sent_at = NOW(),
+               error_message = '',
+               next_attempt_at = NOW()
+           WHERE id = $2 AND school_id = $3`,
+          [
+            delivery.messageId || '',
+            recipient.id,
+            recipient.school_id
+          ]
+        );
+      } catch (error) {
+        await q(
+          `UPDATE communication_recipients
+           SET status = 'FAILED',
+               error_message = $1,
+               next_attempt_at = CASE
+                 WHEN attempts < 3
+                   THEN NOW() + CASE attempts
+                     WHEN 1 THEN INTERVAL '1 minute'
+                     ELSE INTERVAL '5 minutes'
+                   END
+                 ELSE NOW()
+               END
+           WHERE id = $2 AND school_id = $3`,
+          [
+            String(error.message || 'Delivery failed').slice(0, 1000),
+            recipient.id,
+            recipient.school_id
+          ]
+        );
+      }
+
+      const summary = await q(
+        `SELECT
+           COUNT(*) FILTER (
+             WHERE status IN ('PENDING', 'SENDING')
+           )::int AS active_count,
+           COUNT(*) FILTER (
+             WHERE status = 'FAILED' AND attempts < 3
+           )::int AS retryable_count,
+           COUNT(*) FILTER (
+             WHERE status = 'FAILED' AND attempts >= 3
+           )::int AS failed_count,
+           COUNT(*) FILTER (
+             WHERE status IN ('SENT', 'DELIVERED')
+           )::int AS success_count
+         FROM communication_recipients
+         WHERE campaign_id = $1 AND school_id = $2`,
+        [recipient.campaign_id, recipient.school_id]
+      );
+
+      const counts = summary.rows[0];
+
+      let campaignStatus = 'COMPLETED';
+
+      if (counts.active_count > 0 || counts.retryable_count > 0) {
+        campaignStatus = 'SENDING';
+      } else if (counts.failed_count > 0 && counts.success_count > 0) {
+        campaignStatus = 'PARTIAL';
+      } else if (counts.failed_count > 0) {
+        campaignStatus = 'FAILED';
+      }
+
+      await q(
+        `UPDATE communication_campaigns
+         SET status = $1, updated_at = NOW()
+         WHERE id = $2 AND school_id = $3`,
+        [
+          campaignStatus,
+          recipient.campaign_id,
+          recipient.school_id
+        ]
+      );
+    }
+  } catch (error) {
+    console.error(
+      'Communication delivery worker error:',
+      error.message
+    );
+  } finally {
+    communicationWorkerRunning = false;
+  }
+}
 const importUpload = multer({
   storage: multer.memoryStorage(),
   limits: {
