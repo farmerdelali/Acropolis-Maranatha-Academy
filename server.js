@@ -6176,4 +6176,19 @@ app.post(
 app.use('/api', (err, req, res, next) => { console.error(err); if(res.headersSent)return next(err); if(err.code==='23505')return res.status(409).json({error:'A record with these details already exists.'}); res.status(500).json({error:'Something went wrong. Please try again.'}); });
 app.get('*', (_req,res)=>res.sendFile(path.join(__dirname,'public','index.html')));
 const port=Number(process.env.PORT||3000);
-initDb().then(()=>app.listen(port,()=>console.log(`Acropolis School System listening on ${port}`))).catch(err=>{console.error('Database initialization failed:',err.message);process.exit(1)});
+initDb()
+  .then(() => {
+    app.listen(port, () => {
+      console.log(`Acropolis School System listening on ${port}`);
+    });
+
+    processCommunicationQueue();
+    setInterval(processCommunicationQueue, 15000);
+  })
+  .catch(error => {
+    console.error(
+      'Database initialization failed:',
+      error.message
+    );
+    process.exit(1);
+  });
