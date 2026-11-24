@@ -487,3 +487,20 @@ ALTER TABLE employees
 CREATE INDEX IF NOT EXISTS communication_pending_queue_idx
 ON communication_recipients(status, created_at)
 WHERE status = 'PENDING';
+-- COMMUNICATION DELIVERY QUEUE STATUS
+
+ALTER TABLE communication_recipients
+  DROP CONSTRAINT IF EXISTS communication_recipients_status_check;
+
+ALTER TABLE communication_recipients
+  ADD CONSTRAINT communication_recipients_status_check
+  CHECK (
+    status IN (
+      'PENDING',
+      'SENDING',
+      'SENT',
+      'DELIVERED',
+      'FAILED',
+      'SKIPPED'
+    )
+  );
